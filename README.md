@@ -73,14 +73,14 @@ $ git clone git@code.ajsw.is:PMD/rotom_bot.git
     `.env` file in the root of the project
 
     ```sql
-    CREATE USER [name] WITH PASSWORD '[password]'
-    CREATE DATABSE [name] WITH OWNER [username]
+    CREATE USER [name] WITH PASSWORD '[password]';
+    CREATE DATABASE [name] WITH OWNER [username];
     ```
 
     If the db gets created with initail setup this is how to change owner
 
     ```sql
-    ALTER DATABSE [name] OWNER TO [new_owner]
+    ALTER DATABASE [name] OWNER TO [new_owner];
     ```
 
   * __Create Test Bot__
