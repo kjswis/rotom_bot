@@ -42,6 +42,11 @@ bot = Discordrb::Bot.new(token: token)
 
 # This will trigger on every message sent in discord
 bot.message do |event|
+  content = event.message.content
+
+  if content == '!hello'
+    event.respond("Hello there #{event.author.name}")
+  end
 end
 
 # This will trigger on every reaction is added in discord
