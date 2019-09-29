@@ -23,6 +23,9 @@ CHAR_CHANNEL = 594244240020865035
 # Images
 HAP_ROTOM = "https://static.pokemonpets.com/images/monsters-images-800-800/479-Rotom.png"
 
+# URLs
+APP_FORM = "https://docs.google.com/forms/d/e/1FAIpQLSfryXixX3aKBNQxZT8xOfWzuF02emkJbqJ1mbMGxZkwCvsjyA/viewform"
+
 # ---
 
 Dotenv.load if BOT_ENV != 'production'
@@ -130,8 +133,7 @@ def edit_character(params, member)
 
   edit_images(image_url, character.id, 'sfw', 'primary') if image_url
 
-  user = "#{member.name}##{member.tag}"
-  character_embed(character, image_url, user)
+  character_embed(character, image_url, member)
 end
 
 def edit_images(image_url, character_id, category, keyword)
@@ -140,8 +142,9 @@ def edit_images(image_url, character_id, category, keyword)
   end
 end
 
-def character_embed(character, image, user)
+def character_embed(character, image, member)
   fields = []
+  user = "#{member.name}##{member.tag}"
 
   fields.push({name: 'Species', value: character.species, inline: true}) if character.species
   fields.push({name: 'Type', value: character.types, inline: true}) if character.types
@@ -168,6 +171,7 @@ def character_embed(character, image, user)
 
   embed.description = character.personality if character.personality
   embed.thumbnail = { url: image } if image
+  embed.color = member.color.combined if member.color.combined
 
   embed
 end
@@ -207,11 +211,29 @@ matchup = Command.new(:matchup) do |event, type|
   end
 end
 
+app = Command.new(:app) do |event, name|
+  user = event.author
+
+  if name
+    if character = Character.where(user_id: user.id).find_by(name: name)
+      edit_url = APP_FORM + character.edit_url
+      event.respond("OK, #{user.name}! I'll send you what you need to edit #{name}")
+      user.dm("You may edit #{name} here:\n#{edit_url}")
+    else
+      event.respond("I didn't find your character, #{name}\nIf you want to start a new app, please use `pkmn-app`")
+    end
+  else
+    event.respond("You want to start a new character application?\nGreat! I'll dm you instructions")
+    user.dm("Hi, #{user.name}\nYou can start your application here:\n#{APP_FORM}\n\nYour key is: #{user.id}\nOnce complete, your application will submitted to the admins for approval!")
+  end
+end
+
 # ---
 
 commands = [
   hello,
-  matchup
+  matchup,
+  app
 ]
 
 # This will trigger on every message sent in discord
