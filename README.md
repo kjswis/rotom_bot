@@ -17,7 +17,7 @@ $ git push origin/[branch_name]       #to push branch
 ```
 
 ### Features
-  * None yet
+  * Says hello
 
 ## Setup
 This application runs using Ruby and Postgres. In order to run the bot locally
