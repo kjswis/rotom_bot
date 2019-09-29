@@ -62,10 +62,22 @@ hello = Command.new(:hello) do |event|
   )
 end
 
+matchup = Command.new(:matchup) do |event, type|
+  channel = event.channel.id
+  file = "images/Type #{type.capitalize}.png"
+
+  if File.exists?(file)
+    bot.send_file(channel, File.open(file, 'r'))
+  else
+    bot.respond("I do not know this pokemon type! Please try again!")
+  end
+end
+
 # ---
 
 commands = [
-  hello
+  hello,
+  matchup
 ]
 
 # This will trigger on every message sent in discord
