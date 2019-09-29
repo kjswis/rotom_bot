@@ -10,6 +10,9 @@ Bundler.require(:default, BOT_ENV)
 require 'active_record'
 
 # Constants: such as roles and channel ids
+
+HAP_ROTOM = "https://static.pokemonpets.com/images/monsters-images-800-800/479-Rotom.png"
+
 # ---
 
 Dotenv.load if BOT_ENV != 'production'
@@ -38,14 +41,52 @@ bot = Discordrb::Bot.new(token: token)
 # ---
 
 # Commands: structure basic bot commands here
+
+hello = Command.new(:hello) do |event|
+  user = event.author.nickname || event.author.name
+
+  greetings = [
+    "Hi there, #{user}",
+    "Greetings #{user}, you lovable bum",
+    "Alola, #{user}",
+    "Hello, #{user}! The Guildmasters have been waiting",
+    "#{user} would like to battle!"
+  ]
+
+  Embed.new(
+    description: greetings.sample,
+    color: event.author.color.combined,
+    thumbnail: {
+      url: HAP_ROTOM
+    }
+  )
+end
+
 # ---
+
+commands = [
+  hello
+]
 
 # This will trigger on every message sent in discord
 bot.message do |event|
   content = event.message.content
 
-  if content == '!hello'
-    event.respond("Hello there #{event.author.name}")
+  if (match = /^pkmn-(\w+)/.match(content))
+      command = match[1]
+
+      if cmd = commands.detect { |c| c.name == command.to_sym }
+        reply = cmd.call(content, event)
+
+        if reply.is_a? Embed
+          event.send_embed("", reply)
+        elsif reply
+          event.respond(reply)
+        else
+          event.respond("Something went wrong!")
+        end
+      end
+
   end
 end
 
