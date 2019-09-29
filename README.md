@@ -12,8 +12,8 @@ list new features in the list below. When you are ready to merge your branch,
 you may create a pull request at [ajsw.is](https://code.ajsw.is/PMD/rotom_bot)
 
 ```bash
-$ git ch -b [branch_name]             #to create a branch
-$ git push origin/[branch_name]       #to push branch
+$ git checkout -b [branch_name]       #to create a branch
+$ git push origin  branch_name]       #to push branch
 ```
 
 ### Features
