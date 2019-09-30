@@ -138,8 +138,8 @@ def edit_character(params, member)
 end
 
 def edit_images(image_url, character_id, category, keyword)
-  unless Url.where(char_id: character_id).find_by(url: image_url)
-    Url.create(char_id: character_id, url: image_url, category: category, keyword: keyword)
+  unless CharImages.where(char_id: character_id).find_by(url: image_url)
+    CharImages.create(char_id: character_id, url: image_url, category: category, keyword: keyword)
   end
 end
 

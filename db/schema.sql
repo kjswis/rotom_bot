@@ -21,6 +21,39 @@ SET default_tablespace = '';
 SET default_with_oids = false;
 
 --
+-- Name: char_images; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.char_images (
+    id integer NOT NULL,
+    char_id integer NOT NULL,
+    url character varying NOT NULL,
+    category character varying,
+    keyword character varying
+);
+
+
+--
+-- Name: char_images_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.char_images_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: char_images_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.char_images_id_seq OWNED BY public.char_images.id;
+
+
+--
 -- Name: characters; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -71,39 +104,6 @@ ALTER SEQUENCE public.characters_id_seq OWNED BY public.characters.id;
 
 
 --
--- Name: urls; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.urls (
-    id integer NOT NULL,
-    char_id integer NOT NULL,
-    category character varying,
-    keyword character varying,
-    url character varying NOT NULL
-);
-
-
---
--- Name: urls_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.urls_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: urls_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.urls_id_seq OWNED BY public.urls.id;
-
-
---
 -- Name: users; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -124,6 +124,13 @@ CREATE TABLE public.users (
 
 
 --
+-- Name: char_images id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.char_images ALTER COLUMN id SET DEFAULT nextval('public.char_images_id_seq'::regclass);
+
+
+--
 -- Name: characters id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -131,10 +138,11 @@ ALTER TABLE ONLY public.characters ALTER COLUMN id SET DEFAULT nextval('public.c
 
 
 --
--- Name: urls id; Type: DEFAULT; Schema: public; Owner: -
+-- Data for Name: char_images; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.urls ALTER COLUMN id SET DEFAULT nextval('public.urls_id_seq'::regclass);
+COPY public.char_images (id, char_id, url, category, keyword) FROM stdin;
+\.
 
 
 --
@@ -143,15 +151,6 @@ ALTER TABLE ONLY public.urls ALTER COLUMN id SET DEFAULT nextval('public.urls_id
 
 COPY public.characters (id, user_id, name, species, types, age, weight, height, gender, orientation, relationship, attacks, likes, dislikes, personality, backstory, other, edit_url, active, dm_notes, location, rumors) FROM stdin;
 1	215240568245190656	Mizukyu	Mimikyu	Ghost Fairy	old	1.5 lbs	0'8"	Female	Pansexual	Married	Shadow Claw | Play Rough | Psychic | Shadow Sneak	cuddles, soft things, and Neiro waterbed	bullies, rejection, being exposed	I am shy and a bit recluse, but warm when you take the time to get to know me. I don't like when people try to see under my disguise, I've lost many friends that way (to death) including my spouse. Really, really really likes to dress up as other pokemon	Has existed more years than she cares to count. She is immortal, due to being a ghost. She has learned to carefully hide her appearance as to make sure not to accidentally kill more friends. Took up tailoring to make multiple disguises, because pretending to be a Pikachu forever is boring.	Switches disguising with moods. Has made them for all pokemon. Also a master shadow bender	?edit2=2_ABaOnuc3HZEyhI9EeApXcJtsBmDzqtzDGH5De46CfuRBxwVavQKAfTT_LZy_kMH0sz5H7gk	Active	\N	\N	loves children | hates washing and tailoring disguises | surprisingly soft| steals children | wishes to be admired
-\.
-
-
---
--- Data for Name: urls; Type: TABLE DATA; Schema: public; Owner: -
---
-
-COPY public.urls (id, char_id, category, keyword, url) FROM stdin;
-1	1	sfw	primary	https://i.kym-cdn.com/photos/images/original/001/194/272/043.png
 \.
 
 
@@ -167,6 +166,13 @@ COPY public.users (id, level, next_level, boosted_xp, unboosted_xp, evs, hp, att
 
 
 --
+-- Name: char_images_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.char_images_id_seq', 1, false);
+
+
+--
 -- Name: characters_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
@@ -174,10 +180,11 @@ SELECT pg_catalog.setval('public.characters_id_seq', 1, true);
 
 
 --
--- Name: urls_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+-- Name: char_images char_images_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.urls_id_seq', 1, true);
+ALTER TABLE ONLY public.char_images
+    ADD CONSTRAINT char_images_pkey PRIMARY KEY (id);
 
 
 --
@@ -186,14 +193,6 @@ SELECT pg_catalog.setval('public.urls_id_seq', 1, true);
 
 ALTER TABLE ONLY public.characters
     ADD CONSTRAINT characters_pkey PRIMARY KEY (id);
-
-
---
--- Name: urls urls_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.urls
-    ADD CONSTRAINT urls_pkey PRIMARY KEY (id);
 
 
 --
@@ -213,10 +212,10 @@ ALTER TABLE ONLY public.characters
 
 
 --
--- Name: urls url_character_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: char_images url_character_id; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.urls
+ALTER TABLE ONLY public.char_images
     ADD CONSTRAINT url_character_id FOREIGN KEY (char_id) REFERENCES public.characters(id);
 
 
