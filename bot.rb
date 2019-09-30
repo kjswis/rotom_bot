@@ -8,6 +8,7 @@ BOT_ENV = ENV.fetch('BOT_ENV') { 'development' }
 Bundler.require(:default, BOT_ENV)
 
 require 'active_record'
+require_relative 'lib/emoji'
 
 # Constants: such as roles and channel ids
 
@@ -63,8 +64,8 @@ def check_user(event)
     characters = Character.where(user_id: user_id[1]).count
 
     if characters < allowed_characters && characters < 6
-      event.message.react("🇾")
-      event.message.react("🇳")
+      event.message.react(Emoji::Y)
+      event.message.react(Emoji::N)
     else
       event.server.member(user_id[1]).dm("You have too many characters!\nPlease deactivate and try again #{edit_url[1]}")
       event.message.delete
@@ -259,17 +260,18 @@ bot.message do |event|
   if event.author.id == APP_BOT
     check_user(event)
   end
+
 end
 
 # This will trigger on every reaction is added in discord
 bot.reaction_add do |event|
-  if event.message.author.id == APP_BOT
-    yes = event.message.reacted_with("🇾").count
-    no = event.message.reacted_with("🇳").count
-    maj = event.server.roles.find{ |r| r.id == ADMINS }.members.count
-    maj = maj / 2
+  content = event.message.content
 
-    if yes > maj
+  if event.message.author.id == APP_BOT
+    maj = event.server.roles.find{ |r| r.id == ADMINS }.members.count / 2
+    maj = 1
+
+    if event.message.reacted_with(Emoji::Y).count > maj
       msg = event.message.content.split("\n")
       uid = /<@([0-9]+)>/.match(event.message.content)
       member = event.server.member(uid[1])
@@ -277,8 +279,7 @@ bot.reaction_add do |event|
       embed = edit_character(msg, member)
 
       if embed
-        # Bot doesn't have permission to delete messages :(
-        #event.message.delete
+        event.message.delete
 
         bot.send_message(
           CHAR_CHANNEL,
@@ -289,6 +290,71 @@ bot.reaction_add do |event|
       else
         event.respond("Something went wrong")
       end
+    elsif event.message.reacted_with(Emoji::N).count > maj
+      message = event.message.content
+      split_message = message.split("\n")
+
+      i = 0
+      split_message.each do |row|
+        if row.match(/\*\*/)
+          if row.match(/>>>/)
+            row.insert 5, "#{Emoji::ALL[i]} "
+            i += 1
+          else
+            row.insert 0, "#{Emoji::ALL[i]} "
+            i += 1
+          end
+        end
+      end
+
+      edited_message = split_message.join("\n")
+      new_message = "**_APPLICATION REJECTED!!_**\n--------------\n\n#{edited_message}\n\n\nPlease indicate what needs to be updated with the corresponding reactions!\nWhen you're done hit #{Emoji::CHECK}, or to dismiss hit #{Emoji::CROSS}"
+
+      event.message.delete
+      rejected = event.respond(new_message)
+
+      j = 0
+      i.times do
+        rejected.react(Emoji::ALL[j])
+        j += 1
+      end
+
+      rejected.react(Emoji::CHECK)
+      rejected.react(Emoji::CROSS)
+    end
+  end
+
+  if event.message.from_bot? && content.match(/\*\*\_APPLICATION\sREJECTED\!\!\_\*\*/)
+    if event.message.reacted_with(Emoji::CHECK).count > 1
+      reactions = event.message.reactions
+
+      edit_url = /Edit\sKey\s\(ignore\):\s([\s\S]*)/.match(content)
+      user_id = /<@([0-9]+)>/.match(content)
+      member = event.server.member(user_id[1])
+
+      message = "Your application has been rejected!\nPlease fix the following lines, and resubmit here:\n#{APP_FORM}#{edit_url[1]}"
+      rows = reactions.count - 2
+      i = 0
+
+      rows.times do
+        if reactions[Emoji::ALL[i]].count > 1
+          row = /#{Emoji::ALL[i]}\s(.*)/.match(content)
+          message += "\n> #{row[1]}"
+        end
+
+        i += 1
+      end
+
+      temp_message = "Your application has been rejected!\nPlease fix the following lines, and resubmit here:\n[users url goes here]"
+      message = "Your application has been rejected!\nPlease fix the following lines, and resubmit here:\n#{APP_FORM}#{edit_url[1]}"
+
+      event.message.delete
+      event.send_temporary_message(temp_message, 15)
+
+      member.dm(message)
+
+    elsif event.message.reacted_with(Emoji::CROSS).count > 1
+      event.message.delete
     end
   end
 end
