@@ -8,7 +8,6 @@ BOT_ENV = ENV.fetch('BOT_ENV') { 'development' }
 Bundler.require(:default, BOT_ENV)
 
 require 'active_record'
-require_relative 'lib/emoji'
 
 # Constants: such as roles and channel ids
 
@@ -46,6 +45,7 @@ ActiveRecord::Base.establish_connection(
 )
 
 Dir['app/**/*.rb'].each { |f| require File.join(File.expand_path(__dir__), f) }
+Dir["/lib/*.rb"].each {|file| require file }
 
 
 token = ENV['DISCORD_BOT_TOKEN']
@@ -75,106 +75,26 @@ def check_user(event)
   end
 end
 
-def edit_character(params, member)
-  key_mapping = {
-    "Submitted by" => "user_id",
-    " >>> **Characters Name**" => "name",
-    "**Species**" => "species",
-    "**Type**" => "types",
-    "**Age**" => "age",
-    "**Weight**" => "weight",
-    "**Height**" => "height",
-    "**Gender**" => "gender",
-    "**Sexual Orientation**" => "orientation",
-    "**Relationship Status**" => "relationship",
-    "**URL to your character's appearance**" => "image_url",
-    "**Attacks**" => "attacks",
-    "**Custom Attack Description**" => "custom_attack",
-    "**Likes**" => "likes",
-    "**Dislikes**" => "dislikes",
-    "**Personality**" => "personality",
-    "**Rumors**" => "rumors",
-    "**Backstory**" => "backstory",
-    "**Other**" => "other",
-    "Edit Key (ignore)" => "edit_url",
-  }
+def edit_character(message, member)
+  params = message.split("\n")
+  char_hash = Character.from_form(params)
+  image_url = /\*\*URL to the Character\'s Appearance\*\*\:\s(.*)/.match(message)
 
-  hash = {}
-
-  params.map do |item|
-    next if item.empty?
-
-    key,value = item.split(": ")
-    db_column = key_mapping[key]
-
-    if v = value.match(/<@([0-9]+)>/)
-      hash[db_column] = v[1]
-    else
-      hash[db_column] = value
-    end
-  end
-
-  # Should we add this to the form, and allow NPCs to be created the same way?
-  hash["active"] = 'Active'
-
-  if image_url = hash["image_url"]
-    hash = hash.reject { |k| k == "image_url" }
-  end
-
-  if custom_attack = hash["custom_attack"]
-    hash = hash.reject { |k| k == "custom_attack" }
-  end
-
-  if char = Character.find_by(edit_url: hash["edit_url"])
-    char.update!(hash)
-    character = Character.find_by(edit_url: hash["edit_url"])
+  if char = Character.find_by(edit_url: char_hash["edit_url"])
+    char.update!(char_hash)
+    character = Character.find_by(edit_url: char_hash["edit_url"])
   else
-    character = Character.create(hash)
+    character = Character.create(char_hash)
   end
 
-  edit_images(image_url, character.id, 'sfw', 'primary') if image_url
-
-  character_embed(character, image_url, member)
+  edit_images(image_url[1], character.id, 'sfw', 'primary') if image_url[1]
+  character_embed(character, image_url[1], member)
 end
 
 def edit_images(image_url, character_id, category, keyword)
   unless CharImages.where(char_id: character_id).find_by(url: image_url)
     CharImages.create(char_id: character_id, url: image_url, category: category, keyword: keyword)
   end
-end
-
-def character_embed(character, image, member)
-  fields = []
-  user = "#{member.name}##{member.tag}"
-
-  fields.push({name: 'Species', value: character.species, inline: true}) if character.species
-  fields.push({name: 'Type', value: character.types, inline: true}) if character.types
-  fields.push({name: 'Age', value: character.age, inline: true}) if character.age
-  fields.push({name: 'Weight', value: character.weight, inline: true}) if character.weight
-  fields.push({name: 'Height', value: character.height, inline: true}) if character.height
-  fields.push({name: 'Gender', value: character.gender, inline: true}) if character.gender
-  fields.push({name: 'Sexual Orientation', value: character.orientation, inline: true}) if character.orientation
-  fields.push({name: 'Relationship Status', value: character.relationship, inline: true}) if character.relationship
-  fields.push({name: 'Attacks', value: character.attacks}) if character.attacks
-  fields.push({name: 'Likes', value: character.likes}) if character.likes
-  fields.push({name: 'Dislikes', value: character.dislikes}) if character.dislikes
-  fields.push({name: 'Rumors', value: character.rumors}) if character.rumors
-  fields.push({name: 'Backstory', value: character.backstory}) if character.backstory
-  fields.push({name: 'Other', value: character.other}) if character.other
-
-  embed = Embed.new(
-    footer: {
-      text: "Created by #{user} | #{character.active}"
-    },
-    title: character.name,
-    fields: fields
-  )
-
-  embed.description = character.personality if character.personality
-  embed.thumbnail = { url: image } if image
-  embed.color = member.color.combined if member.color.combined
-
-  embed
 end
 
 # ---
@@ -272,11 +192,10 @@ bot.reaction_add do |event|
     maj = 1
 
     if event.message.reacted_with(Emoji::Y).count > maj
-      msg = event.message.content.split("\n")
-      uid = /<@([0-9]+)>/.match(event.message.content)
+      uid = /<@([0-9]+)>/.match(content)
       member = event.server.member(uid[1])
 
-      embed = edit_character(msg, member)
+      embed = edit_character(content, member)
 
       if embed
         event.message.delete
