@@ -57,9 +57,11 @@ bot = Discordrb::Bot.new(token: token)
 
 # Methods: define basic methods here
 # ---
+command_list = []
 
 # Commands: structure basic bot commands here
 
+command_list.push(["pkmn-hello","a simple test command to make the bot say hi."])
 hello = Command.new(:hello) do |event|
   user = event.author.nickname || event.author.name
 
@@ -80,6 +82,23 @@ hello = Command.new(:hello) do |event|
   )
 end
 
+help = Command.new(:help) do |event,extra|
+  user = event.author.nickname || event.author.name
+  fields = []
+
+  command_list.each do |item|
+	fields.push({name: item[0], value: item[1]})
+  end
+
+  Embed.new(
+    color: "#73FE49",
+    title: "List of Character Commands",
+    description: "Basic list of commands and what they do!",
+    fields: fields
+  )
+end
+
+command_list.push(["pkmn-matchup <type>","Shows the types that are strong and weak to the given type."])
 matchup = Command.new(:matchup) do |event, type|
   channel = event.channel.id
   file = "images/Type #{type.capitalize}.png"
@@ -91,6 +110,7 @@ matchup = Command.new(:matchup) do |event, type|
   end
 end
 
+command_list.insert(0,["pkmn-app <name>","Starts the process for a new character appication or to edit an existing one. Dont worry. Any other commands needed for this will be listed in the responces!"])
 app = Command.new(:app) do |event, name|
   user = event.author
   user_channel = event.author.dm
@@ -113,9 +133,10 @@ end
 # ---
 
 commands = [
+  app,
   hello,
-  matchup,
-  app
+  help,
+  matchup
 ]
 
 # This will trigger on every message sent in discord
