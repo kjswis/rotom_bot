@@ -29,6 +29,16 @@ module Emoji
   Z = "🇿"
   CHECK = "✅"
   CROSS = "❌"
+  SPEECH_BUBBLE = "💬"
+  SCALE = "⚖"
+  PICTURE = "🖼"
+  BOOKS = "📚"
+  NOTE = "🗒"
+  SKULL = "☠"
+  BABY = "👶"
+  VULGAR = "🖕"
+  CRAYON = "🖍"
 
-  ALL = [A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z]
+  LETTERS = [A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z]
+  APP_SECTIONS = [SPEECH_BUBBLE, SCALE, PICTURE, BOOKS, BABY, SKULL, VULGAR, NOTE]
 end

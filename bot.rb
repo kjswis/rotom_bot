@@ -26,6 +26,8 @@ HAP_ROTOM = "https://static.pokemonpets.com/images/monsters-images-800-800/479-R
 # URLs
 APP_FORM = "https://docs.google.com/forms/d/e/1FAIpQLSfryXixX3aKBNQxZT8xOfWzuF02emkJbqJ1mbMGxZkwCvsjyA/viewform"
 
+# Regexes
+
 # ---
 
 Dotenv.load if BOT_ENV != 'production'
@@ -45,58 +47,13 @@ ActiveRecord::Base.establish_connection(
 )
 
 Dir['app/**/*.rb'].each { |f| require File.join(File.expand_path(__dir__), f) }
-Dir["/lib/*.rb"].each {|file| require file }
+Dir['/lib/*.rb'].each { |f| require f }
 
 
 token = ENV['DISCORD_BOT_TOKEN']
 bot = Discordrb::Bot.new(token: token)
 
 # Methods: define basic methods here
-
-def check_user(event)
-  content = event.message.content
-  edit_url = /Edit\sKey\s\(ignore\):\s([\s\S]*)/.match(content)
-
-  if user_id = (/<@([0-9]+)>/.match(content))
-    user = User.find_by(id: user_id[1])
-
-    allowed_characters = (user.level / 10 + 1)
-    characters = Character.where(user_id: user_id[1]).count
-
-    if characters < allowed_characters && characters < 6
-      event.message.react(Emoji::Y)
-      event.message.react(Emoji::N)
-    else
-      event.server.member(user_id[1]).dm("You have too many characters!\nPlease deactivate and try again #{edit_url[1]}")
-      event.message.delete
-    end
-  else
-    event.message.edit("#{content}\n\nI don't know this user!")
-  end
-end
-
-def edit_character(message, member)
-  params = message.split("\n")
-  char_hash = Character.from_form(params)
-  image_url = /\*\*URL to the Character\'s Appearance\*\*\:\s(.*)/.match(message)
-
-  if char = Character.find_by(edit_url: char_hash["edit_url"])
-    char.update!(char_hash)
-    character = Character.find_by(edit_url: char_hash["edit_url"])
-  else
-    character = Character.create(char_hash)
-  end
-
-  edit_images(image_url[1], character.id, 'sfw', 'primary') if image_url[1]
-  character_embed(character, image_url[1], member)
-end
-
-def edit_images(image_url, character_id, category, keyword)
-  unless CharImages.where(char_id: character_id).find_by(url: image_url)
-    CharImages.create(char_id: character_id, url: image_url, category: category, keyword: keyword)
-  end
-end
-
 # ---
 
 # Commands: structure basic bot commands here
@@ -178,7 +135,7 @@ bot.message do |event|
   end
 
   if event.author.id == APP_BOT
-    check_user(event)
+    Character.check_user(event)
   end
 
 end
@@ -192,10 +149,14 @@ bot.reaction_add do |event|
     maj = 1
 
     if event.message.reacted_with(Emoji::Y).count > maj
+      params = content.split("\n")
       uid = /<@([0-9]+)>/.match(content)
       member = event.server.member(uid[1])
 
-      embed = edit_character(content, member)
+      character = CharacterController.edit_character(params)
+      image_url = ImageController.edit_images(content, character.id)
+
+      embed = character_embed(character, image_url, member)
 
       if embed
         event.message.delete
@@ -210,40 +171,31 @@ bot.reaction_add do |event|
         event.respond("Something went wrong")
       end
     elsif event.message.reacted_with(Emoji::N).count > maj
-      message = event.message.content
-      split_message = message.split("\n")
+      edit_url = /Edit\sKey\s\(ignore\):\s([\s\S]*)/.match(content)
+      user_id = /<@([0-9]+)>/.match(content)
 
-      i = 0
-      split_message.each do |row|
-        if row.match(/\*\*/)
-          if row.match(/>>>/)
-            row.insert 5, "#{Emoji::ALL[i]} "
-            i += 1
-          else
-            row.insert 0, "#{Emoji::ALL[i]} "
-            i += 1
-          end
-        end
-      end
+      new_message = "#{user_id[1]}:#{edit_url[1]}"
+      embed = reject_char_embed(content)
 
-      edited_message = split_message.join("\n")
-      new_message = "**_APPLICATION REJECTED!!_**\n--------------\n\n#{edited_message}\n\n\nPlease indicate what needs to be updated with the corresponding reactions!\nWhen you're done hit #{Emoji::CHECK}, or to dismiss hit #{Emoji::CROSS}"
+      #event.message.delete
+      rejected = event.send_embed(content, embed)
 
-      event.message.delete
-      rejected = event.respond(new_message)
-
-      j = 0
-      i.times do
-        rejected.react(Emoji::ALL[j])
-        j += 1
-      end
-
+      rejected.react(Emoji::SPEECH_BUBBLE)
+      rejected.react(Emoji::SCALE)
+      rejected.react(Emoji::PICTURE)
+      rejected.react(Emoji::BOOKS)
+      rejected.react(Emoji::BABY)
+      rejected.react(Emoji::SKULL)
+      rejected.react(Emoji::VULGAR)
+      rejected.react(Emoji::NOTE)
       rejected.react(Emoji::CHECK)
       rejected.react(Emoji::CROSS)
+      rejected.react(Emoji::CRAYON)
+
     end
   end
 
-  if event.message.from_bot? && content.match(/\*\*\_APPLICATION\sREJECTED\!\!\_\*\*/)
+  if event.message.from_bot? && content.match(/\_New\sCharacter\sApplication\_/)
     if event.message.reacted_with(Emoji::CHECK).count > 1
       reactions = event.message.reactions
 
@@ -251,29 +203,30 @@ bot.reaction_add do |event|
       user_id = /<@([0-9]+)>/.match(content)
       member = event.server.member(user_id[1])
 
-      message = "Your application has been rejected!\nPlease fix the following lines, and resubmit here:\n#{APP_FORM}#{edit_url[1]}"
-      rows = reactions.count - 2
-      i = 0
+      message = "Your application has been rejected!"
 
-      rows.times do
-        if reactions[Emoji::ALL[i]].count > 1
-          row = /#{Emoji::ALL[i]}\s(.*)/.match(content)
-          message += "\n> #{row[1]}"
+      Emoji::APP_SECTIONS.each do |reaction|
+        if reactions[reaction].count > 1
+          m = CharAppResponses::REJECT_MESSAGES[reaction].gsub("\n", " ")
+          message += "\n#{m}"
         end
-
-        i += 1
       end
 
-      temp_message = "Your application has been rejected!\nPlease fix the following lines, and resubmit here:\n[users url goes here]"
-      message = "Your application has been rejected!\nPlease fix the following lines, and resubmit here:\n#{APP_FORM}#{edit_url[1]}"
+      #event.message.delete
+      event.send_temporary_message(message, 25)
 
-      event.message.delete
-      event.send_temporary_message(temp_message, 15)
-
+      message += "\n\nYou may edit your application and resubmit here:\n#{APP_FORM}#{edit_url[1]}"
       member.dm(message)
 
     elsif event.message.reacted_with(Emoji::CROSS).count > 1
       event.message.delete
+    elsif event.message.reacted_with(Emoji::CRAYON).count > 1
+      edit_url = /Edit\sKey\s\(ignore\):\s([\s\S]*)/.match(content)
+
+      message = "Please edit the users application and resubmit!\n#{APP_FORM}#{edit_url[1]}"
+
+      #event.message.delete
+      event.send_temporary_message(message, 25)
     end
   end
 end
