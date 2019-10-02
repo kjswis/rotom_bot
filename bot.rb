@@ -57,12 +57,11 @@ bot = Discordrb::Bot.new(token: token)
 
 # Methods: define basic methods here
 # ---
-command_list = []
 
 # Commands: structure basic bot commands here
+commands = []
 
-command_list.push(["pkmn-hello","a simple test command to make the bot say hi."])
-hello = Command.new(:hello) do |event|
+hello = Command.new(:hello, "Says hello!\nGreat for testing if the bot is responsive") do |event|
   user = event.author.nickname || event.author.name
 
   greetings = [
@@ -82,24 +81,25 @@ hello = Command.new(:hello) do |event|
   )
 end
 
-help = Command.new(:help) do |event,extra|
-  user = event.author.nickname || event.author.name
-  fields = []
-
-  command_list.each do |item|
-	fields.push({name: item[0], value: item[1]})
+help = Command.new(:help, "Displays help information for the commands", [nil, :command]) do |event, command|
+  if (cmd = /pkmn-(\w+)/.match(command))
+    command = cmd[1]
   end
 
-  Embed.new(
-    color: "#73FE49",
-    title: "List of Character Commands",
-    description: "Basic list of commands and what they do!",
-    fields: fields
-  )
+  if command
+    if cmd = commands.detect { |c| c.name == command.to_sym }
+      embed = command_usage(cmd)
+      event.send_embed("", embed)
+    else
+      event.respond("I don't know this command!")
+    end
+  else
+    embed = all_commands(commands)
+    event.send_embed("", embed)
+  end
 end
 
-command_list.push(["pkmn-matchup <type>","Shows the types that are strong and weak to the given type."])
-matchup = Command.new(:matchup) do |event, type|
+matchup = Command.new(:matchup, "Displays a chart of effectiveness for the given type", [:type]) do |event, type|
   channel = event.channel.id
   file = "images/Type #{type.capitalize}.png"
 
@@ -110,8 +110,7 @@ matchup = Command.new(:matchup) do |event, type|
   end
 end
 
-command_list.insert(0,["pkmn-app <name>","Starts the process for a new character appication or to edit an existing one. Dont worry. Any other commands needed for this will be listed in the responces!"])
-app = Command.new(:app) do |event, name|
+app = Command.new(:app, "Gives the user links for starting or editing character applications", [nil, :name]) do |event, name|
   user = event.author
   user_channel = event.author.dm
 
@@ -133,10 +132,10 @@ end
 # ---
 
 commands = [
-  app,
   hello,
-  help,
-  matchup
+  matchup,
+  app,
+  help
 ]
 
 # This will trigger on every message sent in discord
