@@ -27,6 +27,8 @@ HAP_ROTOM = "https://static.pokemonpets.com/images/monsters-images-800-800/479-R
 APP_FORM = "https://docs.google.com/forms/d/e/1FAIpQLSfryXixX3aKBNQxZT8xOfWzuF02emkJbqJ1mbMGxZkwCvsjyA/viewform"
 
 # Regexes
+UID = /<@([0-9]+)>/
+EDIT_URL = /Edit\sKey\s\(ignore\):\s([\s\S]*)/
 
 # ---
 
@@ -91,18 +93,20 @@ end
 
 app = Command.new(:app) do |event, name|
   user = event.author
+  user_channel = event.author.dm
 
   if name
     if character = Character.where(user_id: user.id).find_by(name: name)
       edit_url = APP_FORM + character.edit_url
-      event.respond("OK, #{user.name}! I'll send you what you need to edit #{name}")
-      user.dm("You may edit #{name} here:\n#{edit_url}")
+      embed = edit_app_embed(event, edit_url, name)
+
+      bot.send_message(user_channel.id, "", false, embed)
     else
-      event.respond("I didn't find your character, #{name}\nIf you want to start a new app, please use `pkmn-app`")
+      app_not_found_embed(event, name)
     end
   else
-    event.respond("You want to start a new character application?\nGreat! I'll dm you instructions")
-    user.dm("Hi, #{user.name}\nYou can start your application here:\n#{APP_FORM}\n\nYour key is: #{user.id}\nOnce complete, your application will submitted to the admins for approval!")
+    embed = new_app_embed(event)
+    bot.send_message(user_channel.id, "", false, embed)
   end
 end
 
@@ -140,7 +144,11 @@ bot.message do |event|
 
 end
 
-# This will trigger on every reaction is added in discord
+# This will trigger when a dm is sent to the bot from a user
+bot.pm do |event|
+end
+
+# This will trigger when any reaction is added in discord
 bot.reaction_add do |event|
   content = event.message.content
 
@@ -150,7 +158,7 @@ bot.reaction_add do |event|
 
     if event.message.reacted_with(Emoji::Y).count > maj
       params = content.split("\n")
-      uid = /<@([0-9]+)>/.match(content)
+      uid = UID.match(content)
       member = event.server.member(uid[1])
 
       character = CharacterController.edit_character(params)
@@ -170,68 +178,38 @@ bot.reaction_add do |event|
       else
         event.respond("Something went wrong")
       end
+
     elsif event.message.reacted_with(Emoji::N).count > maj
-      edit_url = /Edit\sKey\s\(ignore\):\s([\s\S]*)/.match(content)
-      user_id = /<@([0-9]+)>/.match(content)
-
-      new_message = "#{user_id[1]}:#{edit_url[1]}"
       embed = reject_char_embed(content)
-
-      #event.message.delete
-      rejected = event.send_embed(content, embed)
-
-      rejected.react(Emoji::SPEECH_BUBBLE)
-      rejected.react(Emoji::SCALE)
-      rejected.react(Emoji::PICTURE)
-      rejected.react(Emoji::BOOKS)
-      rejected.react(Emoji::BABY)
-      rejected.react(Emoji::SKULL)
-      rejected.react(Emoji::VULGAR)
-      rejected.react(Emoji::NOTE)
-      rejected.react(Emoji::CHECK)
-      rejected.react(Emoji::CROSS)
-      rejected.react(Emoji::CRAYON)
-
+      reject_app(event, embed)
     end
   end
 
   if event.message.from_bot? && content.match(/\_New\sCharacter\sApplication\_/)
     if event.message.reacted_with(Emoji::CHECK).count > 1
-      reactions = event.message.reactions
-
-      edit_url = /Edit\sKey\s\(ignore\):\s([\s\S]*)/.match(content)
-      user_id = /<@([0-9]+)>/.match(content)
+      user_id = UID.match(content)
       member = event.server.member(user_id[1])
 
-      message = "Your application has been rejected!"
+      embed = message_user_embed(event)
 
-      Emoji::APP_SECTIONS.each do |reaction|
-        if reactions[reaction].count > 1
-          m = CharAppResponses::REJECT_MESSAGES[reaction].gsub("\n", " ")
-          message += "\n#{m}"
-        end
-      end
+      event.message.delete
+      bot.send_temporary_message(event.channel.id, "", 5, false, embed)
 
-      #event.message.delete
-      event.send_temporary_message(message, 25)
-
-      message += "\n\nYou may edit your application and resubmit here:\n#{APP_FORM}#{edit_url[1]}"
-      member.dm(message)
+      user_channel = member.dm
+      bot.send_message(user_channel.id, "", false, embed)
 
     elsif event.message.reacted_with(Emoji::CROSS).count > 1
       event.message.delete
     elsif event.message.reacted_with(Emoji::CRAYON).count > 1
-      edit_url = /Edit\sKey\s\(ignore\):\s([\s\S]*)/.match(content)
+      embed = self_edit_embed(content)
 
-      message = "Please edit the users application and resubmit!\n#{APP_FORM}#{edit_url[1]}"
-
-      #event.message.delete
-      event.send_temporary_message(message, 25)
+      event.message.delete
+      bot.send_temporary_message(event.channel.id, "", 35, false, embed)
     end
   end
 end
 
-# This will trigger on every reaction is removed in discord
+# This will trigger when any reaction is removed in discord
 bot.reaction_remove do |event|
 end
 

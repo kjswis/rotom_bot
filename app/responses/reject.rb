@@ -19,3 +19,39 @@ def reject_char_embed(app)
     fields: fields
   )
 end
+
+def message_user_embed(event)
+  reactions = event.message.reactions
+  content = event.message.content
+
+  edit_url = EDIT_URL.match(content)
+  description = ""
+
+  Emoji::APP_SECTIONS.each do |reaction|
+    if reactions[reaction].count > 1
+      m = CharAppResponses::REJECT_MESSAGES[reaction].gsub("\n", " ")
+      description += "\n#{m}"
+    end
+  end
+
+  embed = Embed.new(
+    title: "**Your application has been rejected!!**",
+    color: "#a41e1f",
+    fields: [
+      { name: "Listed reasons for rejection:", value: description },
+      { name: "You can edit your application and resubmit here:", value: "#{APP_FORM}#{edit_url[1]}" }
+    ]
+  )
+
+  embed
+end
+
+def self_edit_embed(content)
+  edit_url = EDIT_URL.match(content)
+
+  Embed.new(
+    title: "Please edit the user's application and resubmit!",
+    color: "#a41e1f",
+    description: "#{APP_FORM}#{edit_url[1]}"
+  )
+end

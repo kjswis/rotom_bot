@@ -17,3 +17,17 @@ def unknown_member(event)
   event.message.delete
   event.respond(content)
 end
+
+def reject_app(event, embed)
+  content = event.message.content
+  event.message.delete
+  reject = event.send_embed(content, embed)
+
+  Emoji::APP_SECTIONS.each do |reaction|
+    reject.react(reaction)
+  end
+
+  reject.react(Emoji::CHECK)
+  reject.react(Emoji::CROSS)
+  reject.react(Emoji::CRAYON)
+end
