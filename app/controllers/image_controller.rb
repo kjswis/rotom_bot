@@ -6,6 +6,10 @@ class ImageController
       end
     end
 
-    image
+    if image
+      image.url
+    else
+      image_url[1]
+    end
   end
 end
