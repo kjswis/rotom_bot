@@ -27,6 +27,7 @@ $ psql [db_name] < db/schema.sql
   * Displays Type Matchups
   * Communicates with Users to Create and Edit Character Applications
   * Uses Reactions to Approve or Deny Character Applications
+  * Displays help information for the available commands
 
 ## Setup
 This application runs using Ruby and Postgres. In order to run the bot locally
