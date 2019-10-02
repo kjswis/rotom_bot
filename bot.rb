@@ -135,13 +135,18 @@ app = Command.new(:app, "Everything to do with character applications", opts) do
   end
 end
 
+poll = Command.new(:poll) do |event, options|
+  new_poll_embed(event, options)
+end
+
 # ---
 
 commands = [
   hello,
   matchup,
   app,
-  help
+  help,
+  poll
 ]
 
 # This will trigger on every message sent in discord
