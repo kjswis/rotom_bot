@@ -59,8 +59,9 @@ bot = Discordrb::Bot.new(token: token)
 # ---
 
 # Commands: structure basic bot commands here
+commands = []
 
-hello = Command.new(:hello) do |event|
+hello = Command.new(:hello, "Says hello!\nGreat for testing if the bot is responsive") do |event|
   user = event.author.nickname || event.author.name
 
   greetings = [
@@ -80,7 +81,25 @@ hello = Command.new(:hello) do |event|
   )
 end
 
-matchup = Command.new(:matchup) do |event, type|
+help = Command.new(:help, "Displays help information for the commands", [nil, :command]) do |event, command|
+  if (cmd = /pkmn-(\w+)/.match(command))
+    command = cmd[1]
+  end
+
+  if command
+    if cmd = commands.detect { |c| c.name == command.to_sym }
+      embed = command_usage(cmd)
+      event.send_embed("", embed)
+    else
+      event.respond("I don't know this command!")
+    end
+  else
+    embed = all_commands(commands)
+    event.send_embed("", embed)
+  end
+end
+
+matchup = Command.new(:matchup, "Displays a chart of effectiveness for the given type", [:type]) do |event, type|
   channel = event.channel.id
   file = "images/Type #{type.capitalize}.png"
 
@@ -91,7 +110,7 @@ matchup = Command.new(:matchup) do |event, type|
   end
 end
 
-app = Command.new(:app) do |event, name|
+app = Command.new(:app, "Gives the user links for starting or editing character applications", [nil, :name]) do |event, name|
   user = event.author
   user_channel = event.author.dm
 
@@ -115,7 +134,8 @@ end
 commands = [
   hello,
   matchup,
-  app
+  app,
+  help
 ]
 
 # This will trigger on every message sent in discord
