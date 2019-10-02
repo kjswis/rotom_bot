@@ -13,12 +13,20 @@ you may create a pull request at [ajsw.is](https://code.ajsw.is/PMD/rotom_bot)
 
 ```bash
 $ git checkout -b [branch_name]       #to create a branch
-$ git push origin  branch_name]       #to push branch
+$ git push origin [branch_name]       #to push branch
+```
+
+In order to import a schema, use the following command. To learn more about
+Postgres, visit the wiki tab or [postgresql.org](https://www.postgresql.org/docs/)
+```bash
+$ psql [db_name] < db/schema.sql
 ```
 
 ### Features
   * Says Hello
   * Displays Type Matchups
+  * Communicates with Users to Create and Edit Character Applications
+  * Uses Reactions to Approve or Deny Character Applications
 
 ## Setup
 This application runs using Ruby and Postgres. In order to run the bot locally

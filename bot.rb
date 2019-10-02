@@ -11,7 +11,24 @@ require 'active_record'
 
 # Constants: such as roles and channel ids
 
+# Users
+APP_BOT = 627702340018896896
+
+# Roles
+ADMINS = 308250685554556930
+
+# Channels
+CHAR_CHANNEL = 594244240020865035
+
+# Images
 HAP_ROTOM = "https://static.pokemonpets.com/images/monsters-images-800-800/479-Rotom.png"
+
+# URLs
+APP_FORM = "https://docs.google.com/forms/d/e/1FAIpQLSfryXixX3aKBNQxZT8xOfWzuF02emkJbqJ1mbMGxZkwCvsjyA/viewform"
+
+# Regexes
+UID = /<@([0-9]+)>/
+EDIT_URL = /Edit\sKey\s\(ignore\):\s([\s\S]*)/
 
 # ---
 
@@ -32,6 +49,7 @@ ActiveRecord::Base.establish_connection(
 )
 
 Dir['app/**/*.rb'].each { |f| require File.join(File.expand_path(__dir__), f) }
+Dir['/lib/*.rb'].each { |f| require f }
 
 
 token = ENV['DISCORD_BOT_TOKEN']
@@ -73,11 +91,31 @@ matchup = Command.new(:matchup) do |event, type|
   end
 end
 
+app = Command.new(:app) do |event, name|
+  user = event.author
+  user_channel = event.author.dm
+
+  if name
+    if character = Character.where(user_id: user.id).find_by(name: name)
+      edit_url = APP_FORM + character.edit_url
+      embed = edit_app_embed(event, edit_url, name)
+
+      bot.send_message(user_channel.id, "", false, embed)
+    else
+      app_not_found_embed(event, name)
+    end
+  else
+    embed = new_app_embed(event)
+    bot.send_message(user_channel.id, "", false, embed)
+  end
+end
+
 # ---
 
 commands = [
   hello,
-  matchup
+  matchup,
+  app
 ]
 
 # This will trigger on every message sent in discord
@@ -98,15 +136,80 @@ bot.message do |event|
           event.respond("Something went wrong!")
         end
       end
+  end
 
+  if event.author.id == APP_BOT
+    Character.check_user(event)
+  end
+
+end
+
+# This will trigger when a dm is sent to the bot from a user
+bot.pm do |event|
+end
+
+# This will trigger when any reaction is added in discord
+bot.reaction_add do |event|
+  content = event.message.content
+
+  if event.message.author.id == APP_BOT
+    maj = event.server.roles.find{ |r| r.id == ADMINS }.members.count / 2
+    maj = 1
+
+    if event.message.reacted_with(Emoji::Y).count > maj
+      params = content.split("\n")
+      uid = UID.match(content)
+      member = event.server.member(uid[1])
+
+      character = CharacterController.edit_character(params)
+      image_url = ImageController.edit_images(content, character.id)
+
+      embed = character_embed(character, image_url, member)
+
+      if embed
+        event.message.delete
+
+        bot.send_message(
+          CHAR_CHANNEL,
+          "Character Approved!",
+          false,
+          embed
+        )
+      else
+        event.respond("Something went wrong")
+      end
+
+    elsif event.message.reacted_with(Emoji::N).count > maj
+      embed = reject_char_embed(content)
+      reject_app(event, embed)
+    end
+  end
+
+  if event.message.from_bot? && content.match(/\_New\sCharacter\sApplication\_/)
+    if event.message.reacted_with(Emoji::CHECK).count > 1
+      user_id = UID.match(content)
+      member = event.server.member(user_id[1])
+
+      embed = message_user_embed(event)
+
+      event.message.delete
+      bot.send_temporary_message(event.channel.id, "", 5, false, embed)
+
+      user_channel = member.dm
+      bot.send_message(user_channel.id, "", false, embed)
+
+    elsif event.message.reacted_with(Emoji::CROSS).count > 1
+      event.message.delete
+    elsif event.message.reacted_with(Emoji::CRAYON).count > 1
+      embed = self_edit_embed(content)
+
+      event.message.delete
+      bot.send_temporary_message(event.channel.id, "", 35, false, embed)
+    end
   end
 end
 
-# This will trigger on every reaction is added in discord
-bot.reaction_add do |event|
-end
-
-# This will trigger on every reaction is removed in discord
+# This will trigger when any reaction is removed in discord
 bot.reaction_remove do |event|
 end
 
