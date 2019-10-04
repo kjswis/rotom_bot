@@ -3,7 +3,7 @@ require 'optparse'
 class Command
   attr_reader :name, :operation
 
-  def initialize(name, description, options =[], &block)
+  def initialize(name, description, options ={}, &block)
     @name = name
     @description = description
     @options = options

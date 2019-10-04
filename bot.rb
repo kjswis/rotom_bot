@@ -29,6 +29,7 @@ APP_FORM = "https://docs.google.com/forms/d/e/1FAIpQLSfryXixX3aKBNQxZT8xOfWzuF02
 # Regexes
 UID = /<@([0-9]+)>/
 EDIT_URL = /Edit\sKey\s\(ignore\):\s([\s\S]*)/
+NEW_APP = /\_New\sCharacter\sApplication\_:\s(.*)/
 
 # ---
 
@@ -81,25 +82,23 @@ hello = Command.new(:hello, "Says hello!\nGreat for testing if the bot is respon
   )
 end
 
-help = Command.new(:help, "Displays help information for the commands", [nil, :command]) do |event, command|
-  if (cmd = /pkmn-(\w+)/.match(command))
-    command = cmd[1]
-  end
+opts = { "" => "displays a list of all commands", "command" => "displays info and usage for specified command" }
+help = Command.new(:help, "Displays help information for the commands", opts) do |event, command|
+  short = /pkmn-(\w+)/.match(command) if command
+  cmd = short ? short[1] : command if command
+  cmd = commands.detect { |c| c.name == cmd.to_sym } if cmd
 
-  if command
-    if cmd = commands.detect { |c| c.name == command.to_sym }
-      embed = command_usage(cmd)
-      event.send_embed("", embed)
-    else
-      event.respond("I don't know this command!")
-    end
+  if command && cmd
+    command_embed(cmd)
+  elsif !command
+    all_commands_embed(commands)
   else
-    embed = all_commands(commands)
-    event.send_embed("", embed)
+    command_error_embed("Command not found!", help)
   end
 end
 
-matchup = Command.new(:matchup, "Displays a chart of effectiveness for the given type", [:type]) do |event, type|
+opts = { "type" => "" }
+matchup = Command.new(:matchup, "Displays a chart of effectiveness for the given type", opts) do |event, type|
   channel = event.channel.id
   file = "images/Type #{type.capitalize}.png"
 
@@ -110,22 +109,29 @@ matchup = Command.new(:matchup, "Displays a chart of effectiveness for the given
   end
 end
 
-app = Command.new(:app, "Gives the user links for starting or editing character applications", [nil, :name]) do |event, name|
+opts = { "" => "starts a new app", "name" => "edits an existing app", "name | (in)active" => "sets app to active or inactive" }
+app = Command.new(:app, "Everything to do with character applications", opts) do |event, name, status|
   user = event.author
   user_channel = event.author.dm
 
-  if name
-    if character = Character.where(user_id: user.id).find_by(name: name)
-      edit_url = APP_FORM + character.edit_url
-      embed = edit_app_embed(event, edit_url, name)
+  character = Character.where(user_id: user.id).find_by(name: name) if name
+  active = status.match(/(in)?active/i) if status
 
-      bot.send_message(user_channel.id, "", false, embed)
-    else
-      app_not_found_embed(event, name)
-    end
-  else
-    embed = new_app_embed(event)
+  if status && active && character
+    character.update!(active: active[0].capitalize)
+    character.reload
+
+    success_embed("Successfully updated #{name} to be #{active[0].downcase}")
+  elsif name && character && !status
+    edit_url = APP_FORM + character.edit_url
+    embed = edit_app_embed(event, edit_url, name)
+
     bot.send_message(user_channel.id, "", false, embed)
+  elsif !name && !status
+    embed = new_app_embed(event, name)
+    bot.send_message(user_channel.id, "", false, embed)
+  else
+    command_error_embed("There was an error processing your application!", app)
   end
 end
 
@@ -141,27 +147,23 @@ commands = [
 # This will trigger on every message sent in discord
 bot.message do |event|
   content = event.message.content
+  author = event.author.id
 
-  if (match = /^pkmn-(\w+)/.match(content))
-      command = match[1]
+  command = /^pkmn-(\w+)/.match(content)
+  cmd = commands.detect { |c| c.name == command[1].to_sym } if command
 
-      if cmd = commands.detect { |c| c.name == command.to_sym }
-        reply = cmd.call(content, event)
+  reply = cmd.call(content, event) if cmd
 
-        if reply.is_a? Embed
-          event.send_embed("", reply)
-        elsif reply
-          event.respond(reply)
-        else
-          event.respond("Something went wrong!")
-        end
-      end
+  case reply
+  when Embed
+    event.send_embed("", reply)
+  when String
+    event.respond(reply)
   end
 
-  if event.author.id == APP_BOT
-    Character.check_user(event)
-  end
+  event.send_embed("", error_embed("Command not found!")) if command && !cmd
 
+  Character.check_user(event) if author == APP_BOT
 end
 
 # This will trigger when a dm is sent to the bot from a user
@@ -171,61 +173,69 @@ end
 # This will trigger when any reaction is added in discord
 bot.reaction_add do |event|
   content = event.message.content
+  reactions = event.message.reactions
 
-  if event.message.author.id == APP_BOT
-    maj = event.server.roles.find{ |r| r.id == ADMINS }.members.count / 2
-    maj = 1
+  maj = event.server.roles.find{ |r| r.id == ADMINS }.members.count / 2
+  maj = 1
 
-    if event.message.reacted_with(Emoji::Y).count > maj
-      params = content.split("\n")
-      uid = UID.match(content)
-      member = event.server.member(uid[1])
-
-      character = CharacterController.edit_character(params)
-      image_url = ImageController.edit_images(content, character.id)
-
-      embed = character_embed(character, image_url, member)
-
-      if embed
-        event.message.delete
-
-        bot.send_message(
-          CHAR_CHANNEL,
-          "Character Approved!",
-          false,
-          embed
-        )
-      else
-        event.respond("Something went wrong")
-      end
-
-    elsif event.message.reacted_with(Emoji::N).count > maj
-      embed = reject_char_embed(content)
-      reject_app(event, embed)
+  form =
+    case
+    when event.message.author.id == APP_BOT
+      :character_application
+    when event.message.from_bot? && content.match(NEW_APP)
+      :character_rejection
     end
-  end
 
-  if event.message.from_bot? && content.match(/\_New\sCharacter\sApplication\_/)
-    if event.message.reacted_with(Emoji::CHECK).count > 1
-      user_id = UID.match(content)
-      member = event.server.member(user_id[1])
-
-      embed = message_user_embed(event)
-
-      event.message.delete
-      bot.send_temporary_message(event.channel.id, "", 5, false, embed)
-
-      user_channel = member.dm
-      bot.send_message(user_channel.id, "", false, embed)
-
-    elsif event.message.reacted_with(Emoji::CROSS).count > 1
-      event.message.delete
-    elsif event.message.reacted_with(Emoji::CRAYON).count > 1
-      embed = self_edit_embed(content)
-
-      event.message.delete
-      bot.send_temporary_message(event.channel.id, "", 35, false, embed)
+  vote =
+    case
+    when reactions[Emoji::Y].present? && reactions[Emoji::Y].count > maj
+      :yes
+    when reactions[Emoji::N].present? && reactions[Emoji::N].count > maj
+      :no
+    when reactions[Emoji::CHECK].present? && reactions[Emoji::CHECK].count > 1
+      :check
+    when reactions[Emoji::CROSS].present? && reactions[Emoji::CROSS].count > 1
+      :cross
+    when reactions[Emoji::CRAYON].present? && reactions[Emoji::CRAYON].count > 1
+      :crayon
     end
+
+  case [form, vote]
+  when [:character_application, :yes]
+    params = content.split("\n")
+    uid = UID.match(content)
+    member = event.server.member(uid[1])
+
+    character = CharacterController.edit_character(params)
+    image_url = ImageController.edit_images(content, character.id)
+
+    embed = character_embed(character, image_url, member) if character
+    bot.send_message(
+      CHAR_CHANNEL,
+      "Good news, <@#{member.id}>! Your character was approved",
+      false,
+      embed
+    ) if embed
+
+    event.message.delete if embed
+    event.respond("", admin_error_embed("Something went wrong when saving application")) unless embed
+
+  when [:character_application, :no]
+    reject_app(event, reject_char_embed(content))
+
+  when [:character_rejection, :check]
+    member = event.server.member(UID.match(content)[1])
+    embed = message_user_embed(event)
+
+    event.message.delete
+    bot.send_temporary_message(event.channel.id, "", 5, false, embed)
+    bot.send_message(member.dm.id, "", false, embed)
+  when [:character_rejection, :cross]
+    event.message.delete
+
+  when [:character_rejection, :crayon]
+    event.message.delete
+    bot.send_temporary_message(event.channel.id, "", 35, false, self_edit_embed(content))
   end
 end
 

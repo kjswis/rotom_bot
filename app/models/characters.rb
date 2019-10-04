@@ -80,26 +80,29 @@ class Character < ActiveRecord::Base
 
   def self.check_user(event)
     content = event.message.content
-    edit_url = /Edit\sKey\s\(ignore\):\s([\s\S]*)/.match(content)
-    active = /\_New\sCharacter\sApplication\_:\s(.*)/.match(content)
-    user_id = /<@([0-9]+)>/.match(content)
+
+    edit_url = EDIT_URL.match(content)
+    active = NEW_APP.match(content)
+    user_id = UID.match(content)
 
     user = User.find_by(id: user_id[1])
-    member = event.server.member(user_id[1])
-    if user && member
 
-      if active[1] == "Personal Character"
-        allowed_characters = (user.level / 10 + 1)
-        characters = Character.where(user_id: user_id[1]).where(active: "Active").count
+    if user
+      member = event.server.member(user_id[1])
 
-        if characters < allowed_characters && characters < 6
-          approval_react(event)
-        else
-          too_many(event, member, edit_url, 'characters')
-        end
-      else
-        approval_react(event)
-      end
+      calc_max = (user.level / 10 + 1)
+      allowed_characters = calc_max > 6 ? 6 : calc_max
+      active_characters = Character.where(user_id: user_id[1]).where(active: "Active").count
+
+
+      new_active = active[1] == "Personal Character" && Character.where(active: 'NPC').find_by(edit_url: edit_url[1])
+
+      too_many = new_active ? active_characters < allowed_characters : false
+    end
+
+    if member
+      too_many(event, member, edit_url, 'characters') if too_many
+      approval_react(event) unless too_many
     else
       unknown_member(event)
     end
