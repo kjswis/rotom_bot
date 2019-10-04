@@ -1,3 +1,5 @@
+REJECT_RED = "#a41e1f"
+
 def reject_char_embed(app)
   image_url = /\*\*URL to the Character\'s Appearance\*\*\:\s(.*)/.match(app)
 
@@ -12,7 +14,7 @@ def reject_char_embed(app)
   Embed.new(
     title: "**_APPLICATION REJECTED_**",
     description: "Please indicate what message to forward to the user!",
-    color: "#a41e1f",
+    color: REJECT_RED,
     thumbnail: {
       url: image_url[1]
     },
@@ -36,7 +38,7 @@ def message_user_embed(event)
 
   embed = Embed.new(
     title: "**Your application has been rejected!!**",
-    color: "#a41e1f",
+    color: REJECT_RED,
     fields: [
       { name: "Listed reasons for rejection:", value: description },
       { name: "You can edit your application and resubmit here:", value: "#{APP_FORM}#{edit_url[1]}" }
@@ -51,7 +53,7 @@ def self_edit_embed(content)
 
   Embed.new(
     title: "Please edit the user's application and resubmit!",
-    color: "#a41e1f",
+    color: REJECT_RED,
     description: "#{APP_FORM}#{edit_url[1]}"
   )
 end
