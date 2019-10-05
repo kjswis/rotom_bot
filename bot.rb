@@ -135,13 +135,22 @@ app = Command.new(:app, "Everything to do with character applications", opts) do
   end
 end
 
+opts = { "question | option1, option2, etc" => "Creates a poll for the specified question with the given options"}
+poll = Command.new(:poll, "Creates a dynamic poll in any channel", opts) do |event, question, options|
+  options_array = options.split(/\s?,\s?/) if options
+  new_poll_embed(event, question, options_array) if options
+
+  command_error_embed("There was an error creating your poll!", poll) unless question && options
+end
+
 # ---
 
 commands = [
   hello,
   matchup,
   app,
-  help
+  help,
+  poll
 ]
 
 # This will trigger on every message sent in discord
