@@ -1,24 +1,21 @@
-def new_poll_embed(event, options)
+def new_poll_embed(event, question, options)
     fields = []
-    optionsArray = options.split(",")
     name = event.author.nickname || event.author.name
 
-    a = optionsArray.count
-
-    for b in 1..a-1 do            
-        fields.push(name: Emoji::LETTERS[b-1], value: optionsArray[b] + "\n" + CharAppResponses::INLINE_SPACE , inline:true)
+    options.map.with_index do |option, index|
+      fields.push({ name: "#{Emoji::LETTERS[index]} #{option}", value: CharAppResponses::INLINE_SPACE, inline: true })
     end
 
     chat_embed = Embed.new(
-        title:  optionsArray[0],
+        title:  question,
         description: "Created by : #{name}",
-        color: event.author.color.combined,
         fields: fields
     )
 
-    msg = event.send_embed("", chat_embed)
+    chat_embed.color = event.author.color.combined
 
-    for b in 1..a-1 do            
-        msg.react(Emoji::LETTERS[b-1])
+    poll = event.send_embed("", chat_embed)
+    options.each.with_index do |_, index|
+      poll.react(Emoji::LETTERS[index])
     end
   end
