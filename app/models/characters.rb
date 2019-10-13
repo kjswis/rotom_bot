@@ -81,9 +81,9 @@ class Character < ActiveRecord::Base
   def self.check_user(event)
     content = event.message.content
 
-    edit_url = EDIT_URL.match(content)
-    active = NEW_APP.match(content)
-    user_id = UID.match(content)
+    edit_url = Regex::EDIT_URL.match(content)
+    active = Regex::NEW_APP.match(content)
+    user_id = Regex::UID.match(content)
 
     user = User.find_by(id: user_id[1])
 

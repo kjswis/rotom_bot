@@ -11,25 +11,7 @@ require 'active_record'
 
 # Constants: such as roles and channel ids
 
-# Users
-APP_BOT = 627702340018896896
-
-# Roles
 ADMINS = 308250685554556930
-
-# Channels
-CHAR_CHANNEL = 594244240020865035
-
-# Images
-HAP_ROTOM = "https://static.pokemonpets.com/images/monsters-images-800-800/479-Rotom.png"
-
-# URLs
-APP_FORM = "https://docs.google.com/forms/d/e/1FAIpQLSfryXixX3aKBNQxZT8xOfWzuF02emkJbqJ1mbMGxZkwCvsjyA/viewform"
-
-# Regexes
-UID = /<@([0-9]+)>/
-EDIT_URL = /Edit\sKey\s\(ignore\):\s([\s\S]*)/
-NEW_APP = /\_New\sCharacter\sApplication\_:\s(.*)/
 
 # ---
 
@@ -77,7 +59,7 @@ hello = Command.new(:hello, "Says hello!\nGreat for testing if the bot is respon
     description: greetings.sample,
     color: event.author.color.combined,
     thumbnail: {
-      url: HAP_ROTOM
+      url: Image::HAPPY
     }
   )
 end
@@ -112,24 +94,33 @@ end
 opts = { "" => "starts a new app", "name" => "edits an existing app", "name | (in)active" => "sets app to active or inactive" }
 app = Command.new(:app, "Everything to do with character applications", opts) do |event, name, status|
   user = event.author
-  user_channel = event.author.dm
+  user_name = user.nickname || user.name
+  color = user.color ? user.color.combined : Color::DEFAULT
 
   character = Character.where(user_id: user.id).find_by(name: name) if name
   active = status.match(/(in)?active/i) if status
 
-  if status && active && character
+  if name && !character
+    app_not_found_embed(user_name, name)
+
+  elsif status && active && character
     character.update!(active: active[0].capitalize)
     character.reload
 
     success_embed("Successfully updated #{name} to be #{active[0].downcase}")
   elsif name && character && !status
-    edit_url = APP_FORM + character.edit_url
-    embed = edit_app_embed(event, edit_url, name)
+    edit_url = Url::CHARACTER + character.edit_url
+    embed = edit_app_dm(name, edit_url, color)
 
-    bot.send_message(user_channel.id, "", false, embed)
+    bot.send_message(user.dm.id, "", false, embed)
+    edit_app_embed(user_name, name, color)
   elsif !name && !status
-    embed = new_app_embed(event, name)
-    bot.send_message(user_channel.id, "", false, embed)
+    embed = new_app_dm(user_name, color, user.id)
+
+    message = bot.send_message(user.dm.id, "", false, embed)
+    message.react(Emoji::PHONE)
+
+    new_app_embed(user_name, color)
   else
     command_error_embed("There was an error processing your application!", app)
   end
@@ -145,8 +136,6 @@ end
 
 opts = { "participants" => "May accept Everyone, Here, or a comma seperated list of names"}
 raffle = Command.new(:raffle, "Creates a raffle and picks a winner", opts) do |event, participant|
-  user_channel = event.author.dm
-
   participants =
     case participant
     when /^everyone$/i
@@ -158,7 +147,7 @@ raffle = Command.new(:raffle, "Creates a raffle and picks a winner", opts) do |e
     end
 
   winner = participants.sample
-  winner_name = 
+  winner_name =
     case winner
     when String
       winner
@@ -171,6 +160,29 @@ raffle = Command.new(:raffle, "Creates a raffle and picks a winner", opts) do |e
     else
       command_error_embed("There was an error creating your raffle!", raffle)
     end
+end
+
+opts = { "name | key, words | (n)sfw | url" => "" }
+image = Command.new(:image, "Edit your character's images", opts) do |event, name, keyword, tag, url|
+  character = Character.where(user_id: event.author.id).find_by!(name: name) if name
+  category = /(n)?sfw/i.match(tag) if tag
+
+  if character && category
+    image = "_New Character Image_:\n\n>>> **Character**: #{character.name}\n**Species**: #{character.species}"
+    image += "\n\n**Character ID**: #{character.id}\n**Keyword**: #{keyword}\n**Category**: #{tag}\n\n**URL**: #{url}"
+    approval = bot.send_message(Channel::APPROVAL, image, false, nil)
+
+    approval.react(Emoji::Y)
+    approval.react(Emoji::N)
+  end
+
+  if approval
+    success_embed("Your image has been submitted for approval!")
+  else
+    error_embed("Something went wrong!")
+  end
+rescue ActiveRecord::RecordNotFound
+  error_embed("Could not find your character name #{name}")
 end
 
 # ---
@@ -201,13 +213,28 @@ bot.message do |event|
     event.respond(reply)
   end
 
-  event.send_embed("", error_embed("Command not found!")) if command && !cmd
+  event.send_embed("", error_embed("Command not found!")) if command && !cmd && event.server
 
-  Character.check_user(event) if author == APP_BOT
+  Character.check_user(event) if author == Bot::CHARACTER
 end
+
+pm_commands = [ image ]
 
 # This will trigger when a dm is sent to the bot from a user
 bot.pm do |event|
+  content = event.message.content
+
+  command = /^pkmn-(\w+)/.match(content)
+  cmd = pm_commands.detect { |c| c.name == command[1].to_sym } if command
+
+  reply = cmd.call(content, event) if cmd
+
+  case reply
+  when Embed
+    event.send_embed("", reply)
+  when String
+    event.respond(reply)
+  end
 end
 
 # This will trigger when any reaction is added in discord
@@ -215,15 +242,19 @@ bot.reaction_add do |event|
   content = event.message.content
   reactions = event.message.reactions
 
-  maj = event.server.roles.find{ |r| r.id == ADMINS }.members.count / 2
+  maj = event.server.roles.find{ |r| r.id == ADMINS }.members.count / 2 if event.server
   maj = 1
 
   form =
     case
-    when event.message.author.id == APP_BOT
+    when event.message.author.id == Bot::CHARACTER
       :character_application
-    when event.message.from_bot? && content.match(NEW_APP)
+    when event.message.from_bot? && content.match(Regex::CHAR_APP)
       :character_rejection
+    when event.message.from_bot? && event.server.nil?
+      :user_key
+    when event.message.from_bot? && content.match(/\_New\sCharacter\sImage\_:/)
+      :image_application
     end
 
   vote =
@@ -238,20 +269,22 @@ bot.reaction_add do |event|
       :cross
     when reactions[Emoji::CRAYON].present? && reactions[Emoji::CRAYON].count > 1
       :crayon
+    when reactions[Emoji::PHONE].present? && reactions[Emoji::PHONE].count > 1
+      :phone
     end
 
   case [form, vote]
   when [:character_application, :yes]
     params = content.split("\n")
-    uid = UID.match(content)
+    uid = Regex::UID.match(content)
     member = event.server.member(uid[1])
 
     character = CharacterController.edit_character(params)
-    image_url = ImageController.edit_images(content, character.id)
+    image_url = ImageController.default_image(content, character.id)
 
     embed = character_embed(character, image_url, member) if character
     bot.send_message(
-      CHAR_CHANNEL,
+      Channel::CHARACTER,
       "Good news, <@#{member.id}>! Your character was approved",
       false,
       embed
@@ -264,7 +297,7 @@ bot.reaction_add do |event|
     reject_app(event, reject_char_embed(content))
 
   when [:character_rejection, :check]
-    member = event.server.member(UID.match(content)[1])
+    member = event.server.member(Regex::UID.match(content)[1])
     embed = message_user_embed(event)
 
     event.message.delete
@@ -276,6 +309,23 @@ bot.reaction_add do |event|
   when [:character_rejection, :crayon]
     event.message.delete
     bot.send_temporary_message(event.channel.id, "", 35, false, self_edit_embed(content))
+
+  when [:user_key, :phone]
+    event.message.delete_own_reaction(Emoji::PHONE)
+    user = event.message.reacted_with(Emoji::PHONE).first
+
+    bot.send_message(user.dm.id, user.id, false, nil)
+  when [:image_application, :yes]
+    params = content.split("\n")
+    image = ImageController.edit_image(params)
+
+    char = Character.find(image.char_id)
+    user = event.server.member(char.user_id)
+    embed = char_image_embed(char.name, image, user)
+
+    event.message.delete if embed
+    channel = image.category.upcase == 'SFW' ? Channel::CHARACTER : Channel::CHARACTER_NSFW
+    bot.send_message(channel, "Image Approved!", false, embed)
   end
 end
 

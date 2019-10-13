@@ -2,9 +2,9 @@ class CharacterController
   def self.edit_character(params)
     char_hash = Character.from_form(params)
 
-    if char = Character.find_by(edit_url: char_hash["edit_url"])
-      char.update!(char_hash)
-      character = Character.find_by(edit_url: char_hash["edit_url"])
+    if character = Character.find_by(edit_url: char_hash["edit_url"])
+      character.update!(char_hash)
+      character.reload
     else
       character = Character.create(char_hash)
     end

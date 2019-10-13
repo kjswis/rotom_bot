@@ -1,56 +1,49 @@
-def new_app_embed(event)
-  name = event.author.nickname || event.author.name
-
-  chat_embed = Embed.new(
-    title: "New Application!",
-    description: "Hi, #{name},\nI see you'd like to start a new character application!\nI'll send you instructions in a dm!",
-    color: event.author.color.combined
+def new_app_embed(user_name, color)
+  Embed.new(
+    title: "New Appliction!",
+    description: "Hi, #{user_name},\nI see you'd like to start a new character application!\nI'll send you instructions in a dm!",
+    color: color
   )
+end
 
-  embed = Embed.new(
-    title: "Hi, #{name}",
+def new_app_dm(user_name, color, code)
+  Embed.new(
+    title: "Hi, #{user_name}",
     description: "If you have any questions, please feel free to ask a Guildmaster!",
-    color: event.author.color.combined,
+    color: color,
+    footer: {
+      text: "If you cannot copy your key, press the #{Emoji::PHONE}"
+    },
     fields: [
-      { name: "Please start your application here:", value: APP_FORM },
-      { name: "Your key is:", value: event.author.id }
+      { name: "Please start your application here:", value: Url::CHAR },
+      { name: "Your key is:", value: code }
     ]
   )
-
-  event.send_embed("", chat_embed)
-  embed
 end
 
-def edit_app_embed(event, edit_url, char_name)
-  name = event.author.nickname || event.author.name
-
-  chat_embed = Embed.new(
+def edit_app_embed(user_name, char_name, color)
+  Embed.new(
     title: "You want to edit #{char_name}?",
-    description: "Good news, #{name}! I'll dm you a link",
-    color: event.author.color.combined
+    description: "Good news, #{user_name}! I'll dm you a link",
+    color: color
   )
+end
 
-  embed = Embed.new(
+def edit_app_dm(char_name, edit_url, color)
+  Embed.new(
     title: "You may edit #{char_name} here:",
     description: edit_url,
-    color: event.author.color.combined
+    color: color
   )
-
-  event.send_embed("", chat_embed)
-  embed
 end
 
-def app_not_found_embed(event, char_name)
-  name = event.author.nickname || event.author.name
-
-  embed = Embed.new(
-    title: "I'm sorry, #{name}",
+def app_not_found_embed(user_name, char_name)
+  Embed.new(
+    title: "I'm sorry, #{user_name}",
     description: "I can't seem to find your character named, #{char_name}",
-    color: "#a41e1f",
+    color: Color::ERROR,
     fields: [
       { name: "Want to start a new application?", value: "You can start one with this command:\n```pkmn-app```"}
     ]
   )
-
-  event.send_embed("", embed)
 end

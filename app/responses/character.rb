@@ -1,7 +1,7 @@
 def character_embed(character, image, member)
   fields = []
   user = "#{member.name}##{member.tag}"
-  footer_text = "Created by #{user} | #{character.active}"
+  footer_text = "#{user} | #{character.active}"
   footer_text += " | #{character.rating}" if character.rating
 
   fields.push({name: 'Species', value: character.species, inline: true}) if character.species
@@ -25,6 +25,7 @@ def character_embed(character, image, member)
 
   embed = Embed.new(
     footer: {
+      icon_url: member.avatar_url,
       text: footer_text
     },
     title: character.name,
@@ -36,4 +37,19 @@ def character_embed(character, image, member)
   embed.color = member.color.combined if member.color.combined
 
   embed
+end
+
+def char_image_embed(character_name, image, user)
+  user_name = "#{user.name}##{user.tag}"
+
+  Embed.new(
+    footer: {
+      icon_url: user.avatar_url,
+      text: "#{user_name} | #{image.keyword} | #{image.category}"
+    },
+    title: character_name,
+    image: {
+      url: image.url
+    }
+  )
 end
