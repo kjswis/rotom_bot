@@ -27,6 +27,8 @@ module Emoji
   X = "🇽"
   Y = "🇾"
   Z = "🇿"
+  LEFT = "⬅"
+  RIGHT = "➡"
   CHECK = "✅"
   CROSS = "❌"
   SPEECH_BUBBLE = "💬"

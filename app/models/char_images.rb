@@ -28,4 +28,14 @@ class CharImage < ActiveRecord::Base
     hash = hash.reject { |k,v| k == nil }
     hash
   end
+
+  def self.to_form(name, species, id, keyword, category, url)
+    form =
+      "_New Character Image_:\n\n>>> " +
+      "**Character**: #{name}\n**Species**: #{species}\n" +
+      "**Character ID**: #{id}\n**Keyword**: #{keyword}\n" +
+      "**Category**: #{category}\n**URL**: #{url}"
+
+    form
+  end
 end

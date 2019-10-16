@@ -1,5 +1,3 @@
-REJECT_RED = "#a41e1f"
-
 def reject_char_embed(app)
   image_url = /\*\*URL to the Character\'s Appearance\*\*\:\s(.*)/.match(app)
 
@@ -11,22 +9,22 @@ def reject_char_embed(app)
 
   fields.push({ name: "Submitting", value: "#{Emoji::CHECK} : Indicates you are ready to send the corresponding messages to the user\n#{Emoji::CROSS} : Indicates you want to dismiss this message and not send a message to the user\n#{Emoji::CRAYON} : Indicates you want to edit the users form for them, and resubmit on their behalf" })
 
-  Embed.new(
+  embed = Embed.new(
     title: "**_APPLICATION REJECTED_**",
     description: "Please indicate what message to forward to the user!",
-    color: REJECT_RED,
-    thumbnail: {
-      url: image_url[1]
-    },
+    color: Color::ERROR,
     fields: fields
   )
+
+  embed.thumbnail = { url: image_url[1] } if image_url
+  embed
 end
 
 def message_user_embed(event)
   reactions = event.message.reactions
   content = event.message.content
 
-  edit_url = EDIT_URL.match(content)
+  edit_url = Regex::EDIT_URL.match(content)
   description = ""
 
   Emoji::APP_SECTIONS.each do |reaction|
@@ -38,10 +36,10 @@ def message_user_embed(event)
 
   embed = Embed.new(
     title: "**Your application has been rejected!!**",
-    color: REJECT_RED,
+    color: Color::ERROR,
     fields: [
       { name: "Listed reasons for rejection:", value: description },
-      { name: "You can edit your application and resubmit here:", value: "#{APP_FORM}#{edit_url[1]}" }
+      { name: "You can edit your application and resubmit here:", value: "#{Url::CHARACTER}#{edit_url[1]}" }
     ]
   )
 
@@ -49,11 +47,11 @@ def message_user_embed(event)
 end
 
 def self_edit_embed(content)
-  edit_url = EDIT_URL.match(content)
+  edit_url = Regex::EDIT_URL.match(content)
 
   Embed.new(
     title: "Please edit the user's application and resubmit!",
-    color: REJECT_RED,
-    description: "#{APP_FORM}#{edit_url[1]}"
+    color: Color::ERROR,
+    description: "#{Url::CHARACTER}#{edit_url[1]}"
   )
 end

@@ -11,4 +11,11 @@ class CharacterController
 
     character
   end
+
+  def self.type_color(char)
+    char_type = char.types.split("/").first || "Unknown"
+    type = Type.find_by(name: char_type)
+
+    type.color
+  end
 end
