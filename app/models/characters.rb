@@ -91,18 +91,20 @@ class Character < ActiveRecord::Base
       member = event.server.member(user_id[1])
 
       calc_max = (user.level / 10 + 1)
-      allowed_characters = calc_max > 6 ? 6 : calc_max
-      active_characters = Character.where(user_id: user_id[1]).where(active: "Active").count
+      allowed_chars = calc_max > 6 ? 6 : calc_max
+      active_chars =
+        Character.where(user_id: user_id[1]).where(active: "Active")
+      active_chars = active_chars.map(&:edit_url)
 
+      new_active =
+        active[1] == "Personal Character" && !active_chars.include?(edit_url[1])
 
-      new_active = active[1] == "Personal Character" && Character.where(active: 'NPC').find_by(edit_url: edit_url[1])
-
-      too_many = new_active ? active_characters < allowed_characters : false
+      too_many = new_active ? active_chars.count >= allowed_chars : false
     end
 
     if member
-      too_many(event, member, edit_url, 'characters') if too_many
-      approval_react(event) unless too_many
+      too_many ?
+        too_many(event, member, edit_url, 'characters') : approval_react(event)
     else
       unknown_member(event)
     end

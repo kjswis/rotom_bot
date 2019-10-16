@@ -194,7 +194,8 @@ image = Command.new(:image, desc, opts) do |event, name, keyword, tag, url|
 
   case
   when char && keyword && url && tag && tag.match(/(n)?sfw/i)
-    img_app = CharImage.to_form(char.name, char.species, char.id, keyword, tag, url)
+    img_app =
+      CharImage.to_form(char.name, char.species, char.id, keyword, tag, url)
 
     approval = bot.send_message(Channel::APPROVAL, img_app, false, nil)
     approval.react(Emoji::Y)
@@ -216,7 +217,10 @@ image = Command.new(:image, desc, opts) do |event, name, keyword, tag, url|
   end
 
 rescue ActiveRecord::RecordNotFound
-  error_embed("Could not find your character name #{name}")
+  error_embed(
+    "Character not Found!",
+    "I could not find your character named #{name}"
+  )
 end
 
 # ---
@@ -319,7 +323,7 @@ bot.reaction_add do |event|
     color = CharacterController.type_color(char)
 
 
-    embed = character_embed(char, image_url, user, color) if character
+    embed = character_embed(char, image_url, user, color) if char
 
     if embed
       bot.send_message(

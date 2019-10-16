@@ -1,28 +1,39 @@
 class ImageController
   def self.default_image(content, char_id)
-    if image_url = /\*\*URL to the Character\'s Appearance\*\*\:\s(.*)/.match(content)
-      if image = CharImage.where(char_id: char_id).find_by(keyword: 'Default')
-        image.update(url: image_url[1])
-        image.reload
-      else
-        image = CharImage.create(char_id: char_id, url: image_url[1], category: 'SFW', keyword: 'Default')
-      end
+    img_url =
+      /\*\*URL to the Character\'s Appearance\*\*\:\s(.*)/.match(content)
+    img = CharImage.where(char_id: char_id),find_by(keyword: 'Default')
 
+    case
+    when img_url && img
+      img.update(url: img_url[1])
+      img.reload
+    when img_url && !img
+      img = CharImage.create(
+        char_id: char_id,
+        url: img_url[1],
+        category: 'SFW',
+        keyword: 'Default'
+      )
     end
 
-    image ? image.url : image_url[1]
+    img
   end
 
   def self.edit_image(params)
     img_hash = CharImage.from_form(params)
+    char_id = img_hash["char_id"]
+    keyword = img_hash["keyword"]
 
-    if image = CharImage.where(char_id: img_hash["char_id"]).find_by(keyword: img_hash["keyword"])
-      image.update!(img_hash)
-      image.reload
+    img = CharImage.where(char_id: char_id).find_by(keyword: keyword)
+
+    if img
+      img.update!(img_hash)
+      img.reload
     else
-      image = CharImage.create(img_hash)
+      img = CharImage.create(img_hash)
     end
 
-    image
+    img
   end
 end

@@ -1,7 +1,9 @@
 def new_app_embed(user_name, color)
+  desc = "Hi, #{user_name},\nI see you'd like to start a new character" +
+    " application!\nI'll send you instructions in a dm!"
   Embed.new(
     title: "New Appliction!",
-    description: "Hi, #{user_name},\nI see you'd like to start a new character application!\nI'll send you instructions in a dm!",
+    description: desc,
     color: color
   )
 end
@@ -9,7 +11,7 @@ end
 def new_app_dm(user_name, color, code)
   Embed.new(
     title: "Hi, #{user_name}",
-    description: "If you have any questions, please feel free to ask a Guildmaster!",
+    description: "If you have any questions, feel free to ask a Guildmaster!",
     color: color,
     footer: {
       text: "If you cannot copy your key, press the #{Emoji::PHONE}"
@@ -43,7 +45,10 @@ def app_not_found_embed(user_name, char_name)
     description: "I can't seem to find your character named, #{char_name}",
     color: Color::ERROR,
     fields: [
-      { name: "Want to start a new application?", value: "You can start one with this command:\n```pkmn-app```"}
+      {
+        name: "Want to start a new application?",
+        value: "You can start one with this command:\n```pkmn-app```"
+      }
     ]
   )
 end

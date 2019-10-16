@@ -2,6 +2,8 @@ HELP_BLUE = "#4976ca"
 
 def all_commands_embed(commands)
   fields = []
+  desc = "To learn more about any of the listed commands," +
+    " use `pkmn-help [command]`"
 
   commands.each do |command|
     fields.push({name: "pkmn-#{command.name}", value: command.description})
@@ -9,7 +11,7 @@ def all_commands_embed(commands)
 
   Embed.new(
     title: "Commands",
-    description: "To learn more about any of the listed commands, use `pkmn-help [command]`",
+    description: desc,
     color: HELP_BLUE,
     fields: fields
   )

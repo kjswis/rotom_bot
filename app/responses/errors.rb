@@ -1,14 +1,16 @@
 ERROR_RED = "#c42d2d"
 
-def error_embed(message)
-  Embed.new(
-    title: "There was an Error",
-    description: message,
+def error_embed(title, message = nil)
+  embed = Embed.new(
+    title: title,
     color: ERROR_RED,
     footer: {
       text: "For more help, feel free to ask a Moderator or Guildmaster"
     }
   )
+
+  embed.description = message if message
+  embed
 end
 
 def admin_error_embed(message)
@@ -19,10 +21,9 @@ def admin_error_embed(message)
   )
 end
 
-def command_error_embed(message, command)
+def command_error_embed(title, command)
   Embed.new(
-    title: "There was an Error",
-    description: message,
+    title: title,
     color: ERROR_RED,
     footer: {
       text: "For more help, feel free to ask a Moderator or Guildmaster"
