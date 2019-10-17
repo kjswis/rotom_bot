@@ -147,23 +147,30 @@ opts = { "participants" => "May accept Everyone, Here, or a comma seperated list
 raffle = Command.new(:raffle, "Creates a raffle and picks a winner", opts) do |event, participant|
   user_channel = event.author.dm
 
-  case participant
-  when 'everyone'
-    participants = event.server.members
-    participant = participants[rand(0...participants.count)]
-    participant = participant.nickname || participant.username
-  when 'here'
-    participants = event.message.channel.users
-    participant = participants[rand(0...participants.count)]
-    participant = participant.nickname || participant.username
-  else
-    participants = participant.split(/\s?,\s?/)
-    participant = participants[rand(0...participants.count)]
-  end
+  participants =
+    case participant
+    when /^everyone$/i
+      event.server.members
+    when /^here$/i
+      event.message.channel.users
+    else
+      participant.split(/\s?,\s?/)
+    end
 
-  new_generic_embed(event, "Raffle Results!", "Winner: " + participant) if participant
+  winner = participants.sample
+  winner_name = 
+    case winner
+    when String
+      winner
+    else
+      winner.nickname || winner.username
+    end
 
-  command_error_embed("There was an error creating your raffle!", raffle) unless participant
+    if winner_name
+      new_generic_embed(event, "Raffle Results!", "Winner: " + winner_name)
+    else
+      command_error_embed("There was an error creating your raffle!", raffle)
+    end
 end
 
 # ---
