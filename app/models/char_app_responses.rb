@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+require_relative '../../lib/emoji.rb'
 
 module CharAppResponses
   GRAMMAR = "Please check your grammar and\ncapitalization"

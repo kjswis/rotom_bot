@@ -143,6 +143,36 @@ poll = Command.new(:poll, "Creates a dynamic poll in any channel", opts) do |eve
   command_error_embed("There was an error creating your poll!", poll) unless question && options
 end
 
+opts = { "participants" => "May accept Everyone, Here, or a comma seperated list of names"}
+raffle = Command.new(:raffle, "Creates a raffle and picks a winner", opts) do |event, participant|
+  user_channel = event.author.dm
+
+  participants =
+    case participant
+    when /^everyone$/i
+      event.server.members
+    when /^here$/i
+      event.message.channel.users
+    else
+      participant.split(/\s?,\s?/)
+    end
+
+  winner = participants.sample
+  winner_name = 
+    case winner
+    when String
+      winner
+    else
+      winner.nickname || winner.username
+    end
+
+    if winner_name
+      new_generic_embed(event, "Raffle Results!", "Winner: " + winner_name)
+    else
+      command_error_embed("There was an error creating your raffle!", raffle)
+    end
+end
+
 # ---
 
 commands = [
@@ -150,7 +180,8 @@ commands = [
   matchup,
   app,
   help,
-  poll
+  poll,
+  raffle
 ]
 
 # This will trigger on every message sent in discord
