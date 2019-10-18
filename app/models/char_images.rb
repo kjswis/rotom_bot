@@ -29,9 +29,9 @@ class CharImage < ActiveRecord::Base
     hash
   end
 
-  def self.to_form(name, species, id, keyword, category, url)
+  def self.to_form(name, species, id, keyword, category, url, user_id)
     form =
-      "_New Character Image_:\n\n>>> " +
+      "_New Character Image_:\nSubmitted by: <@#{user_id}>\n\n>>> " +
       "**Character**: #{name}\n**Species**: #{species}\n" +
       "**Character ID**: #{id}\n**Keyword**: #{keyword}\n" +
       "**Category**: #{category}\n**URL**: #{url}"

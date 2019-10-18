@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 require_relative '../../lib/emoji.rb'
 
-module CharAppResponses
+module CharApp
   GRAMMAR = "Please check your grammar and\ncapitalization"
   UNITS = "Please specify your units in\nImperial or Metric"
   IMAGE = "Your image is inappropriate for\ndefault use"

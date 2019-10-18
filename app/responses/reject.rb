@@ -1,12 +1,15 @@
+MSG = "Please resubmit when you've addressed the issues!\n"
+FTR = "If you have any questions, feel free to ask a Guildmaster"
+
 def reject_char_embed(app)
   image_url = /\*\*URL to the Character\'s Appearance\*\*\:\s(.*)/.match(app)
 
   fields = []
 
-  CharAppResponses::REJECT_MESSAGES.map do |emoji, message|
+  CharApp::REJECT_MESSAGES.map do |emoji, message|
     fields.push({
       name: emoji,
-      value: "#{message}\n#{CharAppResponses::INLINE_SPACE}",
+      value: "#{message}\n#{CharApp::INLINE_SPACE}",
       inline: true
     })
   end
@@ -35,16 +38,50 @@ def reject_char_embed(app)
   embed
 end
 
-def message_user_embed(event)
+def reject_img_embed(app)
+  img_url = /\*\*URL\*\*:\s(.*)/.match(app)
+  fields = []
+
+  ImgApp::REJECT_MESSAGES.map do |emoji, message|
+    fields.push({
+      name: emoji,
+      value: "#{message}\n#{ImgApp::INLINE_SPACE}",
+      inline: true
+    })
+  end
+
+  instructions =
+    "#{Emoji::CHECK} : Indicates you are ready to send the corresponding " +
+    "messages to the user\n" +
+    "#{Emoji::CROSS} : Indicates you want to dismiss this message and " +
+    "not send a message to the user\n"
+
+  fields.push({
+    name: "Submitting",
+    value: instructions
+  })
+
+  embed = Embed.new(
+    title: "**_APPLICATION REJECTED_**",
+    description: "Please indicate what message to forward to the user!",
+    color: Color::ERROR,
+    fields: fields
+  )
+
+  embed.thumbnail = { url: img_url[1] } if img_url
+  embed
+end
+
+def user_char_app(event)
   reactions = event.message.reactions
   content = event.message.content
 
   edit_url = Regex::EDIT_URL.match(content)
   description = ""
 
-  Emoji::APP_SECTIONS.each do |reaction|
+  Emoji::CHAR_APP.each do |reaction|
     if reactions[reaction].count > 1
-      m = CharAppResponses::REJECT_MESSAGES[reaction].gsub("\n", " ")
+      m = CharApp::REJECT_MESSAGES[reaction].gsub("\n", " ")
       description += "\n#{m}"
     end
   end
@@ -52,14 +89,53 @@ def message_user_embed(event)
   embed = Embed.new(
     title: "**Your application has been rejected!!**",
     color: Color::ERROR,
+    footer: {
+      text: FTR
+    },
     fields: [
       {
         name: "Listed reasons for rejection:",
         value: description
       },
       {
-        name: "You can edit your application and resubmit here:",
-        value: "#{Url::CHARACTER}#{edit_url[1]}"
+        name: MSG,
+        value: "[Edit Your Application](#{Url::CHARACTER}#{edit_url[1]})"
+      }
+    ]
+  )
+
+  embed
+end
+
+def user_img_app(event)
+  reactions = event.message.reactions
+  content = event.message.content
+
+  img_url = /\*\*URL\*\*:\s(.*)/.match(content)
+  description = ""
+
+  Emoji::IMG_APP.each do |reaction|
+    if reactions[reaction].count > 1
+      m = ImgApp::REJECT_MESSAGES[reaction].gsub("\n", " ")
+      description += "\n#{m}"
+    end
+  end
+
+  description += "\n\n#{MSG}"
+
+  embed = Embed.new(
+    title: "**Your application has been rejected!!**",
+    color: Color::ERROR,
+    thumbnail: {
+      url: img_url[1]
+    },
+    footer: {
+      text: FTR
+    },
+    fields: [
+      {
+        name: "Listed reasons for rejection:",
+        value: description
       }
     ]
   )
@@ -71,8 +147,8 @@ def self_edit_embed(content)
   edit_url = Regex::EDIT_URL.match(content)
 
   Embed.new(
-    title: "Please edit the user's application and resubmit!",
+    title: "Don't forget to resubmit!",
     color: Color::ERROR,
-    description: "#{Url::CHARACTER}#{edit_url[1]}"
+    description: "[Edit the Application](#{Url::CHARACTER}#{edit_url[1]})"
   )
 end

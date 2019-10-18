@@ -92,16 +92,15 @@ def char_image_embed(char, image, user, color)
 end
 
 def image_list_embed(char, images, user, color)
-  fields = []
-
+  desc = ""
   images.each do |img|
-    fields.push({name: img.keyword, value: img.url})
+    desc += "[#{img.keyword}](#{img.url})\n" unless img.keyword == 'Default'
   end
 
   Embed.new(
     title: char.name,
+    description: desc,
     color: color,
-    fields: fields,
     footer: {
       icon_url: user.avatar_url,
       text: "#{user.name}##{user.tag} | #{char.active}"

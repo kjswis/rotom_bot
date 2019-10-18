@@ -150,8 +150,12 @@ poll = Command.new(:poll, desc, opts) do |event, question, options|
   end
 end
 
-opts = { "participants" => "May accept Everyone, Here, or a comma seperated list of names"}
-raffle = Command.new(:raffle, "Creates a raffle and picks a winner", opts) do |event, participant|
+opts = {
+  "participants" =>
+  "Accepts Everyone, Here, or a comma seperated list of names"
+}
+desc = "Creates a raffle and picks a winner"
+raffle = Command.new(:raffle, desc, opts) do |event, participant|
   participants =
     case participant
     when /^everyone$/i
@@ -172,7 +176,7 @@ raffle = Command.new(:raffle, "Creates a raffle and picks a winner", opts) do |e
     end
 
     if winner_name
-      new_generic_embed(event, "Raffle Results!", "Winner: " + winner_name)
+      message_embed("Raffle Results!", "Winner: #{winner_name}")
     else
       command_error_embed("There was an error creating your raffle!", raffle)
     end
@@ -193,9 +197,21 @@ image = Command.new(:image, desc, opts) do |event, name, keyword, tag, url|
   img = CharImage.find_by(keyword: keyword) if keyword
 
   case
+  when /^Default$/i.match(keyword)
+    error_embed(
+      "Cannot update Default here!",
+      "Use `pkmn-app character` to edit your default image in your form"
+    )
   when char && keyword && url && tag && tag.match(/(n)?sfw/i)
-    img_app =
-      CharImage.to_form(char.name, char.species, char.id, keyword, tag, url)
+    img_app = CharImage.to_form(
+      char.name,
+      char.species,
+      char.id,
+      keyword,
+      tag,
+      url,
+      user.id
+    )
 
     approval = bot.send_message(Channel::APPROVAL, img_app, false, nil)
     approval.react(Emoji::Y)
@@ -340,11 +356,23 @@ bot.reaction_add do |event|
       )
     end
   when [:character_application, :no]
-    reject_app(event, reject_char_embed(content))
+    content = event.message.content
+    embed = reject_char_embed(content)
+
+    event.message.delete
+    reject = event.send_embed(content, embed)
+
+    Emoji::CHAR_APP.each do |reaction|
+      reject.react(reaction)
+    end
+
+    reject.react(Emoji::CHECK)
+    reject.react(Emoji::CROSS)
+    reject.react(Emoji::CRAYON)
 
   when [:character_rejection, :check]
     user = event.server.member(Regex::UID.match(content)[1])
-    embed = message_user_embed(event)
+    embed = user_char_app(event)
 
     event.message.delete
     bot.send_temporary_message(event.channel.id, "", 5, false, embed)
@@ -384,6 +412,30 @@ bot.reaction_add do |event|
                 Channel::CHARACTER_NSFW
               end
     bot.send_message(channel, "Image Approved!", false, embed)
+  when [:image_application, :no]
+    content = event.message.content
+    embed = reject_img_embed(content)
+
+    event.message.delete
+    reject = event.send_embed(content, embed)
+
+    Emoji::IMG_APP.each do |reaction|
+      reject.react(reaction)
+    end
+
+    reject.react(Emoji::CHECK)
+    reject.react(Emoji::CROSS)
+
+  when [:image_application, :check]
+    user = event.server.member(Regex::UID.match(content)[1])
+    embed = user_img_app(event)
+
+    event.message.delete
+    bot.send_temporary_message(event.channel.id, "", 5, false, embed)
+    bot.send_message(user.dm.id, "", false, embed)
+  when [:image_application, :cross]
+    event.message.delete
+
   end
 end
 
