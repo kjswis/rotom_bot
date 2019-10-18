@@ -27,6 +27,8 @@ module Emoji
   X = "🇽"
   Y = "🇾"
   Z = "🇿"
+  LEFT = "⬅"
+  RIGHT = "➡"
   CHECK = "✅"
   CROSS = "❌"
   SPEECH_BUBBLE = "💬"
@@ -38,7 +40,13 @@ module Emoji
   BABY = "👶"
   VULGAR = "🖕"
   CRAYON = "🖍"
+  PHONE = "📱"
+  DOG = "🐶"
+  KEY = "🔑"
+  PAGE = "📄"
+  FLAG = "🚩"
 
   LETTERS = [A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z]
-  APP_SECTIONS = [SPEECH_BUBBLE, SCALE, PICTURE, BOOKS, BABY, SKULL, VULGAR, NOTE]
+  CHAR_APP = [SPEECH_BUBBLE, SCALE, PICTURE, BOOKS, BABY, SKULL, VULGAR, NOTE]
+  IMG_APP = [DOG, KEY, FLAG, PAGE, BOOKS, VULGAR]
 end

@@ -16,18 +16,21 @@ $ git checkout -b [branch_name]       #to create a branch
 $ git push origin [branch_name]       #to push branch
 ```
 
-In order to import a schema, use the following command. To learn more about
+In order to import, or dump a schema, use the following command. To learn more about
 Postgres, visit the wiki tab or [postgresql.org](https://www.postgresql.org/docs/)
 ```bash
-$ psql [db_name] < db/schema.sql
+$ psql [db_name] < db/schema.sql        # Imports schema
+$ pg_dump -O -f db/schma.sql [db_name]  # Exports schema
 ```
 
 ### Features
-  * Says Hello
-  * Displays Type Matchups
-  * Communicates with Users to Create and Edit Character Applications
-  * Uses Reactions to Approve or Deny Character Applications
+  * Says hello
+  * Displays type matchups
+  * Communicates with users to create and edit character applications
+  * Uses reactions to approve or deny character applications
   * Displays help information for the available commands
+  * Allows modular polls in any channel
+  * Allows users to add, view, and delete images for their characters
 
 ## Setup
 This application runs using Ruby and Postgres. In order to run the bot locally

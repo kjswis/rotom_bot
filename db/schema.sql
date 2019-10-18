@@ -79,7 +79,10 @@ CREATE TABLE public.characters (
     active character varying,
     dm_notes character varying,
     location character varying,
-    rumors character varying
+    rumors character varying,
+    hometown character varying,
+    warnings character varying,
+    rating character varying
 );
 
 
@@ -101,6 +104,37 @@ CREATE SEQUENCE public.characters_id_seq
 --
 
 ALTER SEQUENCE public.characters_id_seq OWNED BY public.characters.id;
+
+
+--
+-- Name: types; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.types (
+    id integer NOT NULL,
+    name character varying(25) NOT NULL,
+    color character varying(7)
+);
+
+
+--
+-- Name: types_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.types_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: types_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.types_id_seq OWNED BY public.types.id;
 
 
 --
@@ -138,10 +172,20 @@ ALTER TABLE ONLY public.characters ALTER COLUMN id SET DEFAULT nextval('public.c
 
 
 --
+-- Name: types id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.types ALTER COLUMN id SET DEFAULT nextval('public.types_id_seq'::regclass);
+
+
+--
 -- Data for Name: char_images; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.char_images (id, char_id, url, category, keyword) FROM stdin;
+2	1	https://i.pinimg.com/originals/e1/af/36/e1af3607885c7bbd3812706bfe9cbafc.jpg	SFW	Neiro's Nightmare
+4	1	https://i.pinimg.com/originals/53/0a/32/530a3267c68dcf5711855d4329e3bbee.png	SFW	Hero
+3	1	https://i.imgur.com/CqtkxMr.png	SFW	Default
 \.
 
 
@@ -149,8 +193,35 @@ COPY public.char_images (id, char_id, url, category, keyword) FROM stdin;
 -- Data for Name: characters; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-COPY public.characters (id, user_id, name, species, types, age, weight, height, gender, orientation, relationship, attacks, likes, dislikes, personality, backstory, other, edit_url, active, dm_notes, location, rumors) FROM stdin;
-1	215240568245190656	Mizukyu	Mimikyu	Ghost Fairy	old	1.5 lbs	0'8"	Female	Pansexual	Married	Shadow Claw | Play Rough | Psychic | Shadow Sneak	cuddles, soft things, and Neiro waterbed	bullies, rejection, being exposed	I am shy and a bit recluse, but warm when you take the time to get to know me. I don't like when people try to see under my disguise, I've lost many friends that way (to death) including my spouse. Really, really really likes to dress up as other pokemon	Has existed more years than she cares to count. She is immortal, due to being a ghost. She has learned to carefully hide her appearance as to make sure not to accidentally kill more friends. Took up tailoring to make multiple disguises, because pretending to be a Pikachu forever is boring.	Switches disguising with moods. Has made them for all pokemon. Also a master shadow bender	?edit2=2_ABaOnuc3HZEyhI9EeApXcJtsBmDzqtzDGH5De46CfuRBxwVavQKAfTT_LZy_kMH0sz5H7gk	Active	\N	\N	loves children | hates washing and tailoring disguises | surprisingly soft| steals children | wishes to be admired
+COPY public.characters (id, user_id, name, species, types, age, weight, height, gender, orientation, relationship, attacks, likes, dislikes, personality, backstory, other, edit_url, active, dm_notes, location, rumors, hometown, warnings, rating) FROM stdin;
+1	215240568245190656	Mizukyu	Mimikyu	Ghost/Fairy	Old	1.5 lbs	0'8"	Female	Pansexual	Married	Shadow Claw | Play Rough | Psychic | Shadow Sneak	Cuddles, soft things, spooky stories, horror	Bullies, rejection, being exposed	I am shy and a bit recluse, but warm when you take the time to get to know me. I don't like when people try to see under my disguise, I've lost many friends that way (to death) including my spouse. Really, really really likes to dress up as other pokemon	Has existed more years than she cares to count. She is immortal, due to being a ghost. She has learned to carefully hide her appearance as to make sure not to accidentally kill more friends. Took up tailoring to make multiple disguises, because pretending to be a Pikachu forever is boring.	Switches disguising with moods. Has made them for all pokemon. Also a master shadow bender	?edit2=2_ABaOnuc3HZEyhI9EeApXcJtsBmDzqtzDGH5De46CfuRBxwVavQKAfTT_LZy_kMH0sz5H7gk	Active	\N	\N	Loves children | Hates washing and tailoring disguises | Surprisingly soft | Steals children | Wishes to be admired	\N	Horrific Eldritch Abomination	\N
+\.
+
+
+--
+-- Data for Name: types; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.types (id, name, color) FROM stdin;
+1	Normal	#a8a878
+2	Fire	#f08030
+3	Fighting	#c03028
+4	Water	#6890f0
+5	Flying	#a890f0
+6	Grass	#78c850
+7	Poison	#a040a0
+8	Electric	#f8d030
+9	Ground	#e0c068
+10	Psychic	#f85888
+11	Rock	#b8a038
+12	Ice	#98d8d8
+13	Bug	#a8b820
+14	Dragon	#7038f8
+15	Ghost	#705898
+16	Dark	#705848
+17	Steel	#b8b8d0
+18	Fairy	#ee99ac
+19	Unknown	#68a090
 \.
 
 
@@ -169,7 +240,7 @@ COPY public.users (id, level, next_level, boosted_xp, unboosted_xp, evs, hp, att
 -- Name: char_images_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.char_images_id_seq', 1, false);
+SELECT pg_catalog.setval('public.char_images_id_seq', 6, true);
 
 
 --
@@ -177,6 +248,13 @@ SELECT pg_catalog.setval('public.char_images_id_seq', 1, false);
 --
 
 SELECT pg_catalog.setval('public.characters_id_seq', 1, true);
+
+
+--
+-- Name: types_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.types_id_seq', 19, true);
 
 
 --
@@ -193,6 +271,22 @@ ALTER TABLE ONLY public.char_images
 
 ALTER TABLE ONLY public.characters
     ADD CONSTRAINT characters_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: types types_name_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.types
+    ADD CONSTRAINT types_name_key UNIQUE (name);
+
+
+--
+-- Name: types types_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.types
+    ADD CONSTRAINT types_pkey PRIMARY KEY (id);
 
 
 --
