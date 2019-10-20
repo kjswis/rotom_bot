@@ -1,44 +1,49 @@
 HELP_BLUE = "#4976ca"
 
-def all_commands_embed(commands)
+def command_list_embed(commands, restriction = nil, title = nil)
   fields = []
   desc = "To learn more about any of the listed commands," +
     " use `pkmn-help [command]`"
 
-  commands.each do |command|
-    fields.push({name: "pkmn-#{command.name}", value: command.description})
+  commands.each do |cmd|
+    fields.push({name: "pkmn-#{cmd.name}", value: cmd.description})
   end
 
+  desc = "#{restriction}\n#{desc}" if restriction
+
   Embed.new(
-    title: "Commands",
+    title: title || "Commands",
     description: desc,
     color: HELP_BLUE,
     fields: fields
   )
 end
 
-def command_embed(command)
-  fields = command_usage(command)
+def command_embed(command, restriction = nil)
+  fields = usage_embed(command)
+  title = "Usage"
 
-  Embed.new(
-    title: "pkmn-#{command.name}",
-    description: command.description,
+  title += ": #{restriction}" if restriction
+
+  embed = Embed.new(
+    title: title,
     color: HELP_BLUE,
+    footer: {
+      text: "Questions? Ask a Guildmaster!"
+    },
     fields: fields
   )
+
+  embed.description = command.description if command.description
+  embed
 end
 
-def command_usage(command)
+def usage_embed(command)
   fields = []
 
-  unless command.options.empty?
-    usage = "```bash\n"
-    command.options.map do |option, description|
-      usage += "##{description}\npkmn-#{command.name} #{option}\n\n"
-    end
-    usage += "```"
+  command.options.map do |option, desc|
+    fields.push({name: desc, value: "```pkmn-#{command.name} #{option}```"})
   end
 
-  fields.push({name: "Usage", value: usage}) if command.options
   fields
 end

@@ -28,6 +28,6 @@ def command_error_embed(title, command)
     footer: {
       text: "For more help, feel free to ask a Moderator or Guildmaster"
     },
-    fields: command_usage(command)
+    fields: usage_embed(command)
   )
 end

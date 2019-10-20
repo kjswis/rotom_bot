@@ -43,6 +43,7 @@ bot = Discordrb::Bot.new(token: token)
 
 # Commands: structure basic bot commands here
 commands = []
+pm_commands = []
 
 hello = Command.new(:hello, "Says hello!") do |event|
   user = event.author.nickname || event.author.name
@@ -74,12 +75,22 @@ help = Command.new(:help, desc, opts) do |event, command|
     short = /pkmn-(\w+)/.match(command)
     command = short ? short[1] : command
     cmd = commands.detect { |c| c.name == command.to_sym }
+    pm_cmd = pm_commands.detect { |pc| pc.name == command.to_sym }
   end
 
   if command && cmd
     command_embed(cmd)
+  elsif command && pm_cmd
+    command_embed(pm_cmd, "PM Command")
   elsif !command
-    all_commands_embed(commands)
+    embed = command_list_embed(
+      pm_commands,
+      "Can only be used in a pm with the bot",
+      "PM Commands"
+    )
+
+    event.send_embed("", embed)
+    command_list_embed(commands)
   else
     command_error_embed("Command not found!", help)
   end
@@ -188,7 +199,7 @@ opts = {
   "name | keyword" => "display image",
   "name" => "list all images"
 }
-desc = "Edit your characters' images"
+desc = "View, add and edit your characters' images"
 image = Command.new(:image, desc, opts) do |event, name, keyword, tag, url|
   user = event.author
 
