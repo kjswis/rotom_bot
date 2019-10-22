@@ -27,10 +27,14 @@ module Emoji
   X = "🇽"
   Y = "🇾"
   Z = "🇿"
-  LEFT = "⬅"
-  RIGHT = "➡"
+
+  LEFT = "◀"
+  RIGHT = "▶"
+  UNDO = "⏫"
+
   CHECK = "✅"
   CROSS = "❌"
+
   SPEECH_BUBBLE = "💬"
   SCALE = "⚖"
   PICTURE = "🖼"
@@ -45,8 +49,17 @@ module Emoji
   KEY = "🔑"
   PAGE = "📄"
   FLAG = "🚩"
+  NOTEBOOK = "📔"
+  PALLET = "🎨"
+  EAR = "👂"
+  QUESTION = "❔"
+  BAGS = "🛍"
+  FAMILY = "👪"
+  EYES = "👀"
+
 
   LETTERS = [A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z]
   CHAR_APP = [SPEECH_BUBBLE, SCALE, PICTURE, BOOKS, BABY, SKULL, VULGAR, NOTE]
   IMG_APP = [DOG, KEY, FLAG, PAGE, BOOKS, VULGAR]
+  CAROUSEL = [NOTEBOOK, QUESTION, PALLET, EAR, PICTURE, BAGS, FAMILY, EYES, KEY, CROSS]
 end

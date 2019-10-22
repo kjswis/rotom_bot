@@ -2,7 +2,7 @@ class ImageController
   def self.default_image(content, char_id)
     img_url =
       /\*\*URL to the Character\'s Appearance\*\*\:\s(.*)/.match(content)
-    img = CharImage.where(char_id: char_id),find_by(keyword: 'Default')
+    img = CharImage.where(char_id: char_id).find_by(keyword: 'Default')
 
     case
     when img_url && img
@@ -35,5 +35,21 @@ class ImageController
     end
 
     img
+  end
+
+  def self.img_scroll(char_id: , nsfw: false, img: nil, dir: nil)
+    imgs = nsfw ? CharImage.where(char_id: char_id) :
+      CharImage.where(char_id: char_id, category: 'SFW' )
+
+    cur_i = img ? imgs.index { |i| i[:id] == img } : imgs.length - 1
+
+    case dir
+    when :left
+      nex_i = cur_i == 0 ? imgs.length - 1 : cur_i - 1
+    else
+      nex_i = cur_i == imgs.length - 1 ? 0 : cur_i + 1
+    end
+
+    imgs[nex_i]
   end
 end

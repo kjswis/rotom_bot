@@ -1,75 +1,187 @@
-def character_embed(character, image, user, color)
+def character_embed(char:, img: nil, user:, color:, section: :all)
   fields = []
-  footer_text = "#{user.name}##{user.tag} | #{character.active}"
-  footer_text += " | #{character.rating}" if character.rating
+  footer_text = "#{user.name}##{user.tag} | #{char.active}"
+  footer_text += " | #{char.rating}" if char.rating
+  footer_text += " | #{img.category} " if section == :image
 
-  fields.push(
-    { name: 'Species', value: character.species, inline: true }
-  )if character.species
-  fields.push(
-    { name: 'Type', value: character.types, inline: true }
-  )if character.types
-  fields.push(
-    { name: 'Age', value: character.age, inline: true }
-  )if character.age
-  fields.push(
-    { name: 'Weight', value: character.weight, inline: true }
-  )if character.weight
-  fields.push(
-    { name: 'Height', value: character.height, inline: true }
-  )if character.height
-  fields.push(
-    { name: 'Gender', value: character.gender, inline: true }
-  )if character.gender
-  fields.push(
-    { name: 'Sexual Orientation', value: character.orientation, inline: true }
-  )if character.orientation
-  fields.push(
-    { name: 'Relationship Status', value: character.relationship, inline: true }
-  )if character.relationship
-  fields.push(
-    { name: 'Hometown', value: character.hometown, inline: true }
-  )if character.hometown
-  fields.push(
-    { name: 'Location', value: character.location, inline: true }
-  )if character.location
-  fields.push(
-    { name: 'Attacks', value: character.attacks }
-  )if character.attacks
-  fields.push(
-    { name: 'Likes', value: character.likes }
-  )if character.likes
-  fields.push(
-    { name: 'Dislikes', value: character.dislikes }
-  )if character.dislikes
-  fields.push(
-    { name: 'Warnings', value: character.warnings }
-  )if character.warnings
-  fields.push(
-    { name: 'Rumors', value: character.rumors }
-  )if character.rumors
-  fields.push(
-    { name: 'Backstory', value: character.backstory }
-  )if character.backstory
-  fields.push(
-    { name: 'Other', value: character.other }
-  )if character.other
-  fields.push(
-    { name: 'DM Notes', value: character.dm_notes }
-  )if character.dm_notes
+  navigate = "React to Navigate"
+  footer_text += " | #{navigate}"
 
   embed = Embed.new(
     footer: {
       icon_url: user.avatar_url,
       text: footer_text
     },
-    title: character.name,
+    title: char.name,
     color: color,
+  )
+
+  case section
+  when :all
+    embed.description = char.personality if char.personality
+    fields = char_type(char, fields)
+    fields = char_status(char, fields)
+    fields = char_bio(char, fields)
+    fields = char_rumors(char, fields)
+  when :default
+    embed.description = navigate
+    fields = char_sections(fields)
+  when :bio
+    embed.description = char.personality if char.personality
+    fields = char_bio(char, fields)
+  when :type
+    fields = char_type(char, fields)
+  when :status
+    fields = char_status(char, fields)
+  when :rumors
+    fields = char_rumors(char, fields)
+  when :image
+    if img
+      embed.title =
+        "#{char.name} | #{img.keyword}" unless img.keyword == 'Default'
+      embed.image = { url: img.url }
+    else
+      embed.description = "No character images found!"
+    end
+  end
+
+
+  embed.thumbnail = { url: img.url } if img && section != :image
+  embed.fields = fields
+
+  embed
+end
+
+def char_bio(char, fields)
+  fields.push(
+    { name: 'Hometown', value: char.hometown, inline: true }
+  )if char.hometown
+  fields.push(
+    { name: 'Location', value: char.location, inline: true }
+  )if char.location
+  fields.push(
+    { name: 'Likes', value: char.likes }
+  )if char.likes
+  fields.push(
+    { name: 'Dislikes', value: char.dislikes }
+  )if char.dislikes
+  fields.push(
+    { name: 'Backstory', value: char.backstory }
+  )if char.backstory
+  fields.push(
+    { name: 'Other', value: char.other }
+  )if char.other
+  fields.push(
+    { name: 'DM Notes', value: char.dm_notes }
+  )if char.dm_notes
+
+  fields
+end
+
+def char_type(char, fields)
+  fields.push(
+    { name: 'Species', value: char.species, inline: true }
+  )if char.species
+  fields.push(
+    { name: 'Type', value: char.types, inline: true }
+  )if char.types
+
+  if char.attacks
+    attacks = char.attacks
+    attacks = attacks.gsub(/\s?\|\s?/, "\n")
+
+    fields.push({ name: 'Attacks', value: attacks })
+  end
+
+  fields
+end
+
+def char_rumors(char, fields)
+  fields.push(
+    { name: 'Warnings', value: char.warnings }
+  )if char.warnings
+
+  if char.rumors
+    rumors = char.rumors.split(/\s?\|\s?/)
+    rumors = rumors.shuffle
+    rumors = rumors.join("\n")
+
+    fields.push({ name: 'Rumors', value: rumors })
+  end
+
+  fields
+end
+
+def char_status(char, fields)
+  fields.push(
+    { name: 'Age', value: char.age, inline: true }
+  )if char.age
+  fields.push(
+    { name: 'Gender', value: char.gender, inline: true }
+  )if char.gender
+  fields.push(
+    { name: 'Weight', value: char.weight, inline: true }
+  )if char.weight
+  fields.push(
+    { name: 'Height', value: char.height, inline: true }
+  )if char.height
+  fields.push(
+    { name: 'Sexual Orientation', value: char.orientation, inline: true }
+  )if char.orientation
+  fields.push(
+    { name: 'Relationship Status', value: char.relationship, inline: true }
+  )if char.relationship
+
+  fields
+end
+
+def char_sections(fields)
+  CharCarousel::REACTIONS.map do |emoji, message|
+    fields.push({
+      name: emoji,
+      value: message,
+      inline: true
+    })
+  end
+
+  fields
+end
+
+def char_list_embed(chars, user = nil)
+  fields = []
+  active = []
+  npcs = []
+
+  chars.each do |char|
+    case char.active
+    when 'Active'
+      active.push char.name
+    when 'NPC'
+      npcs.push char.name
+    end
+  end
+
+  fields.push({
+    name: 'Active Characters',
+    value: active.join(", ")
+  })if active.length > 0
+
+  fields.push({
+    name: 'NPCs',
+    value: npcs.join(", ")
+  })if npcs.length > 0
+
+  embed = Embed.new(
+    title: 'Registered Characters',
     fields: fields
   )
 
-  embed.description = character.personality if character.personality
-  embed.thumbnail = { url: image } if image
+  if user
+    user_name = user.nickname || user.name
+
+    embed.color = user.color.combined
+    embed.title = "#{user_name}'s Characters"
+  end
 
   embed
 end

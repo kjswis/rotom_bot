@@ -250,6 +250,117 @@ rescue ActiveRecord::RecordNotFound
   )
 end
 
+opts = {
+  "" => "List all guild members",
+  "@user" => "List all characters belonging to the user",
+  "name " => "Display the given character",
+  "name | section" => "Display the given section for the character",
+  "name | image | keword" => "Display the given image"
+}
+desc = "Display info about the guild members"
+member = Command.new(:member, desc, opts) do |event, name, section, keyword|
+  sections = [:all, :default, :bio, :type, :status, :rumors, :image]
+
+  case name
+  when Regex::UID
+    user_id = Regex::UID.match(name)
+  when String
+    char = Character.find_by!(name: name)
+
+    img = CharImage.where(char_id: char.id).find_by(keyword: 'Default')
+    user = event.server.member(char.user_id)
+    color = CharacterController.type_color(char)
+  end
+
+  case
+  when !name
+    chars = Character.all
+    char_list_embed(chars)
+  when name && user_id
+    chars = Character.where(user_id: user_id[1])
+    user = event.server.member(user_id[1])
+
+    char_list_embed(chars, user)
+  when name && char && !section
+    embed = character_embed(
+      char: char,
+      img: img,
+      section: :default,
+      user: user,
+      color: color
+    )
+
+    msg = event.send_embed("", embed)
+    Carousel.create(message_id: msg.id, char_id: char.id)
+
+    section_react(msg)
+  when char && section && keyword
+    embed = command_error_embed(
+      "Invalid Arguments",
+      member
+    )unless /image/i.match(section)
+
+    unless embed
+      img = CharImage.where(char_id: char.id).find_by!(keyword: keyword)
+
+      embed = error_embed(
+        "Wrong Channel!",
+        "The requested image is NSFW"
+      )if img.category == 'NSFW' && !event.channel.nsfw?
+    end
+
+    unless embed
+      embed = character_embed(
+        char: char,
+        img: img,
+        section: :image,
+        user: user,
+        color: color
+      )
+
+      msg = event.send_embed("", embed)
+      Carousel.create(message_id: msg.id, char_id: char.id, image_id: img.id)
+
+      arrow_react(msg)
+    end
+
+    embed
+  when name && char && section
+    sect = section.downcase.to_sym
+    nsfw = event.channel.nsfw?
+
+    img = ImageController.img_scroll(
+      char_id: char.id,
+      nsfw: nsfw
+    )if section == :image
+
+    if sections.detect{ |s| s == sect }
+      embed = character_embed(
+        char: char,
+        img: img,
+        section: sect,
+        user: user,
+        color: color,
+      )
+
+      msg = event.send_embed("", embed)
+      Carousel.create(message_id: msg.id, char_id: char.id, image_id: img.id)
+
+      if sect == :image
+        arrow_react(msg)
+      else
+        section_react(msg)
+      end
+    else
+      error_embed("Invalid Section!")
+    end
+  end
+
+
+rescue ActiveRecord::RecordNotFound => e
+  error_embed("Record Not Found!", e.message)
+end
+
 # ---
 
 commands = [
@@ -258,7 +369,8 @@ commands = [
   app,
   help,
   poll,
-  raffle
+  raffle,
+  member
 ]
 
 # This will trigger on every message sent in discord
@@ -325,6 +437,8 @@ bot.reaction_add do |event|
       :pm
     when event.message.from_bot? && content.match(/\_New\sCharacter\sImage\_:/)
       :image_application
+    when carousel = Carousel.find_by(message_id: event.message.id)
+      :carousel
     end
 
   vote =
@@ -334,9 +448,19 @@ bot.reaction_add do |event|
     when reactions[Emoji::CHECK]&.count.to_i > 1 then :check
     when reactions[Emoji::CROSS]&.count.to_i > 1 then :cross
     when reactions[Emoji::CRAYON]&.count.to_i > 1 then :crayon
+    when reactions[Emoji::NOTEBOOK]&.count.to_i > 1 then :notebook
+    when reactions[Emoji::QUESTION]&.count.to_i > 1 then :question
+    when reactions[Emoji::PALLET]&.count.to_i > 1 then :pallet
+    when reactions[Emoji::EAR]&.count.to_i > 1 then :ear
+    when reactions[Emoji::PICTURE]&.count.to_i > 1 then :picture
+    when reactions[Emoji::BAGS]&.count.to_i > 1 then :bags
+    when reactions[Emoji::FAMILY]&.count.to_i > 1 then :family
+    when reactions[Emoji::EYES]&.count.to_i > 1 then :eyes
+    when reactions[Emoji::KEY]&.count.to_i > 1 then :key
     when reactions[Emoji::PHONE]&.count.to_i > 1 then :phone
     when reactions[Emoji::LEFT]&.count.to_i > 1 then :left
     when reactions[Emoji::RIGHT]&.count.to_i > 1 then :right
+    when reactions[Emoji::UNDO]&.count.to_i > 1 then :back
     end
 
   case [form, vote]
@@ -346,11 +470,15 @@ bot.reaction_add do |event|
     user = event.server.member(uid[1])
 
     char = CharacterController.edit_character(params)
-    image_url = ImageController.default_image(content, char.id)
+    img = ImageController.default_image(content, char.id)
     color = CharacterController.type_color(char)
 
-
-    embed = character_embed(char, image_url, user, color) if char
+    embed = character_embed(
+      char: char,
+      img: img,
+      user: user,
+      color: color
+    )if char
 
     if embed
       bot.send_message(
@@ -447,6 +575,171 @@ bot.reaction_add do |event|
   when [:image_application, :cross]
     event.message.delete
 
+  when [:carousel, :notebook]
+    emoji = Emoji::NOTEBOOK
+    users = event.message.reacted_with(emoji)
+
+    users.each do |user|
+      event.message.delete_reaction(user.id, emoji) unless user.current_bot?
+    end
+
+    char = Character.find(carousel.char_id)
+    embed = character_embed(
+      char: char,
+      img: CharImage.where(char_id: char.id).find_by(keyword: 'Default'),
+      user: event.server.member(char.user_id),
+      color: CharacterController.type_color(char),
+      section: :bio
+    )
+    event.message.edit("", embed)
+  when [:carousel, :question]
+    emoji = Emoji::QUESTION
+    users = event.message.reacted_with(emoji)
+
+    users.each do |user|
+      event.message.delete_reaction(user.id, emoji) unless user.current_bot?
+    end
+
+    char = Character.find(carousel.char_id)
+    embed = character_embed(
+      char: char,
+      img: CharImage.where(char_id: char.id).find_by(keyword: 'Default'),
+      user: event.server.member(char.user_id),
+      color: CharacterController.type_color(char),
+      section: :status
+    )
+    event.message.edit("", embed)
+  when [:carousel, :pallet]
+    emoji = Emoji::PALLET
+    users = event.message.reacted_with(emoji)
+
+    users.each do |user|
+      event.message.delete_reaction(user.id, emoji) unless user.current_bot?
+    end
+
+    char = Character.find(carousel.char_id)
+    embed = character_embed(
+      char: char,
+      img: CharImage.where(char_id: char.id).find_by(keyword: 'Default'),
+      user: event.server.member(char.user_id),
+      color: CharacterController.type_color(char),
+      section: :type
+    )
+    event.message.edit("", embed)
+  when [:carousel, :ear]
+    emoji = Emoji::EAR
+    users = event.message.reacted_with(emoji)
+
+    users.each do |user|
+      event.message.delete_reaction(user.id, emoji) unless user.current_bot?
+    end
+
+    char = Character.find(carousel.char_id)
+    embed = character_embed(
+      char: char,
+      img: CharImage.where(char_id: char.id).find_by(keyword: 'Default'),
+      user: event.server.member(char.user_id),
+      color: CharacterController.type_color(char),
+      section: :rumors
+    )
+    event.message.edit("", embed)
+  when [:carousel, :picture]
+    event.message.delete_all_reactions
+
+    char = Character.find(carousel.char_id)
+    img = ImageController.img_scroll(
+      char_id: char.id,
+      nsfw: event.channel.nsfw?,
+    )
+    carousel.update(id: carousel.id, image_id: img.id)
+
+    embed = character_embed(
+      char: char,
+      img: img,
+      user: event.server.member(char.user_id),
+      color: CharacterController.type_color(char),
+      section: :image
+    )
+    event.message.edit("", embed)
+    arrow_react(event.message)
+  when [:carousel, :bags]
+  when [:carousel, :family]
+  when [:carousel, :eyes]
+    emoji = Emoji::EYES
+    users = event.message.reacted_with(emoji)
+
+    users.each do |user|
+      event.message.delete_reaction(user.id, emoji) unless user.current_bot?
+    end
+
+    char = Character.find(carousel.char_id)
+    embed = character_embed(
+      char: char,
+      img: CharImage.where(char_id: char.id).find_by(keyword: 'Default'),
+      user: event.server.member(char.user_id),
+      color: CharacterController.type_color(char),
+      section: :all
+    )
+    event.message.edit("", embed)
+  when [:carousel, :key]
+    emoji = Emoji::KEY
+    users = event.message.reacted_with(emoji)
+
+    users.each do |user|
+      event.message.delete_reaction(user.id, emoji) unless user.current_bot?
+    end
+
+    char = Character.find(carousel.char_id)
+    embed = character_embed(
+      char: char,
+      img: CharImage.where(char_id: char.id).find_by(keyword: 'Default'),
+      user: event.server.member(char.user_id),
+      color: CharacterController.type_color(char),
+      section: :default
+    )
+    event.message.edit("", embed)
+  when [:carousel, :back]
+    event.message.delete_all_reactions
+
+    char = Character.find(carousel.char_id)
+    embed = character_embed(
+      char: char,
+      img: CharImage.where(char_id: char.id).find_by(keyword: 'Default'),
+      user: event.server.member(char.user_id),
+      color: CharacterController.type_color(char),
+      section: :default
+    )
+    event.message.edit("", embed)
+    section_react(event.message)
+  when [:carousel, :left], [:carousel, :right]
+    emoji = vote == :left ? Emoji::LEFT : Emoji::RIGHT
+    users = event.message.reacted_with(emoji)
+
+    users.each do |user|
+      event.message.delete_reaction(user.id, emoji) unless user.current_bot?
+    end
+
+    char = Character.find(carousel.char_id)
+    img = ImageController.img_scroll(
+      char_id: char.id,
+      nsfw: event.channel.nsfw?,
+      img: carousel.image_id,
+      dir: vote
+    )
+
+    carousel.update(id: carousel.id, image_id: img.id)
+
+    embed = character_embed(
+      char: char,
+      img: img,
+      user: event.server.member(char.user_id),
+      color: CharacterController.type_color(char),
+      section: :image
+    )
+    event.message.edit("", embed)
+  when [:carousel, :cross]
+    event.message.delete
+    Carousel.find_by(message_id: event.message.id).delete
   end
 end
 
