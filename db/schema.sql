@@ -21,6 +21,39 @@ SET default_tablespace = '';
 SET default_with_oids = false;
 
 --
+-- Name: carousels; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.carousels (
+    id integer NOT NULL,
+    message_id character varying(50) NOT NULL,
+    char_id integer,
+    options integer[],
+    image_id integer
+);
+
+
+--
+-- Name: carousels_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.carousels_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: carousels_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.carousels_id_seq OWNED BY public.carousels.id;
+
+
+--
 -- Name: char_images; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -158,6 +191,13 @@ CREATE TABLE public.users (
 
 
 --
+-- Name: carousels id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.carousels ALTER COLUMN id SET DEFAULT nextval('public.carousels_id_seq'::regclass);
+
+
+--
 -- Name: char_images id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -179,6 +219,14 @@ ALTER TABLE ONLY public.types ALTER COLUMN id SET DEFAULT nextval('public.types_
 
 
 --
+-- Data for Name: carousels; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.carousels (id, message_id, char_id, options, image_id) FROM stdin;
+\.
+
+
+--
 -- Data for Name: char_images; Type: TABLE DATA; Schema: public; Owner: -
 --
 
@@ -186,6 +234,19 @@ COPY public.char_images (id, char_id, url, category, keyword) FROM stdin;
 2	1	https://i.pinimg.com/originals/e1/af/36/e1af3607885c7bbd3812706bfe9cbafc.jpg	SFW	Neiro's Nightmare
 4	1	https://i.pinimg.com/originals/53/0a/32/530a3267c68dcf5711855d4329e3bbee.png	SFW	Hero
 3	1	https://i.imgur.com/CqtkxMr.png	SFW	Default
+8	2	http://d.facdn.net/art/fishinabarrrel/1568640777/1568640773.fishinabarrrel_neiro_ref_sfw.png	SFW	Default
+9	3	http://static.pokemonpets.com/images/monsters-images-800-800/8715-Mega-Noivern.png	SFW	Default
+10	4	https://i.imgur.com/GZY4QN7.png	SFW	Default
+11	1	https://i.kym-cdn.com/photos/images/original/001/194/272/043.png	SFW	Cutesy
+12	1	https://i.kym-cdn.com/photos/images/original/001/183/270/c38.png	NSFW	Salty
+13	1	https://cdnb.artstation.com/p/assets/images/images/003/772/763/large/mauricio-cid-mimikkyu.jpg?1477345311	SFW	Spooky
+14	1	https://66.media.tumblr.com/536300ac3be54c647394e959b20efce4/tumblr_prxhywHjGa1qagaoco1_400.png	SFW	Detective
+15	4	https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcQAqq4k9ffG_WLCbHLXD23T4RXxMy0VIwcBS-ErrArZxgViEnFP	SFW	Sweating
+16	4	https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcSIBDTycnrDuTc1BiUiA5BJVd1l5AblA5u9FkL66DcsjzP1KuEY	SFW	Attacking
+17	4	https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcQjEu8qtYF6WR3fbCCCCyQB8t6Y8qcZe40tuBKbSGD6vpvHLps5	SFW	Scheming
+18	4	https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcRGttdLkAF5trFBFeh6DziEy7uD8vkmOgZQcmkB44WaTQQYDiHf	SFW	Playful
+19	4	https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcS6J-el9WuMFQ_g11r57Y1UaGqcwBYCjuGu7jRSVIYIozTl2Bzl	SFW	Mega
+20	4	https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcRG65IsiuZr1HPn4kINl6ECHNcfz6nXWu7hlkdmQjy5H9nujuv-	SFW	Hypnosis
 \.
 
 
@@ -195,6 +256,10 @@ COPY public.char_images (id, char_id, url, category, keyword) FROM stdin;
 
 COPY public.characters (id, user_id, name, species, types, age, weight, height, gender, orientation, relationship, attacks, likes, dislikes, personality, backstory, other, edit_url, active, dm_notes, location, rumors, hometown, warnings, rating) FROM stdin;
 1	215240568245190656	Mizukyu	Mimikyu	Ghost/Fairy	Old	1.5 lbs	0'8"	Female	Pansexual	Married	Shadow Claw | Play Rough | Psychic | Shadow Sneak	Cuddles, soft things, spooky stories, horror	Bullies, rejection, being exposed	I am shy and a bit recluse, but warm when you take the time to get to know me. I don't like when people try to see under my disguise, I've lost many friends that way (to death) including my spouse. Really, really really likes to dress up as other pokemon	Has existed more years than she cares to count. She is immortal, due to being a ghost. She has learned to carefully hide her appearance as to make sure not to accidentally kill more friends. Took up tailoring to make multiple disguises, because pretending to be a Pikachu forever is boring.	Switches disguising with moods. Has made them for all pokemon. Also a master shadow bender	?edit2=2_ABaOnuc3HZEyhI9EeApXcJtsBmDzqtzDGH5De46CfuRBxwVavQKAfTT_LZy_kMH0sz5H7gk	Active	\N	\N	Loves children | Hates washing and tailoring disguises | Surprisingly soft | Steals children | Wishes to be admired	\N	Horrific Eldritch Abomination	\N
+2	271741998321369088	Neiro	Vaporeon	Water	33	125 lbs	3'03"	Male	Bisexual	Single	Water Gun|Hydro Pump|Ice Beam|Synchronoise	Likes to overeat, being in the rain, and playing with fat	Hates that his body absorbs any liquids	Carefree and a little bit lazy. Always up for fun things.	He was spoiled from the very beginning of his life. This resulted in him being a bit fat and lazy. He loved it tho but decided to make something more with his life by joining a rescue team. He also wanted to work on his skills as being taken care of his whole life made him pretty useless in battle.	He has the special ability Water Absorb. Neiro's body can bloat up to 250 times his normal size before his body stopped expanding. His tail can also bloat equal to that, making his total potential size 500 times	?edit2=2_ABaOnufidKuBLj5ecAtAjVd0CTTFoJhB0CqE9rM-WW0yeYSfnxeKjblep_Nru3f8jpOzkS4	Active	\N	\N	Uses Water Gun every time he sneezes.|His Water Absorb ability absorbs any liquids into his body.|Too much water makes him bloat like a sponge.|He can piss for an hour.|He is outstanding with his move execution and aim	The Village	Dont share a shower with him... 	\N
+3	215240568245190656	Zumi	Noivern	Dragon/Flying	Young	120 lbs	3'0"	Male	\N	\N	Dragon Pulse | Screech | Bite | Wing Attack	Zumi loves games and all his friends. He also loves sweets and sour candy	Zumi doesn't like bullies or mean kids that constantly make fun of other kids or exclude them from the fun	Zumi is a fun loving Derg that likes to play with anyone and everyone! He also likes to play fun jokes on people or do a bit of spooking with his ghosty parents -- but he tries not to take it too far. He tries to protect his friends as much as he can, but theres only so much a little dragon can do	Zumi is a young dragon, and doesn't really remember much before coming to the guild house. He doesn't remember his birth parents, or when he met his ghost parents, but he isn't really bothered about it. All he knows, is that he loves his ghost parents and wants to make as many friends as he can!	\N	?edit2=2_ABaOnuf86ZAxBbQfeKlKe40wSsMNOKbAg8yb9OIS7GsZ1Qs8dtVRX13RLf4uJnuRawMf5io	Active	\N	\N	He was abandoned as a baby | He wishes he could fly faster | He was rescued by a ghostly couple | He doesn't scare easy | He's just a dumb kid	\N	Has a spooky set of parents that will ruin your day	\N
+4	215240568245190656	Ozi	Gengar	Ghost/Poison	???	90 lbs	5'0"	Male	Straight	Married	Shadow Ball | Sludge Bomb | Psychic | Dazzling Gleam	Jokes and Spooks	Kill joys and Arrogance	Theres never a dull moment with Ozi! He likes to pull pranks and make people either laugh or scream. He loves his wife (Mizukyu) and son (Zumi) and will spook anyone who harms them to death. So long as you play nice, he's a great ghosty guy!	No one knows where Ozi came from, or why he came here, but he and his wife Mizukyu have caused a lot of mayhem in their many years together. He's been known to suddenly appear or disappear and even caused some unfortunate souls to go mad with insanity. Over time he's learned to dial back the spooks a bit, and even tried to make some new friends	Ozi sometimes causes trouble with his ghost powers, behaving a bit like the Cheshire Cat. He can be a bit slippery, but tries not to cause too much trouble	?edit2=2_ABaOnueS5nTN63soX4wQ0PVKa_tGFghbIpiYlW3kwGw4Cj09Fnio0qNLD47iyOC5H3f4oN4	Active	\N	\N	He taught Zumi how to fly | He's a surprisingly good father | Sometimes he doesn't know when to stop the jokes | His humor is not for everyone | I'm not totally convinced he's real	\N	Spooks ahead!	\N
+5	215240568245190656	Neiro	Vaporeon	Water	\N	???	varies	Male	\N	\N	Duplicate | Pokemon | Attack	\N	\N	\N	\N	This is test entry	?edit2=2_ABaOnuc441lxr76HNkZnq7BJq0f_VFhK9OM8YMUGkIbQGKSU8apSzv6re4BevYVYi6QzmI8	Active	\N	\N	\N	\N	\N	\N
 \.
 
 
@@ -237,17 +302,24 @@ COPY public.users (id, level, next_level, boosted_xp, unboosted_xp, evs, hp, att
 
 
 --
+-- Name: carousels_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.carousels_id_seq', 29, true);
+
+
+--
 -- Name: char_images_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.char_images_id_seq', 6, true);
+SELECT pg_catalog.setval('public.char_images_id_seq', 20, true);
 
 
 --
 -- Name: characters_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.characters_id_seq', 1, true);
+SELECT pg_catalog.setval('public.characters_id_seq', 5, true);
 
 
 --
@@ -255,6 +327,14 @@ SELECT pg_catalog.setval('public.characters_id_seq', 1, true);
 --
 
 SELECT pg_catalog.setval('public.types_id_seq', 19, true);
+
+
+--
+-- Name: carousels carousels_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.carousels
+    ADD CONSTRAINT carousels_pkey PRIMARY KEY (id);
 
 
 --
@@ -295,6 +375,14 @@ ALTER TABLE ONLY public.types
 
 ALTER TABLE ONLY public.users
     ADD CONSTRAINT users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: carousels carousel_char_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.carousels
+    ADD CONSTRAINT carousel_char_id FOREIGN KEY (char_id) REFERENCES public.characters(id);
 
 
 --
