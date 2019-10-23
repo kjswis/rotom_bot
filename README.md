@@ -31,6 +31,7 @@ $ pg_dump -O -f db/schma.sql [db_name]  # Exports schema
   * Displays help information for the available commands
   * Allows modular polls in any channel
   * Allows users to add, view, and delete images for their characters
+  * Display all kinds of information about guild members
 
 ## Setup
 This application runs using Ruby and Postgres. In order to run the bot locally
