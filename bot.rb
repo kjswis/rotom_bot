@@ -265,11 +265,14 @@ member = Command.new(:member, desc, opts) do |event, name, section, keyword|
   when Regex::UID
     user_id = Regex::UID.match(name)
   when String
-    char = Character.find_by!(name: name)
+    chars = Character.where(name: name)
+    char = chars.first if chars.length == 1
 
-    img = CharImage.where(char_id: char.id).find_by(keyword: 'Default')
-    user = event.server.member(char.user_id)
-    color = CharacterController.type_color(char)
+    if char
+      img = CharImage.where(char_id: char.id).find_by(keyword: 'Default')
+      user = event.server.member(char.user_id)
+      color = CharacterController.type_color(char)
+    end
   end
 
   case
@@ -279,8 +282,25 @@ member = Command.new(:member, desc, opts) do |event, name, section, keyword|
   when name && user_id
     chars = Character.where(user_id: user_id[1])
     user = event.server.member(user_id[1])
+    chars_id = []
 
-    char_list_embed(chars, user)
+    chars.each do |char|
+      chars_id.push char.id if char.active == 'Active'
+    end
+
+    embed = user_char_embed(chars, user)
+    msg = event.send_embed("", embed)
+
+    Carousel.create(message_id: msg.id, options: chars_id)
+    option_react(msg, chars_id)
+  when name && chars && !char
+    embed = dup_char_embed(chars, name)
+    chars_id = chars.map(&:id)
+
+    msg = event.send_embed("", embed)
+    Carousel.create(message_id: msg.id, options: chars_id)
+
+    option_react(msg, chars_id)
   when name && char && !section
     embed = character_embed(
       char: char,
@@ -461,6 +481,7 @@ bot.reaction_add do |event|
     when reactions[Emoji::LEFT]&.count.to_i > 1 then :left
     when reactions[Emoji::RIGHT]&.count.to_i > 1 then :right
     when reactions[Emoji::UNDO]&.count.to_i > 1 then :back
+    when reactions.any? { |k,v| Emoji::NUMBERS.include? k } then :number
     end
 
   case [form, vote]
@@ -737,9 +758,32 @@ bot.reaction_add do |event|
       section: :image
     )
     event.message.edit("", embed)
+
+  when [:carousel, :number]
+    char_index = nil
+    Emoji::NUMBERS.each.with_index do |emoji, i|
+      char_index = i if reactions[emoji]&.count.to_i > 1
+    end
+
+    if char_index
+      event.message.delete_all_reactions
+
+      char = Character.find(carousel.options[char_index])
+      carousel.update(id: carousel.id, char_id: char.id)
+
+      embed = character_embed(
+        char: char,
+        img: CharImage.where(char_id: char.id).find_by(keyword: 'Default'),
+        user: event.server.member(char.user_id),
+        color: CharacterController.type_color(char),
+        section: :default
+      )
+      event.message.edit("", embed)
+      section_react(event.message)
+    end
   when [:carousel, :cross]
     event.message.delete
-    Carousel.find_by(message_id: event.message.id).delete
+    carousel.delete
   end
 end
 

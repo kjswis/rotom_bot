@@ -186,6 +186,59 @@ def char_list_embed(chars, user = nil)
   embed
 end
 
+def user_char_embed(chars, user)
+  fields = []
+  active = []
+  npcs = []
+  user_name = user.nickname || user.name
+
+  chars.each do |char|
+    case char.active
+    when 'Active'
+      active.push char
+    when 'NPC'
+      npcs.push char.name
+    end
+  end
+
+  active.each.with_index do |char, i|
+    fields.push({
+      name: "#{i+1} #{char.name}",
+      value: "#{char.species} -- #{char.types}"
+    })
+  end
+
+  unless npcs.empty?
+    fields.push({ name: "#{user_name}'s NPCs", value: npcs.join(", ") })
+  end
+
+  embed = Embed.new(
+    title: "#{user_name}'s Characters",
+    description: "Click on the corresponding reaction to view the character",
+    fields: fields
+  )
+
+  embed.color = user.color.combined if user.color
+  embed
+end
+
+def dup_char_embed(chars, name)
+  fields = []
+
+  chars.each.with_index do |char, i|
+    fields.push({
+      name: "#{Emoji::NUMBERS[i]}: #{char.species}",
+      value: "Created by <@#{char.user_id}>"
+    })
+  end
+
+  Embed.new(
+    title: "Which #{name}?",
+    description: "Click on the corresponding reaction to pick",
+    fields: fields
+  )
+end
+
 def char_image_embed(char, image, user, color)
   footer = "#{user.name}##{user.tag} | #{char.active}" +
     " | #{image.category}"
