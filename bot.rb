@@ -11,7 +11,8 @@ require 'active_record'
 
 # Constants: such as roles and channel ids
 
-ADMINS = 308250685554556930
+ADMINS_TEST = 308250685554556930
+ADMINS = 453262984769437696
 
 # ---
 

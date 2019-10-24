@@ -140,6 +140,41 @@ ALTER SEQUENCE public.characters_id_seq OWNED BY public.characters.id;
 
 
 --
+-- Name: items; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.items (
+    id integer NOT NULL,
+    name character varying NOT NULL,
+    description character varying,
+    status character varying,
+    rp_reply character varying,
+    reusable boolean DEFAULT false,
+    category character varying[]
+);
+
+
+--
+-- Name: items_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.items_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: items_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.items_id_seq OWNED BY public.items.id;
+
+
+--
 -- Name: types; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -212,6 +247,13 @@ ALTER TABLE ONLY public.characters ALTER COLUMN id SET DEFAULT nextval('public.c
 
 
 --
+-- Name: items id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.items ALTER COLUMN id SET DEFAULT nextval('public.items_id_seq'::regclass);
+
+
+--
 -- Name: types id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -264,6 +306,14 @@ COPY public.characters (id, user_id, name, species, types, age, weight, height, 
 
 
 --
+-- Data for Name: items; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.items (id, name, description, status, rp_reply, reusable, category) FROM stdin;
+\.
+
+
+--
 -- Data for Name: types; Type: TABLE DATA; Schema: public; Owner: -
 --
 
@@ -298,6 +348,9 @@ COPY public.users (id, level, next_level, boosted_xp, unboosted_xp, evs, hp, att
 271741998321369088	70	25550	25285	18368	24, 4, 5, 5, 6, 5	432	127	128	143	145	136
 215240568245190656	30	4950	4686	984	23, 4, 6, 6, 4, 5	201	67	67	69	62	64
 263878163975634947	17	1702	1675	1227	19, 5, 4, 5, 6, 4	113	39	41	39	42	38
+409742624111460352	33	5942	5841	5468	10, 4, 5, 6, 5, 6	206	72	65	74	73	69
+277235003841314816	36	7020	6869	3610	19, 6, 6, 5, 5, 4	233	74	72	76	72	75
+412163685440684052	66	22770	22121	4831	20, 4, 4, 4, 5, 5	400	131	135	135	143	133
 \.
 
 
@@ -320,6 +373,13 @@ SELECT pg_catalog.setval('public.char_images_id_seq', 20, true);
 --
 
 SELECT pg_catalog.setval('public.characters_id_seq', 5, true);
+
+
+--
+-- Name: items_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.items_id_seq', 1, false);
 
 
 --
@@ -351,6 +411,14 @@ ALTER TABLE ONLY public.char_images
 
 ALTER TABLE ONLY public.characters
     ADD CONSTRAINT characters_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: items items_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.items
+    ADD CONSTRAINT items_pkey PRIMARY KEY (id);
 
 
 --
