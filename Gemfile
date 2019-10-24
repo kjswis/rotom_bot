@@ -9,6 +9,7 @@ gem 'activerecord'
 gem 'discordrb', '~> 3.3.0'
 gem 'pg'
 gem 'terminal-table'
+gem 'rmagick'
 
 group :development do
   gem 'dotenv'

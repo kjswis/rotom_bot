@@ -3,6 +3,7 @@ require 'erb'
 require 'yaml'
 require 'json'
 require 'terminal-table'
+require 'rmagick'
 
 BOT_ENV = ENV.fetch('BOT_ENV') { 'development' }
 Bundler.require(:default, BOT_ENV)
@@ -97,17 +98,38 @@ help = Command.new(:help, desc, opts) do |event, command|
   end
 end
 
-opts = { "type" => "" }
+opts = { 
+  "primary" => "Looks up a primary type",
+  "primary | secondary" => "Looks up a primary and secondary type"}
 desc = "Displays a chart of effectiveness for the given type"
-matchup = Command.new(:matchup, desc, opts) do |event, type|
+matchup = Command.new(:matchup, desc, opts) do |event, primary, secondary|
   channel = event.channel.id
-  file = "images/Type #{type.capitalize}.png"
 
-  if File.exists?(file)
-    bot.send_file(channel, File.open(file, 'r'))
+  primary_file = 'nil'
+  secondary_file = 'nil'
+  image_out = 'images/Type Double.png';
+
+  if secondary
+    primary_file = "images/Type #{primary.capitalize}.png"
+    secondary_file = "images/Type #{secondary.capitalize}.png"
+  elsif primary
+    primary_file = "images/Type #{primary.capitalize}.png"
   else
-    bot.respond("I do not know this pokemon type! Please try again!")
+    command_error_embed("There was an error processing your type matchup!", matchup)
   end
+
+  if File.exists?(primary_file) and File.exists?(secondary_file)  
+    append_image(primary_file, secondary_file, image_out)
+    file = image_out
+    bot.send_file(channel, File.open(file, 'r'))
+  elsif File.exists?(primary_file) and secondary_file != 'nil' 
+    command_error_embed("There was an error processing your type matchup!", matchup)
+  elsif File.exists?(primary_file)
+    bot.send_file(channel, File.open(primary_file, 'r'))
+  else
+    command_error_embed("There was an error processing your type matchup!", matchup)
+  end
+
 end
 
 opts = {
@@ -385,6 +407,14 @@ rescue ActiveRecord::RecordNotFound => e
   error_embed("Record Not Found!", e.message)
 end
 
+opts = { "Test" => ""}
+desc = "Fucked if I know"
+merge = Command.new(:merge, desc, opts) do |event|
+  append_image("images/Type Bug.png", "images/Type Dark.png")
+  #merge_image()
+
+end
+
 # ---
 
 commands = [
@@ -394,7 +424,8 @@ commands = [
   help,
   poll,
   raffle,
-  member
+  member,
+  merge
 ]
 
 # This will trigger on every message sent in discord

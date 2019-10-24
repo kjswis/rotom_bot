@@ -52,6 +52,7 @@ GEM
       http-cookie (>= 1.0.2, < 2.0)
       mime-types (>= 1.16, < 4.0)
       netrc (~> 0.8)
+    rmagick (4.0.0)
     terminal-table (1.8.0)
       unicode-display_width (~> 1.1, >= 1.1.1)
     thread_safe (0.3.6)
@@ -76,6 +77,7 @@ DEPENDENCIES
   dotenv
   pg
   pry
+  rmagick
   terminal-table
 
 RUBY VERSION
