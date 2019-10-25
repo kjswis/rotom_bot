@@ -15,6 +15,9 @@ require 'active_record'
 ADMINS = 308250685554556930
 #ADMINS = 453262984769437696
 
+DISCORD = "#36393f"
+ERROR = "#a41e1f"
+
 # ---
 
 Dotenv.load if BOT_ENV != 'production'
@@ -98,38 +101,29 @@ help = Command.new(:help, desc, opts) do |event, command|
   end
 end
 
-opts = { 
-  "primary" => "Looks up a primary type",
-  "primary | secondary" => "Looks up a primary and secondary type"}
+opts = {
+  "primary" => "Single Display",
+  "primary | secondary" => "Double Display"
+}
 desc = "Displays a chart of effectiveness for the given type"
 matchup = Command.new(:matchup, desc, opts) do |event, primary, secondary|
   channel = event.channel.id
+  image_out = 'images/Type Double.png'
 
-  primary_file = 'nil'
-  secondary_file = 'nil'
-  image_out = 'images/Type Double.png';
+  file_p = "images/Type #{primary.capitalize}.png" if primary
+  file_s = "images/Type #{secondary.capitalize}.png" if secondary
 
-  if secondary
-    primary_file = "images/Type #{primary.capitalize}.png"
-    secondary_file = "images/Type #{secondary.capitalize}.png"
-  elsif primary
-    primary_file = "images/Type #{primary.capitalize}.png"
+  case
+  when !file_p
+    command_error_embed("There was an error processing your request!", matchup)
+  when !file_s && File.exists?(file_p)
+    bot.send_file(channel, File.open(file_p, 'r'))
+  when File.exists?(file_p) && File.exists?(file_s)
+    append_image(file_p, file_s, image_out)
+    bot.send_file(channel, File.open(image_out, 'r'))
   else
-    command_error_embed("There was an error processing your type matchup!", matchup)
+    error_embed("Type(s) not found!")
   end
-
-  if File.exists?(primary_file) and File.exists?(secondary_file)  
-    append_image(primary_file, secondary_file, image_out)
-    file = image_out
-    bot.send_file(channel, File.open(file, 'r'))
-  elsif File.exists?(primary_file) and secondary_file != 'nil' 
-    command_error_embed("There was an error processing your type matchup!", matchup)
-  elsif File.exists?(primary_file)
-    bot.send_file(channel, File.open(primary_file, 'r'))
-  else
-    command_error_embed("There was an error processing your type matchup!", matchup)
-  end
-
 end
 
 opts = {
@@ -141,7 +135,7 @@ desc = "Everything to do with character applications"
 app = Command.new(:app, desc, opts) do |event, name, status|
   user = event.author
   user_name = user.nickname || user.name
-  color = user.color ? user.color.combined : Color::DEFAULT
+  color = user.color.combined if user.color
 
   character = Character.where(user_id: user.id).find_by(name: name) if name
   active = status.match(/(in)?active/i) if status
@@ -162,7 +156,7 @@ app = Command.new(:app, desc, opts) do |event, name, status|
     bot.send_message(user.dm.id, "", false, embed)
     edit_app_embed(user_name, name, color)
   when !name && !status
-    embed = new_app_dm(user_name, color, user.id)
+    embed = new_app_dm(user_name, user.id, color)
 
     message = bot.send_message(user.dm.id, "", false, embed)
     message.react(Emoji::PHONE)
@@ -405,14 +399,6 @@ member = Command.new(:member, desc, opts) do |event, name, section, keyword|
 
 rescue ActiveRecord::RecordNotFound => e
   error_embed("Record Not Found!", e.message)
-end
-
-opts = { "Test" => ""}
-desc = "Fucked if I know"
-merge = Command.new(:merge, desc, opts) do |event|
-  append_image("images/Type Bug.png", "images/Type Dark.png")
-  #merge_image()
-
 end
 
 # ---

@@ -38,7 +38,7 @@ def reject_char_embed(app)
       name: app.author.name.gsub('Application', 'Rejection'),
       icon_url: app.author.icon_url
     },
-    color: Color::ERROR,
+    color: ERROR,
     footer: {
       text: app.footer.text
     },
@@ -88,7 +88,7 @@ def reject_img_embed(app)
     thumbnail: {
       url: app.image.url
     },
-    color: Color::ERROR,
+    color: ERROR,
     footer: {
       text: app.footer.text
     },
@@ -111,7 +111,7 @@ def user_char_app(event)
 
   embed = Embed.new(
     title: "**Your application has been rejected!!**",
-    color: Color::ERROR,
+    color: ERROR,
     footer: {
       text: FTR
     },
@@ -147,7 +147,7 @@ def user_img_app(event)
 
   embed = Embed.new(
     title: "**Your application has been rejected!!**",
-    color: Color::ERROR,
+    color: ERROR,
     footer: {
       text: FTR
     },
@@ -166,7 +166,7 @@ end
 def self_edit_embed(app)
   Embed.new(
     title: "Don't forget to resubmit!",
-    color: Color::ERROR,
+    color: ERROR,
     description: "[Edit the Application](#{Url::CHARACTER}#{app.footer.text})"
   )
 end
