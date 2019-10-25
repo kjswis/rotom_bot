@@ -3,6 +3,7 @@ require 'erb'
 require 'yaml'
 require 'json'
 require 'terminal-table'
+require 'rmagick'
 
 BOT_ENV = ENV.fetch('BOT_ENV') { 'development' }
 Bundler.require(:default, BOT_ENV)
@@ -13,6 +14,9 @@ require 'active_record'
 
 ADMINS = 308250685554556930
 #ADMINS = 453262984769437696
+
+DISCORD = "#36393f"
+ERROR = "#a41e1f"
 
 # ---
 
@@ -97,16 +101,28 @@ help = Command.new(:help, desc, opts) do |event, command|
   end
 end
 
-opts = { "type" => "" }
+opts = {
+  "primary" => "Single Display",
+  "primary | secondary" => "Double Display"
+}
 desc = "Displays a chart of effectiveness for the given type"
-matchup = Command.new(:matchup, desc, opts) do |event, type|
+matchup = Command.new(:matchup, desc, opts) do |event, primary, secondary|
   channel = event.channel.id
-  file = "images/Type #{type.capitalize}.png"
+  image_out = 'images/Type Double.png'
 
-  if File.exists?(file)
-    bot.send_file(channel, File.open(file, 'r'))
+  file_p = "images/Type #{primary.capitalize}.png" if primary
+  file_s = "images/Type #{secondary.capitalize}.png" if secondary
+
+  case
+  when !file_p
+    command_error_embed("There was an error processing your request!", matchup)
+  when !file_s && File.exists?(file_p)
+    bot.send_file(channel, File.open(file_p, 'r'))
+  when File.exists?(file_p) && File.exists?(file_s)
+    append_image(file_p, file_s, image_out)
+    bot.send_file(channel, File.open(image_out, 'r'))
   else
-    bot.respond("I do not know this pokemon type! Please try again!")
+    error_embed("Type(s) not found!")
   end
 end
 
@@ -119,7 +135,7 @@ desc = "Everything to do with character applications"
 app = Command.new(:app, desc, opts) do |event, name, status|
   user = event.author
   user_name = user.nickname || user.name
-  color = user.color ? user.color.combined : Color::DEFAULT
+  color = user.color.combined if user.color
 
   character = Character.where(user_id: user.id).find_by(name: name) if name
   active = status.match(/(in)?active/i) if status
@@ -140,7 +156,7 @@ app = Command.new(:app, desc, opts) do |event, name, status|
     bot.send_message(user.dm.id, "", false, embed)
     edit_app_embed(user_name, name, color)
   when !name && !status
-    embed = new_app_dm(user_name, color, user.id)
+    embed = new_app_dm(user_name, user.id, color)
 
     message = bot.send_message(user.dm.id, "", false, embed)
     message.react(Emoji::PHONE)
@@ -394,7 +410,8 @@ commands = [
   help,
   poll,
   raffle,
-  member
+  member,
+  merge
 ]
 
 # This will trigger on every message sent in discord
