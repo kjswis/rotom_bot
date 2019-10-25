@@ -11,8 +11,8 @@ require 'active_record'
 
 # Constants: such as roles and channel ids
 
-ADMINS_TEST = 308250685554556930
-ADMINS = 453262984769437696
+ADMINS = 308250685554556930
+#ADMINS = 453262984769437696
 
 # ---
 
@@ -206,7 +206,7 @@ image = Command.new(:image, desc, opts) do |event, name, keyword, tag, url|
 
   char = Character.where(user_id: user.id).find_by!(name: name) if name
   color = CharacterController.type_color(char) if char
-  img = CharImage.find_by(keyword: keyword) if keyword
+  img = CharImage.where(char_id: char.id).find_by(keyword: keyword) if keyword
 
   case
   when /^Default$/i.match(keyword)
@@ -216,16 +216,14 @@ image = Command.new(:image, desc, opts) do |event, name, keyword, tag, url|
     )
   when char && keyword && url && tag && tag.match(/(n)?sfw/i)
     img_app = CharImage.to_form(
-      char.name,
-      char.species,
-      char.id,
-      keyword,
-      tag,
-      url,
-      user.id
+      char: char,
+      keyword: keyword,
+      category: tag,
+      url: url,
+      user_id: user.id
     )
 
-    approval = bot.send_message(Channel::APPROVAL, img_app, false, nil)
+    approval = bot.send_message(Channel::APPROVAL, "", false, img_app)
     approval.react(Emoji::Y)
     approval.react(Emoji::N)
 
@@ -294,6 +292,11 @@ member = Command.new(:member, desc, opts) do |event, name, section, keyword|
 
     Carousel.create(message_id: msg.id, options: chars_id)
     option_react(msg, chars_id)
+  when name && chars.empty?
+    error_embed(
+      "Character not found!",
+      "Could not find a character named #{name}"
+    )
   when name && chars && !char
     embed = dup_char_embed(chars, name)
     chars_id = chars.map(&:id)
@@ -440,8 +443,9 @@ end
 
 # This will trigger when any reaction is added in discord
 bot.reaction_add do |event|
-  content = event.message.content
   reactions = event.message.reactions
+  app = event.message.embeds.first
+  carousel = Carousel.find_by(message_id: event.message.id)
 
   maj = if event.server
           event.server.roles.find{ |r| r.id == ADMINS }.members.count / 2
@@ -449,17 +453,14 @@ bot.reaction_add do |event|
   maj = 1
 
   form =
-    case
-    when event.message.author.id == Bot::CHARACTER
-      :character_application
-    when event.message.from_bot? && content.match(Regex::CHAR_APP)
-      :character_rejection
-    when event.message.from_bot? && event.server.nil?
-      :pm
-    when event.message.from_bot? && content.match(/\_New\sCharacter\sImage\_:/)
-      :image_application
-    when carousel = Carousel.find_by(message_id: event.message.id)
-      :carousel
+    case app.author.name
+    when 'New App' then :new_app
+    when 'Character Application' then :character_application
+    when 'Character Rejection' then :character_rejection
+    when 'Image Application' then :image_application
+    when 'Image Rejection' then :image_rejection
+    else
+      :carousel if carousel
     end
 
   vote =
@@ -487,12 +488,12 @@ bot.reaction_add do |event|
 
   case [form, vote]
   when [:character_application, :yes]
-    params = content.split("\n")
-    uid = Regex::UID.match(content)
+    app = event.message.embeds.first
+    uid = Regex::UID.match(app.description)
     user = event.server.member(uid[1])
 
-    char = CharacterController.edit_character(params)
-    img = ImageController.default_image(content, char.id)
+    char = CharacterController.edit_character(app)
+    img = ImageController.default_image(app.thumbnail.url, char.id)
     color = CharacterController.type_color(char)
 
     embed = character_embed(
@@ -505,7 +506,7 @@ bot.reaction_add do |event|
     if embed
       bot.send_message(
         Channel::CHARACTER,
-        "Good news, <@#{user.id}>! Your character was approved",
+        "Good news, <@#{uid}>! Your character was approved",
         false,
         embed
       )
@@ -517,11 +518,10 @@ bot.reaction_add do |event|
       )
     end
   when [:character_application, :no]
-    content = event.message.content
-    embed = reject_char_embed(content)
+    embed = reject_char_embed(app)
 
     event.message.delete
-    reject = event.send_embed(content, embed)
+    reject = event.send_embed("", embed)
 
     Emoji::CHAR_APP.each do |reaction|
       reject.react(reaction)
@@ -532,7 +532,7 @@ bot.reaction_add do |event|
     reject.react(Emoji::CRAYON)
 
   when [:character_rejection, :check]
-    user = event.server.member(Regex::UID.match(content)[1])
+    user = event.server.member(Regex::UID.match(app.description)[1])
     embed = user_char_app(event)
 
     event.message.delete
@@ -548,17 +548,16 @@ bot.reaction_add do |event|
       "",
       35,
       false,
-      self_edit_embed(content)
+      self_edit_embed(app)
     )
 
-  when [:pm, :phone]
+  when [:new_app, :phone]
     event.message.delete_own_reaction(Emoji::PHONE)
     user = event.message.reacted_with(Emoji::PHONE).first
 
     bot.send_message(user.dm.id, user.id, false, nil)
   when [:image_application, :yes]
-    params = content.split("\n")
-    img = ImageController.edit_image(params)
+    img = ImageController.edit_image(app)
 
     char = Character.find(img.char_id)
     user = event.server.member(char.user_id)
@@ -574,11 +573,10 @@ bot.reaction_add do |event|
               end
     bot.send_message(channel, "Image Approved!", false, embed)
   when [:image_application, :no]
-    content = event.message.content
-    embed = reject_img_embed(content)
+    embed = reject_img_embed(app)
 
     event.message.delete
-    reject = event.send_embed(content, embed)
+    reject = event.send_embed("", embed)
 
     Emoji::IMG_APP.each do |reaction|
       reject.react(reaction)
@@ -587,14 +585,14 @@ bot.reaction_add do |event|
     reject.react(Emoji::CHECK)
     reject.react(Emoji::CROSS)
 
-  when [:image_application, :check]
-    user = event.server.member(Regex::UID.match(content)[1])
+  when [:image_rejection, :check]
+    user = event.server.member(Regex::UID.match(app.description)[1])
     embed = user_img_app(event)
 
     event.message.delete
     bot.send_temporary_message(event.channel.id, "", 5, false, embed)
     bot.send_message(user.dm.id, "", false, embed)
-  when [:image_application, :cross]
+  when [:image_rejection, :cross]
     event.message.delete
 
   when [:carousel, :notebook]

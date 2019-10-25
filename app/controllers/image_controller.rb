@@ -1,17 +1,15 @@
 class ImageController
-  def self.default_image(content, char_id)
-    img_url =
-      /\*\*URL to the Character\'s Appearance\*\*\:\s(.*)/.match(content)
+  def self.default_image(url, char_id)
     img = CharImage.where(char_id: char_id).find_by(keyword: 'Default')
 
     case
-    when img_url && img
-      img.update(url: img_url[1])
+    when url && img
+      img.update(url: url)
       img.reload
-    when img_url && !img
+    when url && !img
       img = CharImage.create(
         char_id: char_id,
-        url: img_url[1],
+        url: url,
         category: 'SFW',
         keyword: 'Default'
       )

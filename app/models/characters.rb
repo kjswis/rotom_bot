@@ -4,31 +4,29 @@ class Character < ActiveRecord::Base
   validates :species, presence: true
   validates :types, presence: true
 
-  def self.from_form(params)
+  def self.from_form(app)
     key_mapping = {
-      "_New Character Application_" => "active",
-      "Submitted by" => "user_id",
-      " >>> **Characters Name**" => "name",
-      "**Species**" => "species",
-      "**Type**" => "types",
-      "**Age**" => "age",
-      "**Weight**" => "weight",
-      "**Height**" => "height",
-      "**Gender**" => "gender",
-      "**Sexual Orientation**" => "orientation",
-      "**Relationship Status**" => "relationship",
-      "**Attacks**" => "attacks",
-      "**Likes**" => "likes",
-      "**Dislikes**" => "dislikes",
-      "**Personality**" => "personality",
-      "**Hometown**" => "hometown",
-      "**Warnings**" => "warnings",
-      "**Rumors**" => "rumors",
-      "**Backstory**" => "backstory",
-      "**Other**" => "other",
-      "**Rating**" => "rating",
-      "**Current Location**" => "location",
-      "**DM Notes**" => "dm_notes",
+      "Characters Name" => "name",
+      "Species" => "species",
+      "Type" => "types",
+      "Age" => "age",
+      "Weight" => "weight",
+      "Height" => "height",
+      "Gender" => "gender",
+      "Sexual Orientation" => "orientation",
+      "Relationship Status" => "relationship",
+      "Attacks" => "attacks",
+      "Likes" => "likes",
+      "Dislikes" => "dislikes",
+      "Personality" => "personality",
+      "Hometown" => "hometown",
+      "Warnings" => "warnings",
+      "Rumors" => "rumors",
+      "Backstory" => "backstory",
+      "Other" => "other",
+      "Rating" => "rating",
+      "Current Location" => "location",
+      "DM Notes" => "dm_notes",
       "Edit Key (ignore)" => "edit_url",
     }
 
@@ -59,19 +57,17 @@ class Character < ActiveRecord::Base
       "rating" => nil
     }
 
-    params.map do |item|
-      next if item.empty?
+    user_id = Regex::UID.match(app.description)
+    active = app.title == "Personal Character" ? 'Active' : 'NPC'
 
-      key,value = item.split(": ")
-      db_column = key_mapping[key]
+    hash["user_id"] = user_id[1]
+    hash["active"] = active
 
-      if db_column == "active" && value == "Personal Character"
-        hash[db_column] = "Active"
-      elsif v = value.match(/<@([0-9]+)>/)
-        hash[db_column] = v[1]
-      else
-        hash[db_column] = value
-      end
+    app.fields.each do |field|
+      next if field.nil?
+
+      db_column = key_mapping[field.name]
+      hash[db_column] = field.value
     end
 
     hash = hash.reject { |k,v| k == nil }
@@ -79,11 +75,11 @@ class Character < ActiveRecord::Base
   end
 
   def self.check_user(event)
-    content = event.message.content
+    app = event.message.embeds.first
 
-    edit_url = Regex::EDIT_URL.match(content)
-    active = Regex::CHAR_APP.match(content)
-    user_id = Regex::UID.match(content)
+    edit_url = app.footer.text
+    active = app.title
+    user_id = Regex::UID.match(app.description)
 
     user = User.find_by(id: user_id[1])
 
@@ -97,12 +93,12 @@ class Character < ActiveRecord::Base
       active_chars = active_chars.map(&:edit_url)
 
       new_active =
-        active[1] == "Personal Character" && !active_chars.include?(edit_url[1])
+        active == "Personal Character" && !active_chars.include?(edit_url)
 
       too_many = new_active ? active_chars.count >= allowed_chars : false
     end
 
-    if member
+    if user && member
       too_many ?
         too_many(event, member, edit_url, 'characters') : approval_react(event)
     else

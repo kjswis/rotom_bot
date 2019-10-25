@@ -2,7 +2,7 @@ def new_app_embed(user_name, color)
   desc = "Hi, #{user_name},\nI see you'd like to start a new character" +
     " application!\nI'll send you instructions in a dm!"
   Embed.new(
-    title: "New Appliction!",
+    title: "New Application!",
     description: desc,
     color: color
   )

@@ -46,6 +46,7 @@ module Emoji
 
   CHECK = "✅"
   CROSS = "❌"
+  WHAT = "⁉"
 
   SPEECH_BUBBLE = "💬"
   SCALE = "⚖"

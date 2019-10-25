@@ -1,15 +1,16 @@
-def character_embed(char:, img: nil, user:, color:, section: :all)
+def character_embed(char:, img: nil, user:, color:, section: nil)
   fields = []
-  footer_text = "#{user.name}##{user.tag} | #{char.active}"
+  user_name = user ? "#{user.name}##{user.tag}" : "Unknown User"
+
+  footer_text = "#{user_name} | #{char.active}"
   footer_text += " | #{char.rating}" if char.rating
   footer_text += " | #{img.category} " if section == :image
 
   navigate = "React to Navigate"
-  footer_text += " | #{navigate}"
+  footer_text += " | #{navigate}" unless section.nil?
 
   embed = Embed.new(
     footer: {
-      icon_url: user.avatar_url,
       text: footer_text
     },
     title: char.name,
@@ -17,7 +18,7 @@ def character_embed(char:, img: nil, user:, color:, section: :all)
   )
 
   case section
-  when :all
+  when :all, nil
     embed.description = char.personality if char.personality
     fields = char_type(char, fields)
     fields = char_status(char, fields)
@@ -48,6 +49,7 @@ def character_embed(char:, img: nil, user:, color:, section: :all)
 
   embed.thumbnail = { url: img.url } if img && section != :image
   embed.fields = fields
+  embed.footer.icon_url = user.avatar_url if user
 
   embed
 end
