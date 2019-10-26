@@ -1,35 +1,51 @@
 MSG = "Please resubmit when you've addressed the issues!\n"
 FTR = "If you have any questions, feel free to ask a Guildmaster"
 
-def reject_char_embed(app)
+def reject_app_embed(app, opts = nil)
+  instr_check =
+    "#{Emoji::CHECK} : Indicates you are ready to send the corresponding " +
+    "messages to the user"
+  instr_cross =
+    "#{Emoji::CROSS} : Indicates you want to dismiss this message and " +
+    "not send a message to the user"
+  instr_crayon =
+    "#{Emoji::CRAYON} : Indicates you want to edit the users form for " +
+    "them, and resubmit on their behalf"
+
   fields = []
 
   app.fields.each do |f|
     fields.push({ name: f.name, value: f.value, inline: true })
   end
 
-  fields.push({ name: "\u200b", value: "\u200b" })
+  if opts
+    fields.push({ name: "\u200b", value: "\u200b" })
 
-  CharApp::REJECT_MESSAGES.map do |emoji, message|
+    msgs =
+      case opts
+      when :character
+        instructions = "#{instr_check}\n#{instr_cross}\n#{instr_crayon}"
+        CharApp::REJECT_MESSAGES
+      when :image
+        instructions = "#{instr_check}\n#{instr_cross}"
+        ImgApp::REJECT_MESSAGES
+      else
+        instructions = "#{instr_crayon}\n#{instr_cross}"
+      end
+
+    msgs.map do |emoji, message|
+      fields.push({
+        name: emoji,
+        value: "#{message}\n#{CharApp::INLINE_SPACE}",
+        inline: true
+      })
+    end
+
     fields.push({
-      name: emoji,
-      value: "#{message}\n#{CharApp::INLINE_SPACE}",
-      inline: true
+      name: "Submitting",
+      value: instructions
     })
   end
-
-  instructions =
-    "#{Emoji::CHECK} : Indicates you are ready to send the corresponding " +
-    "messages to the user\n" +
-    "#{Emoji::CROSS} : Indicates you want to dismiss this message and " +
-    "not send a message to the user\n" +
-    "#{Emoji::CRAYON} : Indicates you want to edit the users form for them," +
-    " and resubmit on their behalf"
-
-  fields.push({
-    name: "Submitting",
-    value: instructions
-  })
 
   embed = Embed.new(
     title: app.title,
@@ -45,55 +61,10 @@ def reject_char_embed(app)
     fields: fields
   )
 
-  embed.thumbnail.url = app.thumbnail.url if app.thumbnail
+  embed.thumbnail = { url: app.image.url } if app.image
+  embed.thumbnail = { url: app.thumbnail.url } if app.thumbnail
 
   embed
-end
-
-def reject_img_embed(app)
-  fields = []
-
-  app.fields.each do |f|
-    fields.push({ name: f.name, value: f.value, inline: true })
-  end
-
-  fields.push({ name: "\u200b", value: "\u200b" })
-
-  ImgApp::REJECT_MESSAGES.map do |emoji, message|
-    fields.push({
-      name: emoji,
-      value: "#{message}\n#{ImgApp::INLINE_SPACE}",
-      inline: true
-    })
-  end
-
-  instructions =
-    "#{Emoji::CHECK} : Indicates you are ready to send the corresponding " +
-    "messages to the user\n" +
-    "#{Emoji::CROSS} : Indicates you want to dismiss this message and " +
-    "not send a message to the user\n"
-
-  fields.push({
-    name: "Submitting",
-    value: instructions
-  })
-
-  Embed.new(
-    title: app.title,
-    description: app.description,
-    author: {
-      name: app.author.name.gsub('Application', 'Rejection'),
-      icon_url: app.author.icon_url
-    },
-    thumbnail: {
-      url: app.image.url
-    },
-    color: ERROR,
-    footer: {
-      text: app.footer.text
-    },
-    fields: fields
-  )
 end
 
 def user_char_app(event)
@@ -163,10 +134,10 @@ def user_img_app(event)
   embed
 end
 
-def self_edit_embed(app)
+def self_edit_embed(app, form)
   Embed.new(
     title: "Don't forget to resubmit!",
     color: ERROR,
-    description: "[Edit the Application](#{Url::CHARACTER}#{app.footer.text})"
+    description: "[Edit the Application](#{form}#{app.footer.text})"
   )
 end

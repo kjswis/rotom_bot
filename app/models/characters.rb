@@ -57,7 +57,7 @@ class Character < ActiveRecord::Base
       "rating" => nil
     }
 
-    user_id = Regex::UID.match(app.description)
+    user_id = UID.match(app.description)
     active = app.title == "Personal Character" ? 'Active' : 'NPC'
 
     hash["user_id"] = user_id[1]
@@ -79,7 +79,7 @@ class Character < ActiveRecord::Base
 
     edit_url = app.footer.text
     active = app.title
-    user_id = Regex::UID.match(app.description)
+    user_id = UID.match(app.description)
 
     user = User.find_by(id: user_id[1])
 

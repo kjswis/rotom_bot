@@ -12,12 +12,14 @@ def success_embed(message)
 end
 
 def message_embed(title, desc, img = nil)
+  img = Image.find_by(name: 'happy') unless img
+
   Embed.new(
     title: title,
     description: desc,
     color: SUCCESS_GREEN,
     thumbnail: {
-      url: img || Image::HAPPY
+      url: img
     }
   )
 end

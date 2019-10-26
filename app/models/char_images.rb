@@ -24,9 +24,9 @@ class CharImage < ActiveRecord::Base
     hash
   end
 
-  def self.to_form(char:, keyword:, category:, url:, user_id:)
+  def self.to_form(name, species, id, keyword, category, url, user_id)
     Embed.new(
-      title: "#{char.name} | #{char.species}",
+      title: "#{name} | #{species}",
       description: "<@#{user_id}>",
       author: {
         name: "Image Application",
@@ -36,7 +36,7 @@ class CharImage < ActiveRecord::Base
         url: url
       },
       footer: {
-        text: char.id
+        text: id
       },
       fields: [
         { name: 'Keyword', value: keyword, inline: true },
