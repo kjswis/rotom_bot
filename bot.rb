@@ -400,6 +400,21 @@ rescue ActiveRecord::RecordNotFound => e
   error_embed("Record Not Found!", e.message)
 end
 
+item = Command.new(:item, desc, opts) do |event, name|
+  i = name ? Item.find_by!(name: name.capitalize) : Item.all
+
+  case
+  when name && i
+    item_embed(i)
+  when !name && i
+    item_list_embed(i)
+  else
+    command_error_embed("Error proccessing your request!", item)
+  end
+rescue ActiveRecord::RecordNotFound
+  error_embed("Item Not Found!")
+end
+
 # ---
 
 commands = [
@@ -410,7 +425,7 @@ commands = [
   poll,
   raffle,
   member,
-  merge
+  item
 ]
 
 # This will trigger on every message sent in discord

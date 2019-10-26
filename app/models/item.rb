@@ -5,7 +5,8 @@ class Item < ActiveRecord::Base
     key_mapping = {
       "Item Name" => "name",
       "Description" => "description",
-      "Status" => "status",
+      "Effect" => "effect",
+      "Side Effect" => "side_effect",
       "RP Reply" => "rp_reply",
       "Category" => "category",
       "Reusable" => "reusable"
