@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-require_relative '../../lib/emoji.rb'
+require_relative 'emoji.rb'
 
 module CharCarousel
   BIO = "Bio"

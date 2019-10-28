@@ -12,11 +12,10 @@ require 'active_record'
 
 # Constants: such as roles and channel ids
 
-ADMINS = 308250685554556930
-#ADMINS = 453262984769437696
-
 DISCORD = "#36393f"
 ERROR = "#a41e1f"
+
+UID = /<@\!?([0-9]+)>/
 
 # ---
 
@@ -37,8 +36,7 @@ ActiveRecord::Base.establish_connection(
 )
 
 Dir['app/**/*.rb'].each { |f| require File.join(File.expand_path(__dir__), f) }
-Dir['/lib/*.rb'].each { |f| require f }
-
+Dir['./lib/*.rb'].each { |f| require f }
 
 token = ENV['DISCORD_BOT_TOKEN']
 bot = Discordrb::Bot.new(token: token)
@@ -52,6 +50,7 @@ pm_commands = []
 
 hello = Command.new(:hello, "Says hello!") do |event|
   user = event.author.nickname || event.author.name
+  img = Image.find_by(name: 'happy')
 
   greetings = [
     "Hi there, #{user}",
@@ -65,7 +64,7 @@ hello = Command.new(:hello, "Says hello!") do |event|
     description: greetings.sample,
     color: event.author.color.combined,
     thumbnail: {
-      url: Image::HAPPY
+      url: img.url
     }
   )
 end
@@ -239,7 +238,7 @@ image = Command.new(:image, desc, opts) do |event, name, keyword, tag, url|
       user_id: user.id
     )
 
-    approval = bot.send_message(Channel::APPROVAL, "", false, img_app)
+    approval = bot.send_message(ENV['APP_CH'].to_i, "", false, img_app)
     approval.react(Emoji::Y)
     approval.react(Emoji::N)
 
@@ -277,8 +276,8 @@ member = Command.new(:member, desc, opts) do |event, name, section, keyword|
   sections = [:all, :default, :bio, :type, :status, :rumors, :image]
 
   case name
-  when Regex::UID
-    user_id = Regex::UID.match(name)
+  when UID
+    user_id = UID.match(name)
   when String
     chars = Character.where(name: name)
     char = chars.first if chars.length == 1
@@ -401,6 +400,21 @@ rescue ActiveRecord::RecordNotFound => e
   error_embed("Record Not Found!", e.message)
 end
 
+item = Command.new(:item, desc, opts) do |event, name|
+  i = name ? Item.find_by!(name: name.capitalize) : Item.all
+
+  case
+  when name && i
+    item_embed(i)
+  when !name && i
+    item_list_embed(i)
+  else
+    command_error_embed("Error proccessing your request!", item)
+  end
+rescue ActiveRecord::RecordNotFound
+  error_embed("Item Not Found!")
+end
+
 # ---
 
 commands = [
@@ -411,7 +425,7 @@ commands = [
   poll,
   raffle,
   member,
-  merge
+  item
 ]
 
 # This will trigger on every message sent in discord
@@ -436,7 +450,14 @@ bot.message do |event|
     error_embed("Command not found!")
   )if command && !cmd && event.server
 
-  Character.check_user(event) if author == Bot::CHARACTER
+  if author == ENV['WEBHOOK'].to_i
+    app = event.message.embeds.first
+    if app.author.name == 'Character Application'
+      Character.check_user(event)
+    else
+      approval_react(event)
+    end
+  end
 end
 
 pm_commands = [ image ]
@@ -464,9 +485,15 @@ bot.reaction_add do |event|
   app = event.message.embeds.first
   carousel = Carousel.find_by(message_id: event.message.id)
 
-  maj = if event.server
-          event.server.roles.find{ |r| r.id == ADMINS }.members.count / 2
-        end
+  app = event.message.embeds.first
+  carousel = Carousel.find_by(message_id: event.message.id)
+
+  carousel = Carousel.find_by(message_id: event.message.id)
+  maj =
+    if event.server
+      m = event.server.roles.find{ |r| r.id == ENV['ADMINS'].to_i }.members
+      m.count / 2
+    end
   maj = 1
 
   form =
@@ -476,6 +503,8 @@ bot.reaction_add do |event|
     when 'Character Rejection' then :character_rejection
     when 'Image Application' then :image_application
     when 'Image Rejection' then :image_rejection
+    when 'Item Application' then :item_application
+    when 'Item Rejection' then :item_rejection
     else
       :carousel if carousel
     end
@@ -505,8 +534,7 @@ bot.reaction_add do |event|
 
   case [form, vote]
   when [:character_application, :yes]
-    app = event.message.embeds.first
-    uid = Regex::UID.match(app.description)
+    uid = UID.match(app.description)
     user = event.server.member(uid[1])
 
     char = CharacterController.edit_character(app)
@@ -522,7 +550,7 @@ bot.reaction_add do |event|
 
     if embed
       bot.send_message(
-        Channel::CHARACTER,
+        ENV['CHAR_CH'].to_i,
         "Good news, <@#{uid}>! Your character was approved",
         false,
         embed
@@ -535,7 +563,7 @@ bot.reaction_add do |event|
       )
     end
   when [:character_application, :no]
-    embed = reject_char_embed(app)
+    embed = reject_app_embed(app, :character)
 
     event.message.delete
     reject = event.send_embed("", embed)
@@ -549,7 +577,7 @@ bot.reaction_add do |event|
     reject.react(Emoji::CRAYON)
 
   when [:character_rejection, :check]
-    user = event.server.member(Regex::UID.match(app.description)[1])
+    user = event.server.member(UID.match(app.description)[1])
     embed = user_char_app(event)
 
     event.message.delete
@@ -565,7 +593,7 @@ bot.reaction_add do |event|
       "",
       35,
       false,
-      self_edit_embed(app)
+      self_edit_embed(app, URL::CHARACTER)
     )
 
   when [:new_app, :phone]
@@ -584,13 +612,13 @@ bot.reaction_add do |event|
 
     event.message.delete if embed
     channel = if img.category == 'SFW'
-                Channel::CHARACTER
+                ENV['CHAR_CH'].to_i
               else
-                Channel::CHARACTER_NSFW
+                ENV['CHAR_CH_NSFW'].to_i
               end
     bot.send_message(channel, "Image Approved!", false, embed)
   when [:image_application, :no]
-    embed = reject_img_embed(app)
+    embed = reject_app_embed(app, :image)
 
     event.message.delete
     reject = event.send_embed("", embed)
@@ -603,13 +631,35 @@ bot.reaction_add do |event|
     reject.react(Emoji::CROSS)
 
   when [:image_rejection, :check]
-    user = event.server.member(Regex::UID.match(app.description)[1])
+    user = event.server.member(UID.match(app.description)[1])
     embed = user_img_app(event)
 
     event.message.delete
     bot.send_temporary_message(event.channel.id, "", 5, false, embed)
     bot.send_message(user.dm.id, "", false, embed)
   when [:image_rejection, :cross]
+    event.message.delete
+
+  when [:item_application, :yes]
+    item = ItemController.edit_item(app)
+    embed = item_embed(item)
+
+    event.message.delete
+    bot.send_message(ENV['CHAR_CH'], "New Item!", false, embed)
+  when [:item_application, :no]
+    embed = reject_app_embed(app)
+
+    event.message.delete
+    reject = event.send_embed("", embed)
+
+    reject.react(Emoji::CRAYON)
+    reject.react(Emoji::CROSS)
+  when [:item_rejection, :crayon]
+    embed = self_edit_embed(app, Url::ITEM)
+
+    event.message.delete
+    bot.send_temporary_message(event.channel.id, "", 25, false, embed)
+  when [:item_rejection, :cross]
     event.message.delete
 
   when [:carousel, :notebook]
