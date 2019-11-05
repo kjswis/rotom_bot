@@ -413,6 +413,8 @@ rescue ActiveRecord::RecordNotFound
   error_embed("Item Not Found!")
 end
 
+desc = "Add and remove items from characters' inventories"
+opts = { "item | (-/+) amount | character" => "" }
 inv = Command.new(:inv, desc, opts) do |event, item, amount, name|
   char = Character.find_by!(name: name) if name
   itm = Item.find_by!(name: item) if item
