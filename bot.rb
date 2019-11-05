@@ -10,7 +10,7 @@ Bundler.require(:default, BOT_ENV)
 
 require 'active_record'
 
-# Constants: such as roles and channel ids
+# Constants: such as roles and colors and regexes
 
 DISCORD = "#36393f"
 ERROR = "#a41e1f"
@@ -41,8 +41,6 @@ Dir['./lib/*.rb'].each { |f| require f }
 token = ENV['DISCORD_BOT_TOKEN']
 bot = Discordrb::Bot.new(token: token)
 
-# Methods: define basic methods here
-# ---
 
 # Commands: structure basic bot commands here
 commands = []
@@ -273,7 +271,7 @@ opts = {
 }
 desc = "Display info about the guild members"
 member = Command.new(:member, desc, opts) do |event, name, section, keyword|
-  sections = [:all, :default, :bio, :type, :status, :rumors, :image]
+  sections = [:all, :default, :bio, :type, :status, :rumors, :image, :bags]
 
   case name
   when UID
@@ -415,6 +413,32 @@ rescue ActiveRecord::RecordNotFound
   error_embed("Item Not Found!")
 end
 
+inv = Command.new(:inv, desc, opts) do |event, item, amount, name|
+  char = Character.find_by!(name: name) if name
+  itm = Item.find_by!(name: item) if item
+  amt = amount.to_i
+
+  case
+  when char && itm && amt
+    i = Inventory.update_inv(itm, amt, char)
+    user = event.server.member(char.user_id.to_i)
+    color = CharacterController.type_color(char)
+
+    case i
+    when Inventory, true
+      character_embed(char: char, user: user, color: color, section: :bags)
+    when Embed
+      i
+    else
+      error_embed("Something went wrong!", "Could not update inventory")
+    end
+  else
+    command_error_embed("Could not proccess your request", inv)
+  end
+rescue ActiveRecord::RecordNotFound => e
+  error_embed(e.message)
+end
+
 # ---
 
 commands = [
@@ -425,8 +449,11 @@ commands = [
   poll,
   raffle,
   member,
-  item
+  item,
+  inv
 ]
+
+locked_commands = [inv]
 
 # This will trigger on every message sent in discord
 bot.message do |event|
@@ -497,7 +524,7 @@ bot.reaction_add do |event|
   maj = 1
 
   form =
-    case app.author.name
+    case app.author&.name
     when 'New App' then :new_app
     when 'Character Application' then :character_application
     when 'Character Rejection' then :character_rejection
@@ -750,6 +777,22 @@ bot.reaction_add do |event|
     event.message.edit("", embed)
     arrow_react(event.message)
   when [:carousel, :bags]
+    emoji = Emoji::BAGS
+    users = event.message.reacted_with(emoji)
+
+    users.each do |user|
+      event.message.delete_reaction(user.id, emoji) unless user.current_bot?
+    end
+
+    char = Character.find(carousel.char_id)
+    embed = character_embed(
+      char: char,
+      img: CharImage.where(char_id: char.id).find_by(keyword: 'Default'),
+      user: event.server.member(char.user_id),
+      color: CharacterController.type_color(char),
+      section: :bags
+    )
+    event.message.edit("", embed)
   when [:carousel, :family]
   when [:carousel, :eyes]
     emoji = Emoji::EYES

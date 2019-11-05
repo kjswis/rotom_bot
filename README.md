@@ -34,6 +34,7 @@ $ pg_dump -O -f db/schma.sql [db_name]  # Exports schema
   * Display all kinds of information about guild members
   * Accepts Item applications
   * Displays information about existing Items
+  * Keeps track of characters' inventories
 
 ## Setup
 This application runs using Ruby and Postgres. In order to run the bot locally

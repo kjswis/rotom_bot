@@ -1,7 +1,7 @@
 def new_app_embed(user_name, color = nil)
   desc = "Hi, #{user_name},\nI see you'd like to start a new character" +
     " application!\nI'll send you instructions in a dm!"
-  Embed.new(
+  embed = Embed.new(
     title: "New Appliction!",
     description: desc
   )
@@ -11,7 +11,7 @@ def new_app_embed(user_name, color = nil)
 end
 
 def new_app_dm(user_name, code, color = nil)
-  Embed.new(
+  embed = Embed.new(
     title: "Hi, #{user_name}",
     description: "If you have any questions, feel free to ask a Guildmaster!",
     footer: {
@@ -28,7 +28,7 @@ def new_app_dm(user_name, code, color = nil)
 end
 
 def edit_app_embed(user_name, char_name, color = nil)
-  Embed.new(
+  embed = Embed.new(
     title: "You want to edit #{char_name}?",
     description: "Good news, #{user_name}! I'll dm you a link"
   )

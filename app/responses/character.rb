@@ -44,6 +44,9 @@ def character_embed(char:, img: nil, user:, color:, section: nil)
     else
       embed.description = "No character images found!"
     end
+  when :bags
+    bags = Inventory.where(char_id: char.id)
+    fields = char_inv(bags, fields)
   end
 
 
@@ -135,6 +138,17 @@ def char_status(char, fields)
   )if char.relationship
 
   fields
+end
+
+def char_inv(bags, fields)
+  inv = []
+  bags.each do |line|
+    item = Item.find(line.item_id)
+    inv_line = line.amount > 1 ? "#{item.name} [#{line.amount}]" : item.name
+    inv.push(inv_line)
+  end
+
+  fields.push({ name: "Bags", value: inv.join("\n"), inline: true })
 end
 
 def char_sections(fields)
