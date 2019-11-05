@@ -86,8 +86,8 @@ class Character < ActiveRecord::Base
     if user
       member = event.server.member(user_id[1])
 
-      calc_max = (user.level / 10 + 1)
-      allowed_chars = calc_max > 6 ? 6 : calc_max
+      allowed_chars = (user.level / 10 + 1)
+      allowed_chars += 1 if member.roles.map(&:name).include?("Nitro Booster")
       active_chars =
         Character.where(user_id: user_id[1]).where(active: "Active")
       active_chars = active_chars.map(&:edit_url)
