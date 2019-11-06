@@ -2,11 +2,79 @@ require 'rmagick'
 include Magick
 
 def append_image(image1_in, images2_in, image_out)
-  i = Magick::ImageList.new
   i = Magick::ImageList.new(image1_in,images2_in)
 
   u = i.append(true);
   u.write('images/Type Double.png');
+end
+
+def merge_image(image_array, image_out, output_width, output_height, xaxis, yaxis, image_width, image_height)
+  i = Magick::ImageList.new(*image_array)
+
+  binding.pry
+  v = Magick::ImageList.new
+  arr = Array.new(0)
+
+  i.each.with_index do |item, index|
+    if image_width[index] && image_height[index]
+      i[index] = item.resize(image_width[index], image_height[index])
+    end
+
+    if xaxis[index] && yaxis[index]
+      v.new_image(output_width, output_height) { self.background_color = "transparent" }
+
+      i[index] = v.composite(i[index], xaxis[index], yaxis[index], OverCompositeOp).write(image_out + index.to_s + ".png");  
+    else
+      i[index].write(image_out + index.to_s + ".png");  
+    end
+
+    arr << image_out + index.to_s + ".png"
+  end
+
+  i = Magick::ImageList.new(*arr)
+  i = i.flatten_images();
+  i.write(image_out + ".png")
+end
+
+def merge_image_slow(image_array, image_out, output_width, output_height, xaxis = nil, yaxis = nil, image_width = nil, image_height = nil)
+  i = Magick::ImageList.new(*image_array)
+  u = Magick::ImageList.new(*image_out)
+  v = Magick::ImageList.new
+
+  if(i.count > 1)
+    if output_width && output_height
+      i.each.with_index do |item, index|
+
+        if !(xaxis && yaxis)
+          i[index] = item.resize(output_width, output_height)
+          i[0] = i[0].composite(i[index], output_width, output_height, OverCompositeOp)
+        end
+        
+        if index == 0
+          u = i[0].write(*image_out);
+        else
+          if xaxis && yaxis          
+            v.new_image(output_width, output_height) { self.background_color = "transparent" }
+
+            if image_width && image_height
+              i[index] = i[index].resize(image_width, image_height)
+            end
+            v = v.composite(i[index], xaxis, yaxis, OverCompositeOp).write(*image_out);
+            u = u.composite(v, xaxis, yaxis, OverCompositeOp).write(*image_out);
+          else
+            u = u.composite(i[index], CenterGravity, OverCompositeOp).write(*image_out)
+          end
+        end
+      end
+    else
+      #No output_width, output_height
+    end
+  else
+    i[0] = i[0].resize(image_width, image_height)
+
+    v.new_image(output_width, output_height) { self.background_color = "transparent" }
+    v = v.composite(i[0], xaxis, yaxis, OverCompositeOp).write(*image_out);
+  end
 end
 
 def crop_image()

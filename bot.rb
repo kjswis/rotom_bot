@@ -4,6 +4,7 @@ require 'yaml'
 require 'json'
 require 'terminal-table'
 require 'rmagick'
+require "down"
 
 BOT_ENV = ENV.fetch('BOT_ENV') { 'development' }
 Bundler.require(:default, BOT_ENV)
@@ -122,6 +123,150 @@ matchup = Command.new(:matchup, desc, opts) do |event, primary, secondary|
   else
     error_embed("Type(s) not found!")
   end
+end
+
+opts = { "" => ""}
+desc = "Shows the weather"
+weather = Command.new(:weather, desc, opts) do |event|
+
+  channel = event.channel.id
+  size_width = 700;
+  size_height = 600;
+  output_file =  "images/Image_Builder/Weather"
+  map1 = "images/TheMap1.png"
+  map2 = "images/TheMap2.png"
+  map3 = "images/TheMap3.png"
+  frame = "images/FrameFG.png"
+
+  time = Time.now
+  #Map 1
+  merge_image(
+    ["images/Image_Builder/BG.png", map1, frame, "images/Castform.png",
+    "images/Day_Night.png", "images/Day_Sunny.png","images/Day_Snow.png", "images/Day_Stormy.png",
+    "images/Day_Windy.png","images/Day_Sandstorm.png","images/Day_Rainy.png"],
+    output_file,
+    size_width,
+    size_height,
+    [nil,         size_width-500,  nil, 0,   350, 400, 200, 300, 475, 550, 325],
+    [nil,         size_height-500, nil, 100, 250, 400, 400, 350, 475, 250, 100],
+    [size_width,  500,             nil, 250, 100, 100, 100, 100, 100, 100, 100],
+    [size_height, 500,             nil, 250, 100, 100, 100, 100, 100, 100, 100]
+  )
+
+  temp = ["56°F \ 13°C", "84°F \ 28°C", "61°F \ 16°C", "40°F \ 4°C", "51°F \ 10°C", "59°F \ 15°C", "56°F \ 13°C"]
+  weather = ["Clear", "Partly Cloudy", "Mostly Cloudy", "Rain Shower", "Clear ", "Partly Cloudy", "Cloudy"]
+
+  fullforcast = "Zaplana weather is as follows!\n\n" +
+  "Well, let's start us off at Diglett Cave and Infant Isle. Conditions there are **#{weather[0]}** at a tempature of **#{temp[0]}**.\n\n" +
+  "Moving east by the Ravenous Ruins, Taurel, and Bambina, conditions there look **#{weather[1]}** hanging around a temp of **#{temp[1]}**.\n\n" +
+  "Over in Melody Springs, Liquamond, it's looking **#{weather[2]}** with a tempature of **#{temp[2]}**.\n\n" +
+  "Wrapping right on around the island, the mountain peaks of Styx, Mesmer, and Evo are looking **#{weather[3]}** at **#{temp[3]}**\n\n" +
+  "Anyone looking to visit Moomoo Fields or Lake Carbonation might run into some **#{weather[4]}** conditions around **#{temp[4]}**\n\n" +
+  "In the city, LaRousse and the island are **#{weather[5]}** lingering around **#{temp[5]}**.\n\n" +
+  "And to wrap us up, here in The Village and Obe City is **#{weather[6]}** reaching **#{temp[6]}**.\n\n" +
+  "";
+
+  msg = bot.send_file(channel, File.open("#{output_file}.png", 'r'))
+  event.send_embed("", message_embed("Weather Report", fullforcast, 'https://i.imgur.com/3i9UuHH.png'))
+
+  sleep 1
+
+  #Map 2
+  merge_image(
+    ["images/Image_Builder/BG.png", map2, frame,
+    "images/Castform.png", "images/Day_Night.png", "images/Day_Sunny.png"],
+    output_file,
+    size_width,
+    size_height,
+    [nil,         size_width-500,  nil, 0,   350, 250],
+    [nil,         size_height-500, nil, 100, 400, 100],
+    [size_width,  500,             nil, 250, 100, 100],
+    [size_height, 500,             nil, 250, 100, 100]
+  )
+
+  temp = ["84°F \ 28°C", "85°F \ 29°C"]
+  weather = ["Partly Cloudy", "Fair"]
+
+  fullforcast = "As we move our focus to the West!\n\n" +
+  "We see the conditions at Twin Lakes Island are **#{weather[0]}** at a tempature of **#{temp[0]}**.\n\n" +
+  "The weather over by the Living Islands look **#{weather[1]}** hanging around a temp of **#{temp[1]}**.\n\n" +
+  "";
+
+  msg = bot.send_file(channel, File.open("#{output_file}.png", 'r'))
+  event.send_embed("", message_embed("Weather Report", fullforcast, 'https://i.imgur.com/3i9UuHH.png'))
+
+  sleep 1
+
+  #Map 3
+  merge_image(
+    ["images/Image_Builder/BG.png", map3, frame,
+    "images/Castform.png", "images/Day_Night.png", "images/Day_Sunny.png","images/Day_Snow.png",
+    "images/Day_Stormy.png"],
+    output_file,
+    size_width,
+    size_height,
+    [nil,         size_width-500,  nil, 0,   500, 500, 400, 600],
+    [nil,         size_height-500, nil, 100, 200, 400, 450, 500],
+    [size_width,  500,             nil, 250, 100, 100, 100, 100],
+    [size_height, 500,             nil, 250, 100, 100, 100, 100]
+  )
+
+  temp = ["61°F \ 16°C", "82°F \ 27°C", "57°F \ 13°C", "14°F \ -10°C"]
+  weather =  ["Rain", "Sandstorm", "Clear", "Fair"]
+
+  fullforcast = "Lastly! The lands further east! \n\n" +
+  "Santorini looks **#{weather[0]}** at a tempature of **#{temp[0]}**.\n\n" +
+  "As we travel into the desert, conditions appear **#{weather[1]}** hanging around a temp of **#{temp[1]}**.\n\n" +
+  "On the east coast of Santorini we have conditions looking **#{weather[2]}** with a tempature of **#{temp[2]}**.\n\n" +
+  "And to wrap it up, Glacius seems to be having condiions looking **#{weather[3]}** at **#{temp[3]}**\n\n" +
+  "Back to you in the studio!";
+
+  msg = bot.send_file(channel, File.open("#{output_file}.png", 'r'))
+  event.send_embed("", message_embed("Weather Report", fullforcast, 'https://i.imgur.com/3i9UuHH.png'))
+
+end
+
+opts = {
+  "@user" => "List all user stats",
+}
+desc = "Shows ones stats, level, rank, and experience"
+stats = Command.new(:stats, desc, opts) do |event, name|
+
+  case name
+  when Regex::UID
+    user_id = Regex::UID.match(name)
+    user = event.server.member(user_id[1])
+    user_url = user.avatar_url if user
+  when String
+    #See if you can find the name some other way?
+  end
+
+  channel = event.channel.id
+  size_width = 513;
+  size_height = 376;
+  stats_frame =  "images/LevelUp.png"
+  level_up = "images/LevelUpFont.png"
+  user_url_img = "images/Image_Builder/user_url.png"
+  output_file =  "images/Image_Builder/LevelUp"
+
+  Down.download(user_url, destination: user_url_img)
+
+  i = Magick::ImageList.new(user_url_img)
+  binding.pry
+
+  merge_image(
+    [stats_frame, level_up, user_url_img],
+    output_file,
+    size_width,
+    size_height,
+    [nil, 0, 19],
+    [nil, 0, 92],
+    [size_width, 100, 165],
+    [size_width, 100, 165]
+  )
+
+  msg = bot.send_file(channel, File.open("#{output_file}.png", 'r'))
+
 end
 
 opts = {
@@ -423,7 +568,6 @@ member = Command.new(:member, desc, opts) do |event, name, section, keyword|
     end
   end
 
-
 rescue ActiveRecord::RecordNotFound => e
   error_embed("Record Not Found!", e.message)
 end
@@ -640,7 +784,8 @@ commands = [
   status,
   afflict,
   cure,
-  team
+  team,
+  stats
 ]
 
 #locked_commands = [inv]
