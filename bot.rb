@@ -48,7 +48,7 @@ pm_commands = []
 
 hello = Command.new(:hello, "Says hello!") do |event|
   user = event.author.nickname || event.author.name
-  img = Image.find_by(name: 'happy')
+  img = ImageUrl.find_by(name: 'happy')
 
   greetings = [
     "Hi there, #{user}",

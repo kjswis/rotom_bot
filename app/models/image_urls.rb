@@ -1,4 +1,4 @@
-class Image < ActiveRecord::Base
+class ImageUrl < ActiveRecord::Base
   validates :name, presence: true
   validates :url, presence: true
 end
