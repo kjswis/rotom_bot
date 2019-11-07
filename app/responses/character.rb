@@ -1,6 +1,13 @@
-def character_embed(char:, img: nil, user:, color:, section: nil)
+def character_embed(char:, img: nil, user: nil, color:, section: nil)
   fields = []
-  user_name = user ? "#{user.name}##{user.tag}" : "Unknown User"
+  user_name = case user
+              when String
+                user.capitalize
+              when nil
+                'Unknown User'
+              else
+                "#{user.name}##{user.tag}"
+              end
 
   footer_text = "#{user_name} | #{char.active}"
   footer_text += " | #{char.rating}" if char.rating
@@ -8,6 +15,8 @@ def character_embed(char:, img: nil, user:, color:, section: nil)
 
   navigate = "React to Navigate"
   footer_text += " | #{navigate}" unless section.nil?
+
+  status_effects = CharStatus.where(char_id: char.id)
 
   embed = Embed.new(
     footer: {
@@ -21,7 +30,7 @@ def character_embed(char:, img: nil, user:, color:, section: nil)
   when :all, nil
     embed.description = char.personality if char.personality
     fields = char_type(char, fields)
-    fields = char_status(char, fields)
+    fields = char_status(char, fields, status_effects)
     fields = char_bio(char, fields)
     fields = char_rumors(char, fields)
   when :default
@@ -33,7 +42,7 @@ def character_embed(char:, img: nil, user:, color:, section: nil)
   when :type
     fields = char_type(char, fields)
   when :status
-    fields = char_status(char, fields)
+    fields = char_status(char, fields, status_effects)
   when :rumors
     fields = char_rumors(char, fields)
   when :image
@@ -52,7 +61,7 @@ def character_embed(char:, img: nil, user:, color:, section: nil)
 
   embed.thumbnail = { url: img.url } if img && section != :image
   embed.fields = fields
-  embed.footer.icon_url = user.avatar_url if user
+  embed.footer.icon_url = user.avatar_url if user && user != 'Public'
 
   embed
 end
@@ -117,7 +126,7 @@ def char_rumors(char, fields)
   fields
 end
 
-def char_status(char, fields)
+def char_status(char, fields, status_effects=nil)
   fields.push(
     { name: 'Age', value: char.age, inline: true }
   )if char.age
@@ -136,6 +145,16 @@ def char_status(char, fields)
   fields.push(
     { name: 'Relationship Status', value: char.relationship, inline: true }
   )if char.relationship
+
+  afs = []
+  status_effects.each do |se|
+    s = Status.find(se.status_id)
+    afs.push("#{se.amount}% #{s.effect.downcase}")
+  end
+
+  fields.push(
+    { name: "Current Afflictions", value: afs.join("\n") }
+  )unless afs.empty?
 
   fields
 end

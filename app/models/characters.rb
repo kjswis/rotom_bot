@@ -8,6 +8,7 @@ class Character < ActiveRecord::Base
     key_mapping = {
       "Characters Name" => "name",
       "Species" => "species",
+      "Shiny" => "shiny",
       "Type" => "types",
       "Age" => "age",
       "Weight" => "weight",
@@ -34,6 +35,7 @@ class Character < ActiveRecord::Base
       "user_id" => nil,
       "name" => nil,
       "species" => nil,
+      "shiny" => nil,
       "types" => nil,
       "age" => nil,
       "weight" => nil,
@@ -60,14 +62,20 @@ class Character < ActiveRecord::Base
     user_id = UID.match(app.description)
     active = app.title == "Personal Character" ? 'Active' : 'NPC'
 
-    hash["user_id"] = user_id[1]
+    hash["user_id"] = app.description.match(/public/i) ? 'Public' : user_id[1]
     hash["active"] = active
+    hash["edit_url"] = app.footer.text
 
     app.fields.each do |field|
       next if field.nil?
 
       db_column = key_mapping[field.name]
-      hash[db_column] = field.value
+
+      if db_column == 'shiny'
+        hash[db_column] = field.value.match(/yes/i) ? true : false
+      else
+        hash[db_column] = field.value
+      end
     end
 
     hash = hash.reject { |k,v| k == nil }
@@ -80,6 +88,11 @@ class Character < ActiveRecord::Base
     edit_url = app.footer.text
     active = app.title
     user_id = UID.match(app.description)
+
+    if app.description.match(/public/i)
+      approval_react(event)
+      return
+    end
 
     user = User.find_by(id: user_id[1])
 
