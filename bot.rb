@@ -133,11 +133,30 @@ app = Command.new(:app, desc, opts) do |event, name, status|
   user = event.author
   user_name = user.nickname || user.name
   color = user.color.combined if user.color
+  chars = []
 
-  character = Character.where(user_id: user.id).find_by(name: name) if name
+  character =
+    if user.roles.map(&:name).include?('Guild Masters')
+      chars = Character.where(name: name)
+      chars.first if chars.length == 1
+    else
+      Character.where(user_id: user.id).find_by(name: name) if name
+    end
   active = status.match(/(in)?active/i) if status
 
   case
+  when !chars.empty? && !character
+    chars.each do |char|
+      edit_url = Url::CHARACTER + char.edit_url
+      embed = edit_app_dm(name, edit_url, color)
+
+      bot.send_message(
+        user.dm.id,
+        "<@#{char.user_id}>'s character:",
+        false,
+        embed
+      )
+    end
   when name && !character
     app_not_found_embed(user_name, name)
 
@@ -216,8 +235,15 @@ opts = {
 desc = "View, add and edit your characters' images"
 image = Command.new(:image, desc, opts) do |event, name, keyword, tag, url|
   user = event.author
+  chars = []
 
-  char = Character.where(user_id: user.id).find_by!(name: name) if name
+  char =
+    if user.roles.map(&:name).include?('Guild Masters')
+      chars = Character.where(name: name)
+      chars.first if chars.length == 1
+    else
+      Character.where(user_id: user.id).find_by!(name: name) if name
+    end
   color = CharacterController.type_color(char) if char
   img = CharImage.where(char_id: char.id).find_by(keyword: keyword) if keyword
 
@@ -282,7 +308,8 @@ member = Command.new(:member, desc, opts) do |event, name, section, keyword|
 
     if char
       img = CharImage.where(char_id: char.id).find_by(keyword: 'Default')
-      user = event.server.member(char.user_id)
+      user = char.user_id.match(/public/i) ?
+        char.user_id : event.server.member(char.user_id)
       color = CharacterController.type_color(char)
     end
   end
@@ -381,7 +408,11 @@ member = Command.new(:member, desc, opts) do |event, name, section, keyword|
       )
 
       msg = event.send_embed("", embed)
-      Carousel.create(message_id: msg.id, char_id: char.id, image_id: img.id)
+      Carousel.create(
+        message_id: msg.id,
+        char_id: char.id,
+        image_id: img ? img.id : nil
+      )
 
       if sect == :image
         arrow_react(msg)
@@ -441,6 +472,91 @@ rescue ActiveRecord::RecordNotFound => e
   error_embed(e.message)
 end
 
+desc = "Update or edit statuses"
+opts = { "name | effect" => "" }
+status = Command.new(:status, desc, opts) do |event, name, effect|
+  if name && effect
+    s = StatusController.edit_status(name, effect)
+
+    case s
+    when Status
+      success_embed("Created Status: #{name}")
+    when Embed
+      s
+    end
+  else
+    command_error_embed("Could not create status!", status)
+  end
+end
+
+opts = { "character | ailment | %afflicted" => "" }
+afflict = Command.new(:afflict, desc, opts) do |event, name, status, amount|
+  char = Character.find_by!(name: name) if name
+  st = Status.find_by!(name: status) if status
+
+  user = char.user_id.match(/public/i) ?
+    'Public' : event.server.member(char.user_id)
+
+  if st && amount && char
+    user = char.user_id.match(/public/i) ?
+      'Public' : event.server.member(char.user_id)
+    color = CharacterController.type_color(char)
+
+    s = StatusController.edit_char_status(st, amount, char)
+
+    case s
+    when CharStatus
+      character_embed(char: char, user: user, color: color, section: :status)
+    when Embed
+      s
+    end
+  else
+    command_error_embed("Error afflicting #{char}", afflict)
+  end
+rescue ActiveRecord::RecordNotFound => e
+  error_embed(e.message)
+end
+
+opts = {
+  "character | all" => "completely cures all ailments",
+  "character | ailment" => "completely cures the ailment",
+  "character | ailment | %cured" => "cures a percentage of ailment"
+}
+cure = Command.new(:cure, desc, opts) do |event, name, status, amount|
+  char = Character.find_by!(name: name) if name
+  st = Status.find_by!(name: status) if status && !status.match(/all/i)
+
+  case
+  when char && st && amount
+    user = char.user_id.match(/public/i) ?
+      'Public' : event.server.member(char.user_id)
+    color = CharacterController.type_color(char)
+
+    s = StatusController.edit_char_status(st, "-#{amount}", char)
+
+    case s
+    when CharStatus
+      character_embed(char: char, user: user, color: color, section: :status)
+    when Embed
+      s
+    end
+  when char && st && !amount
+    CharStatus.where(char_id: char.id).find_by!(status_id: st.id).delete
+    success_embed("Removed #{status} from #{name}")
+  when char && status && status.match(/all/i)
+    csts = CharStatus.where(char_id: char.id)
+    csts.each do |cst|
+      cst.delete
+    end
+
+    success_embed("Removed all ailments from #{name}")
+  else
+  end
+
+rescue ActiveRecord::RecordNotFound => e
+  error_embed(e.message)
+end
+
 # ---
 
 commands = [
@@ -452,7 +568,10 @@ commands = [
   raffle,
   member,
   item,
-  inv
+  inv,
+  status,
+  afflict,
+  cure
 ]
 
 locked_commands = [inv]
@@ -564,10 +683,14 @@ bot.reaction_add do |event|
   case [form, vote]
   when [:character_application, :yes]
     uid = UID.match(app.description)
-    user = event.server.member(uid[1])
+    user =
+      app.description.match(/public/i) ? 'Public' : event.server.member(uid[1])
 
     char = CharacterController.edit_character(app)
-    img = ImageController.default_image(app.thumbnail.url, char.id)
+    img = ImageController.default_image(
+      app.thumbnail.url,
+      char.id
+    )if app.thumbnail
     color = CharacterController.type_color(char)
 
     embed = character_embed(
@@ -580,7 +703,7 @@ bot.reaction_add do |event|
     if embed
       bot.send_message(
         ENV['CHAR_CH'].to_i,
-        "Good news, <@#{uid}>! Your character was approved",
+        "Good news, #{uid}! Your character was approved",
         false,
         embed
       )
@@ -694,16 +817,25 @@ bot.reaction_add do |event|
   when [:carousel, :notebook]
     emoji = Emoji::NOTEBOOK
     users = event.message.reacted_with(emoji)
-
     users.each do |user|
       event.message.delete_reaction(user.id, emoji) unless user.current_bot?
     end
 
     char = Character.find(carousel.char_id)
+    user =
+      case
+      when char.user_id.match(/public/i)
+        "Public"
+      when member = event.server.member(char.user_id)
+        member
+      else
+        nil
+      end
+
     embed = character_embed(
       char: char,
       img: CharImage.where(char_id: char.id).find_by(keyword: 'Default'),
-      user: event.server.member(char.user_id),
+      user: user,
       color: CharacterController.type_color(char),
       section: :bio
     )
@@ -711,16 +843,25 @@ bot.reaction_add do |event|
   when [:carousel, :question]
     emoji = Emoji::QUESTION
     users = event.message.reacted_with(emoji)
-
     users.each do |user|
       event.message.delete_reaction(user.id, emoji) unless user.current_bot?
     end
 
     char = Character.find(carousel.char_id)
+    user =
+      case
+      when char.user_id.match(/public/i)
+        "Public"
+      when member = event.server.member(char.user_id)
+        member
+      else
+        nil
+      end
+
     embed = character_embed(
       char: char,
       img: CharImage.where(char_id: char.id).find_by(keyword: 'Default'),
-      user: event.server.member(char.user_id),
+      user: user,
       color: CharacterController.type_color(char),
       section: :status
     )
@@ -728,16 +869,25 @@ bot.reaction_add do |event|
   when [:carousel, :pallet]
     emoji = Emoji::PALLET
     users = event.message.reacted_with(emoji)
-
     users.each do |user|
       event.message.delete_reaction(user.id, emoji) unless user.current_bot?
     end
 
     char = Character.find(carousel.char_id)
+    user =
+      case
+      when char.user_id.match(/public/i)
+        "Public"
+      when member = event.server.member(char.user_id)
+        member
+      else
+        nil
+      end
+
     embed = character_embed(
       char: char,
       img: CharImage.where(char_id: char.id).find_by(keyword: 'Default'),
-      user: event.server.member(char.user_id),
+      user: user,
       color: CharacterController.type_color(char),
       section: :type
     )
@@ -745,34 +895,52 @@ bot.reaction_add do |event|
   when [:carousel, :ear]
     emoji = Emoji::EAR
     users = event.message.reacted_with(emoji)
-
     users.each do |user|
       event.message.delete_reaction(user.id, emoji) unless user.current_bot?
     end
 
     char = Character.find(carousel.char_id)
+    user =
+      case
+      when char.user_id.match(/public/i)
+        "Public"
+      when member = event.server.member(char.user_id)
+        member
+      else
+        nil
+      end
+
     embed = character_embed(
       char: char,
       img: CharImage.where(char_id: char.id).find_by(keyword: 'Default'),
-      user: event.server.member(char.user_id),
+      user: user,
       color: CharacterController.type_color(char),
       section: :rumors
     )
     event.message.edit("", embed)
   when [:carousel, :picture]
     event.message.delete_all_reactions
-
     char = Character.find(carousel.char_id)
     img = ImageController.img_scroll(
       char_id: char.id,
       nsfw: event.channel.nsfw?,
     )
     carousel.update(id: carousel.id, image_id: img.id)
+    user =
+      case
+      when char.user_id.match(/public/i)
+        "Public"
+      when member = event.server.member(char.user_id)
+        member
+      else
+        nil
+      end
+
 
     embed = character_embed(
       char: char,
       img: img,
-      user: event.server.member(char.user_id),
+      user: user,
       color: CharacterController.type_color(char),
       section: :image
     )
@@ -781,16 +949,25 @@ bot.reaction_add do |event|
   when [:carousel, :bags]
     emoji = Emoji::BAGS
     users = event.message.reacted_with(emoji)
-
     users.each do |user|
       event.message.delete_reaction(user.id, emoji) unless user.current_bot?
     end
 
     char = Character.find(carousel.char_id)
+    user =
+      case
+      when char.user_id.match(/public/i)
+        "Public"
+      when member = event.server.member(char.user_id)
+        member
+      else
+        nil
+      end
+
     embed = character_embed(
       char: char,
       img: CharImage.where(char_id: char.id).find_by(keyword: 'Default'),
-      user: event.server.member(char.user_id),
+      user: user,
       color: CharacterController.type_color(char),
       section: :bags
     )
@@ -799,16 +976,25 @@ bot.reaction_add do |event|
   when [:carousel, :eyes]
     emoji = Emoji::EYES
     users = event.message.reacted_with(emoji)
-
     users.each do |user|
       event.message.delete_reaction(user.id, emoji) unless user.current_bot?
     end
 
     char = Character.find(carousel.char_id)
+    user =
+      case
+      when char.user_id.match(/public/i)
+        "Public"
+      when member = event.server.member(char.user_id)
+        member
+      else
+        nil
+      end
+
     embed = character_embed(
       char: char,
       img: CharImage.where(char_id: char.id).find_by(keyword: 'Default'),
-      user: event.server.member(char.user_id),
+      user: user,
       color: CharacterController.type_color(char),
       section: :all
     )
@@ -816,28 +1002,46 @@ bot.reaction_add do |event|
   when [:carousel, :key]
     emoji = Emoji::KEY
     users = event.message.reacted_with(emoji)
-
     users.each do |user|
       event.message.delete_reaction(user.id, emoji) unless user.current_bot?
     end
 
     char = Character.find(carousel.char_id)
+    user =
+      case
+      when char.user_id.match(/public/i)
+        "Public"
+      when member = event.server.member(char.user_id)
+        member
+      else
+        nil
+      end
+
     embed = character_embed(
       char: char,
       img: CharImage.where(char_id: char.id).find_by(keyword: 'Default'),
-      user: event.server.member(char.user_id),
+      user: user,
       color: CharacterController.type_color(char),
       section: :default
     )
     event.message.edit("", embed)
   when [:carousel, :back]
     event.message.delete_all_reactions
-
     char = Character.find(carousel.char_id)
+    user =
+      case
+      when char.user_id.match(/public/i)
+        "Public"
+      when member = event.server.member(char.user_id)
+        member
+      else
+        nil
+      end
+
     embed = character_embed(
       char: char,
       img: CharImage.where(char_id: char.id).find_by(keyword: 'Default'),
-      user: event.server.member(char.user_id),
+      user: user,
       color: CharacterController.type_color(char),
       section: :default
     )
@@ -846,7 +1050,6 @@ bot.reaction_add do |event|
   when [:carousel, :left], [:carousel, :right]
     emoji = vote == :left ? Emoji::LEFT : Emoji::RIGHT
     users = event.message.reacted_with(emoji)
-
     users.each do |user|
       event.message.delete_reaction(user.id, emoji) unless user.current_bot?
     end
@@ -860,11 +1063,21 @@ bot.reaction_add do |event|
     )
 
     carousel.update(id: carousel.id, image_id: img.id)
+    user =
+      case
+      when char.user_id.match(/public/i)
+        "Public"
+      when member = event.server.member(char.user_id)
+        member
+      else
+        nil
+      end
+
 
     embed = character_embed(
       char: char,
       img: img,
-      user: event.server.member(char.user_id),
+      user: user,
       color: CharacterController.type_color(char),
       section: :image
     )
@@ -875,17 +1088,26 @@ bot.reaction_add do |event|
     Emoji::NUMBERS.each.with_index do |emoji, i|
       char_index = i if reactions[emoji]&.count.to_i > 1
     end
-
     if char_index
       event.message.delete_all_reactions
 
       char = Character.find(carousel.options[char_index])
       carousel.update(id: carousel.id, char_id: char.id)
+      user =
+        case
+        when char.user_id.match(/public/i)
+          "Public"
+        when member = event.server.member(char.user_id)
+          member
+        else
+          nil
+        end
+
 
       embed = character_embed(
         char: char,
         img: CharImage.where(char_id: char.id).find_by(keyword: 'Default'),
-        user: event.server.member(char.user_id),
+        user: user,
         color: CharacterController.type_color(char),
         section: :default
       )
