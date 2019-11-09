@@ -557,6 +557,70 @@ rescue ActiveRecord::RecordNotFound => e
   error_embed(e.message)
 end
 
+desc = "Everything to do with rescue teams"
+opts = {
+  "" => "list of teams",
+  "team_name" => "display team info",
+  "team_name | (leave/apply) | character" => "leave or apply for team",
+  "team_name | create | description" => "admin only command"
+}
+team = Command.new(:team, desc, opts) do |event, team_name, action, desc|
+  unless action&.match(/create/i)
+    t = Team.find_by!(name: team_name) if team_name
+
+    char = if event.author.roles.map(&:name).include?('Guild Masters')
+             Character.find_by!(name: desc) if desc
+           else
+             c = Character.where(user_id: event.author.id).find_by!(name: desc)
+             ct = CharTeam.where(char_id: c.id).find_by(active: true)
+             action = "second_team" if ct && action.match(/apply/i)
+             c
+           end
+  end
+
+  case action
+  when /leave/i
+    ct = CharTeam.where(team_id: t.id).find_by(char_id: char.id)
+
+    if ct
+      ct.update(active: false)
+      user = event.server.member(char.user_id.to_i)
+      user.remove_role(t.role.to_i) if user
+    end
+    bot.send_message(
+      t.channel.to_i,
+      "#{char.name} has left the team",
+      false,
+      nil
+    )
+  when /apply/i
+    embed = team_app_embed(t, char, event.server.member(char.user_id))
+    msg = bot.send_message(t.channel.to_i, "", false, embed)
+
+    msg.react(Emoji::Y)
+    msg.react(Emoji::N)
+    success_embed("Your request has been posted to #{t.name}!")
+  when /create/i
+    team_name = team_name || ""
+    desc = desc || ""
+
+    embed = new_team_embed(event.message.author, team_name, desc)
+    msg = bot.send_message(ENV['APP_CH'], "", false, embed)
+
+    msg.react(Emoji::Y)
+    msg.react(Emoji::N)
+    success_embed("Your Team Application has been submitted!")
+  when nil
+    t ? team_embed(t) : teams_embed()
+  when /second_team/i
+    error_embed("#{char.name} is already in a team!")
+  else
+    command_error_embed("Could not process team request!", team)
+  end
+rescue ActiveRecord::RecordNotFound => e
+  error_embed(e.message)
+end
+
 # ---
 
 commands = [
@@ -571,10 +635,11 @@ commands = [
   inv,
   status,
   afflict,
-  cure
+  cure,
+  team
 ]
 
-locked_commands = [inv]
+#locked_commands = [inv]
 
 # This will trigger on every message sent in discord
 bot.message do |event|
@@ -653,6 +718,8 @@ bot.reaction_add do |event|
     when 'Image Rejection' then :image_rejection
     when 'Item Application' then :item_application
     when 'Item Rejection' then :item_rejection
+    when 'Team Application' then :team_application
+    when 'Team Join Request' then :team_request
     else
       :carousel if carousel
     end
@@ -670,7 +737,7 @@ bot.reaction_add do |event|
     when reactions[Emoji::EAR]&.count.to_i > 1 then :ear
     when reactions[Emoji::PICTURE]&.count.to_i > 1 then :picture
     when reactions[Emoji::BAGS]&.count.to_i > 1 then :bags
-    when reactions[Emoji::FAMILY]&.count.to_i > 1 then :family
+    #when reactions[Emoji::FAMILY]&.count.to_i > 1 then :family
     when reactions[Emoji::EYES]&.count.to_i > 1 then :eyes
     when reactions[Emoji::KEY]&.count.to_i > 1 then :key
     when reactions[Emoji::PHONE]&.count.to_i > 1 then :phone
@@ -1117,6 +1184,70 @@ bot.reaction_add do |event|
   when [:carousel, :cross]
     event.message.delete
     carousel.delete
+
+  when [:team_application, :yes]
+    t = Team.create!(name: app.title, description: app.description)
+
+    # create role
+    role = event.server.create_role(
+      name: t.name,
+      colour: 3447003,
+      hoist: true,
+      mentionable: true,
+      reason: "New Team"
+    )
+    #role.sort_above(ENV['TEAM_ROLE'])
+    # create channel
+    channel = event.server.create_channel(
+      t.name,
+      parent: 642055732321189928,
+      permission_overwrites: [
+        { id: event.server.everyone_role.id, deny: 1024 },
+        { id: role.id, allow: 1024 }
+      ]
+    )
+
+    t.update(role: role.id.to_s, channel: channel.id.to_s)
+    # embed
+    embed = message_embed(
+      "Team Approved: #{t.name}!",
+      "You can join with ```pkmn-team #{t.name} | apply | character_name```"
+    )
+
+    bot.send_message(ENV['TEAM_CH'], "", false, embed)
+    event.message.delete
+  when [:team_application, :no]
+    event.message.delete
+
+  when [:team_request, :yes]
+    char_id = /\s\|\s([0-9]+)$/.match(app.footer.text)
+    char = Character.find(char_id[1].to_i)
+    t = Team.find_by(channel: event.message.channel.id.to_s)
+    event.message.delete
+
+    if ct = CharTeam.where(team_id: t.id).find_by(char_id: char.id)
+      ct.update(active: true)
+    else
+      CharTeam.create(char_id: char.id, team_id: t.id)
+    end
+    user = event.server.member(char.user_id)
+    user.add_role(t.role.to_i) if user
+
+    embed = message_embed("New Member!", "Welcome #{char.name} to the team!")
+    event.send_embed("", embed)
+  when [:team_request, :no]
+    char_id = /\s\|\s([0-9]+)$/.match(app.footer.text)
+    char = Character.find(char_id[1])
+    t = Team.find_by(channel: event.message.channel.id.to_s)
+
+    bot.send_message(
+      ENV['TEAM_CH'],
+      "#{char.name} has been declined from team #{t.name}",
+      false,
+      nil
+    )
+
+    event.message.delete
   end
 end
 
