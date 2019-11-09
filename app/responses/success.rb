@@ -12,7 +12,7 @@ def success_embed(message)
 end
 
 def message_embed(title, desc, img = nil)
-  img = Image.find_by(name: 'happy') unless img
+  img = ImageUrl.find_by(name: 'happy').url unless img
 
   Embed.new(
     title: title,
