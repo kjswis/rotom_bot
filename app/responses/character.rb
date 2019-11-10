@@ -185,12 +185,15 @@ end
 def char_list_embed(chars, user = nil)
   fields = []
   active = []
+  inactive= []
   npcs = []
 
   chars.each do |char|
     case char.active
     when 'Active'
       active.push char.name
+    when 'Inactive'
+      inactive.push char.name
     when 'NPC'
       npcs.push char.name
     end
@@ -200,6 +203,11 @@ def char_list_embed(chars, user = nil)
     name: 'Active Characters',
     value: active.join(", ")
   })if active.length > 0
+
+  fields.push({
+    name: 'Inactive Characters',
+    value: inactive.join(", ")
+  })if inactive.length > 0
 
   fields.push({
     name: 'NPCs',
@@ -224,6 +232,7 @@ end
 def user_char_embed(chars, user)
   fields = []
   active = []
+  inactive = []
   npcs = []
   user_name = user.nickname || user.name
 
@@ -231,6 +240,8 @@ def user_char_embed(chars, user)
     case char.active
     when 'Active'
       active.push char
+    when 'Inactive'
+      inactive.push char.name
     when 'NPC'
       npcs.push char.name
     end
@@ -240,6 +251,13 @@ def user_char_embed(chars, user)
     fields.push({
       name: "#{i+1} #{char.name}",
       value: "#{char.species} -- #{char.types}"
+    })
+  end
+
+  unless inactive.empty?
+    fields.push({
+      name: "#{user_name}'s Inactive Characters",
+      value: inactive.join(", ")
     })
   end
 
@@ -275,13 +293,23 @@ def dup_char_embed(chars, name)
 end
 
 def char_image_embed(char, image, user, color)
-  footer = "#{user.name}##{user.tag} | #{char.active}" +
-    " | #{image.category}"
+  user_name = case user
+              when String
+                user.capitalize
+              when nil
+                'Unknown User'
+              else
+                "#{user.name}##{user.tag}"
+              end
+
+  footer_text = "#{user_name} | #{char.active}"
+  footer_text += " | #{char.rating}" if char.rating
+  footer_text += " | #{image.category}"
 
   Embed.new(
     footer: {
-      icon_url: user.avatar_url,
-      text: footer
+      icon_url: user&.avatar_url,
+      text: footer_text
     },
     title: "#{char.name} | #{image.keyword}",
     color: color,

@@ -95,10 +95,9 @@ class Character < ActiveRecord::Base
     end
 
     user = User.find_by(id: user_id[1])
+    member = event.server.member(user_id[1]) if user
 
-    if user
-      member = event.server.member(user_id[1])
-
+    if member
       allowed_chars = (user.level / 10 + 1)
       allowed_chars += 1 if member.roles.map(&:name).include?("Nitro Booster")
       active_chars =
@@ -109,6 +108,8 @@ class Character < ActiveRecord::Base
         active == "Personal Character" && !active_chars.include?(edit_url)
 
       too_many = new_active ? active_chars.count >= allowed_chars : false
+    elsif user && !member
+      approval_react(event)
     end
 
     if user && member

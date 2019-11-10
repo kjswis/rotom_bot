@@ -130,7 +130,7 @@ def user_img_app(event)
     ]
   )
 
-  embed.thumbnail.url = app.thumbnail.url if app.thumbnail
+  embed.thumbnail = { url: app.thumbnail.url } if app.thumbnail
   embed
 end
 

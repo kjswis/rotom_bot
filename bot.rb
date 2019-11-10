@@ -233,14 +233,12 @@ opts = {
   "name" => "list all images"
 }
 desc = "View, add and edit your characters' images"
-image = Command.new(:image, desc, opts) do |event, name, keyword, tag, url|
+image = Command.new(:image, desc, opts) do |event, name, keyword, tag, url, id|
   user = event.author
-  chars = []
 
   char =
-    if user.roles.map(&:name).include?('Guild Masters')
-      chars = Character.where(name: name)
-      chars.first if chars.length == 1
+    if id
+      Character.where(user_id: id).find_by!(name: name) if name
     else
       Character.where(user_id: user.id).find_by!(name: name) if name
     end
@@ -795,6 +793,8 @@ bot.reaction_add do |event|
     reject.react(Emoji::CROSS)
     reject.react(Emoji::CRAYON)
 
+  when [:character_application, :cross]
+    event.message.delete
   when [:character_rejection, :check]
     user = event.server.member(UID.match(app.description)[1])
     embed = user_char_app(event)
@@ -812,7 +812,7 @@ bot.reaction_add do |event|
       "",
       35,
       false,
-      self_edit_embed(app, URL::CHARACTER)
+      self_edit_embed(app, Url::CHARACTER)
     )
 
   when [:new_app, :phone]
