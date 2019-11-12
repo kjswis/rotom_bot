@@ -2,7 +2,7 @@ def character_embed(char:, img: nil, user: nil, color:, section: nil)
   fields = []
   user_name = case user
               when String
-                user.capitalize
+                'Adopt Me!'
               when nil
                 'Unknown User'
               else
@@ -186,7 +186,8 @@ def char_list_embed(chars, user = nil)
   fields = []
   active = []
   inactive= []
-  npcs = []
+  owned_npcs = []
+  unowned_npcs = []
 
   chars.each do |char|
     case char.active
@@ -195,27 +196,33 @@ def char_list_embed(chars, user = nil)
     when 'Inactive'
       inactive.push char.name
     when 'NPC'
-      npcs.push char.name
+      owned_npcs.push char.name if char.user_id != 'Public'
+      unowned_npcs.push char.name if char.user_id == 'Public'
     end
   end
 
   fields.push({
-    name: 'Active Characters',
-    value: active.join(", ")
+    name: "Active Guild Members [#{active.count}]",
+    value: active.sort.join(", ")
   })if active.length > 0
 
   fields.push({
-    name: 'Inactive Characters',
-    value: inactive.join(", ")
+    name: "Former Guild Members [#{inactive.count}]",
+    value: inactive.sort.join(", ")
   })if inactive.length > 0
 
   fields.push({
-    name: 'NPCs',
-    value: npcs.join(", ")
-  })if npcs.length > 0
+    name: "NPCs [#{owned_npcs.count}]",
+    value: owned_npcs.sort.join(", ")
+  })if owned_npcs.length > 0
+
+  fields.push({
+    name: "Public NPCs [#{unowned_npcs.count}]",
+    value: unowned_npcs.sort.join(", ")
+  })if unowned_npcs.length > 0
 
   embed = Embed.new(
-    title: 'Registered Characters',
+    title: "Registered Pokemon [#{chars.count}]",
     fields: fields
   )
 
@@ -234,7 +241,7 @@ def user_char_embed(chars, user)
   active = []
   inactive = []
   npcs = []
-  user_name = user.nickname || user.name
+  user_name = user&.nickname || user&.name
 
   chars.each do |char|
     case char.active
@@ -265,13 +272,15 @@ def user_char_embed(chars, user)
     fields.push({ name: "#{user_name}'s NPCs", value: npcs.join(", ") })
   end
 
+  allowed = User.find_by(id: chars.first.user_id).level / 10 + 1
+
   embed = Embed.new(
-    title: "#{user_name}'s Characters",
+    title: "#{user_name}'s Characters [#{active.count}/#{allowed}]",
     description: "Click on the corresponding reaction to view the character",
     fields: fields
   )
 
-  embed.color = user.color.combined if user.color
+  embed.color = user.color.combined if user&.color
   embed
 end
 
