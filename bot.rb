@@ -16,6 +16,7 @@ DISCORD = "#36393f"
 ERROR = "#a41e1f"
 
 UID = /<@\!?([0-9]+)>/
+URL = /https?:\/\/[\S]+/
 
 # ---
 
@@ -233,14 +234,12 @@ opts = {
   "name" => "list all images"
 }
 desc = "View, add and edit your characters' images"
-image = Command.new(:image, desc, opts) do |event, name, keyword, tag, url|
+image = Command.new(:image, desc, opts) do |event, name, keyword, tag, url, id|
   user = event.author
-  chars = []
 
   char =
-    if user.roles.map(&:name).include?('Guild Masters')
-      chars = Character.where(name: name)
-      chars.first if chars.length == 1
+    if id
+      Character.where(user_id: id).find_by!(name: name) if name
     else
       Character.where(user_id: user.id).find_by!(name: name) if name
     end
@@ -594,12 +593,17 @@ team = Command.new(:team, desc, opts) do |event, team_name, action, desc|
       nil
     )
   when /apply/i
-    embed = team_app_embed(t, char, event.server.member(char.user_id))
-    msg = bot.send_message(t.channel.to_i, "", false, embed)
+    members = CharTeam.where(team_id: t.id)
+    if members.count >= 6
+      embed = team_app_embed(t, char, event.server.member(char.user_id))
+      msg = bot.send_message(t.channel.to_i, "", false, embed)
 
-    msg.react(Emoji::Y)
-    msg.react(Emoji::N)
-    success_embed("Your request has been posted to #{t.name}!")
+      msg.react(Emoji::Y)
+      msg.react(Emoji::N)
+      success_embed("Your request has been posted to #{t.name}!")
+    else
+      error_embed("#{t.name} is full!")
+    end
   when /create/i
     team_name = team_name || ""
     desc = desc || ""
@@ -649,27 +653,48 @@ bot.message do |event|
   command = /^pkmn-(\w+)/.match(content)
   cmd = commands.detect { |c| c.name == command[1].to_sym } if command
 
-  reply = cmd.call(content, event) if cmd
+  if cmd
+    reply = cmd.call(content, event)
 
-  case reply
-  when Embed
-    event.send_embed("", reply)
-  when String
-    event.respond(reply)
-  end
-
-  event.send_embed(
-    "",
-    error_embed("Command not found!")
-  )if command && !cmd && event.server
-
-  if author == ENV['WEBHOOK'].to_i
+    case reply
+    when Embed
+      event.send_embed("", reply)
+    when String
+      event.respond(reply)
+    end
+  elsif command && !cmd && event.server
+    event.send_embed(
+      "",
+      error_embed("Command not found!")
+    )
+  elsif author == ENV['WEBHOOK'].to_i
     app = event.message.embeds.first
     if app.author.name == 'Character Application'
       Character.check_user(event)
     else
       approval_react(event)
     end
+  #elsif content == 'test'
+    #User.import_user(File.open('users.txt', 'r'))
+  elsif content == 'pry'
+    binding.pry
+  elsif content == 'show me dem illegals'
+    users = User.all
+    illegals = []
+
+    users.each do |u|
+      allowed = u.level / 10 + 1
+      active = Character.where(user_id: u.id, active: 'Active').count
+      illegals.push("<@#{u.id}>, Level #{u.level}: #{active}/#{allowed}") if active > allowed
+    end
+    embed = error_embed("Members with too many pokemon", illegals.join("\n"))
+    event.send_embed("", embed)
+  elsif !event.author.current_bot?
+    usr = User.find_by(id: author.to_s)
+    msg = URL.match(content) ? content.gsub(URL, "x" * 149) : content
+
+    usr = usr.update_xp(msg)
+    event.respond(usr) if usr.is_a? String
   end
 end
 
@@ -702,32 +727,43 @@ bot.reaction_add do |event|
   carousel = Carousel.find_by(message_id: event.message.id)
 
   carousel = Carousel.find_by(message_id: event.message.id)
-  maj =
-    if event.server
-      m = event.server.roles.find{ |r| r.id == ENV['ADMINS'].to_i }.members
-      m.count / 2
-    end
-  maj = 1
+  maj = 100
 
   form =
     case app.author&.name
     when 'New App' then :new_app
-    when 'Character Application' then :character_application
+    when 'Character Application'
+      m = event.server.roles.find{ |r| r.id == ENV['ADMINS'].to_i }.members
+      maj = m.count > 2 ? m.count/2.0 : 2
+      :character_application
     when 'Character Rejection' then :character_rejection
-    when 'Image Application' then :image_application
+    when 'Image Application'
+      m = event.server.roles.find{ |r| r.id == ENV['ADMINS'].to_i }.members
+      maj = m.count > 2 ? m.count/2.0 : 2
+      :image_application
     when 'Image Rejection' then :image_rejection
-    when 'Item Application' then :item_application
+    when 'Item Application'
+      m = event.server.roles.find{ |r| r.id == ENV['ADMINS'].to_i }.members
+      maj = m.count > 2 ? m.count/2.0 : 2
+      :item_application
     when 'Item Rejection' then :item_rejection
-    when 'Team Application' then :team_application
-    when 'Team Join Request' then :team_request
+    when 'Team Application'
+      m = event.server.roles.find{ |r| r.id == ENV['ADMINS'].to_i }.members
+      maj = m.count > 2 ? m.count/2.0 : 2
+      :team_application
+    when 'Team Join Request'
+      team_id = Team.find_by(channel: event.message.channel.id.to_s).role.to_i
+      m = event.server.roles.find{ |r| r.id == team_id }.members
+      maj = m.count > 2 ? m.count/2.0 : 2
+      :team_request
     else
       :carousel if carousel
     end
 
   vote =
     case
-    when reactions[Emoji::Y]&.count.to_i > maj then :yes
-    when reactions[Emoji::N]&.count.to_i > maj then :no
+    when reactions[Emoji::Y]&.count.to_i > maj.round then :yes
+    when reactions[Emoji::N]&.count.to_i > maj.round then :no
     when reactions[Emoji::CHECK]&.count.to_i > 1 then :check
     when reactions[Emoji::CROSS]&.count.to_i > 1 then :cross
     when reactions[Emoji::CRAYON]&.count.to_i > 1 then :crayon
@@ -795,6 +831,8 @@ bot.reaction_add do |event|
     reject.react(Emoji::CROSS)
     reject.react(Emoji::CRAYON)
 
+  when [:character_application, :cross]
+    event.message.delete
   when [:character_rejection, :check]
     user = event.server.member(UID.match(app.description)[1])
     embed = user_char_app(event)
@@ -812,7 +850,7 @@ bot.reaction_add do |event|
       "",
       35,
       false,
-      self_edit_embed(app, URL::CHARACTER)
+      self_edit_embed(app, Url::CHARACTER)
     )
 
   when [:new_app, :phone]
@@ -1261,6 +1299,10 @@ end
 
 # This will trigger when anyone joins the server
 bot.member_join do |event|
+  unless User.find_by(id: event.author.id.to_s)
+    usr = User.create(id: event.author.id.to_s)
+    usr.make_stats
+  end
 end
 
 # This will trigger when anyone leaves the server

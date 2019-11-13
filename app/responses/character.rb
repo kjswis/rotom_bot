@@ -2,7 +2,7 @@ def character_embed(char:, img: nil, user: nil, color:, section: nil)
   fields = []
   user_name = case user
               when String
-                user.capitalize
+                'Adopt Me!'
               when nil
                 'Unknown User'
               else
@@ -185,29 +185,44 @@ end
 def char_list_embed(chars, user = nil)
   fields = []
   active = []
-  npcs = []
+  inactive= []
+  owned_npcs = []
+  unowned_npcs = []
 
   chars.each do |char|
     case char.active
     when 'Active'
       active.push char.name
+    when 'Inactive'
+      inactive.push char.name
     when 'NPC'
-      npcs.push char.name
+      owned_npcs.push char.name if char.user_id != 'Public'
+      unowned_npcs.push char.name if char.user_id == 'Public'
     end
   end
 
   fields.push({
-    name: 'Active Characters',
-    value: active.join(", ")
+    name: "Active Guild Members [#{active.count}]",
+    value: active.sort.join(", ")
   })if active.length > 0
 
   fields.push({
-    name: 'NPCs',
-    value: npcs.join(", ")
-  })if npcs.length > 0
+    name: "Former Guild Members [#{inactive.count}]",
+    value: inactive.sort.join(", ")
+  })if inactive.length > 0
+
+  fields.push({
+    name: "NPCs [#{owned_npcs.count}]",
+    value: owned_npcs.sort.join(", ")
+  })if owned_npcs.length > 0
+
+  fields.push({
+    name: "Public NPCs [#{unowned_npcs.count}]",
+    value: unowned_npcs.sort.join(", ")
+  })if unowned_npcs.length > 0
 
   embed = Embed.new(
-    title: 'Registered Characters',
+    title: "Registered Pokemon [#{chars.count}]",
     fields: fields
   )
 
@@ -224,13 +239,16 @@ end
 def user_char_embed(chars, user)
   fields = []
   active = []
+  inactive = []
   npcs = []
-  user_name = user.nickname || user.name
+  user_name = user&.nickname || user&.name
 
   chars.each do |char|
     case char.active
     when 'Active'
       active.push char
+    when 'Inactive'
+      inactive.push char.name
     when 'NPC'
       npcs.push char.name
     end
@@ -243,17 +261,26 @@ def user_char_embed(chars, user)
     })
   end
 
+  unless inactive.empty?
+    fields.push({
+      name: "#{user_name}'s Inactive Characters",
+      value: inactive.join(", ")
+    })
+  end
+
   unless npcs.empty?
     fields.push({ name: "#{user_name}'s NPCs", value: npcs.join(", ") })
   end
 
+  allowed = User.find_by(id: chars.first.user_id).level / 10 + 1
+
   embed = Embed.new(
-    title: "#{user_name}'s Characters",
+    title: "#{user_name}'s Characters [#{active.count}/#{allowed}]",
     description: "Click on the corresponding reaction to view the character",
     fields: fields
   )
 
-  embed.color = user.color.combined if user.color
+  embed.color = user.color.combined if user&.color
   embed
 end
 
@@ -275,13 +302,23 @@ def dup_char_embed(chars, name)
 end
 
 def char_image_embed(char, image, user, color)
-  footer = "#{user.name}##{user.tag} | #{char.active}" +
-    " | #{image.category}"
+  user_name = case user
+              when String
+                user.capitalize
+              when nil
+                'Unknown User'
+              else
+                "#{user.name}##{user.tag}"
+              end
+
+  footer_text = "#{user_name} | #{char.active}"
+  footer_text += " | #{char.rating}" if char.rating
+  footer_text += " | #{image.category}"
 
   Embed.new(
     footer: {
-      icon_url: user.avatar_url,
-      text: footer
+      icon_url: user&.avatar_url,
+      text: footer_text
     },
     title: "#{char.name} | #{image.keyword}",
     color: color,
