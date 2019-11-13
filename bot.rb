@@ -734,27 +734,27 @@ bot.reaction_add do |event|
     when 'New App' then :new_app
     when 'Character Application'
       m = event.server.roles.find{ |r| r.id == ENV['ADMINS'].to_i }.members
-      maj = m.count > 2 ? m.count/2 : 2
+      maj = m.count > 2 ? m.count/2.0 : 2
       :character_application
     when 'Character Rejection' then :character_rejection
     when 'Image Application'
       m = event.server.roles.find{ |r| r.id == ENV['ADMINS'].to_i }.members
-      maj = m.count > 2 ? m.count/2 : 2
+      maj = m.count > 2 ? m.count/2.0 : 2
       :image_application
     when 'Image Rejection' then :image_rejection
     when 'Item Application'
       m = event.server.roles.find{ |r| r.id == ENV['ADMINS'].to_i }.members
-      maj = m.count > 2 ? m.count/2 : 2
+      maj = m.count > 2 ? m.count/2.0 : 2
       :item_application
     when 'Item Rejection' then :item_rejection
     when 'Team Application'
       m = event.server.roles.find{ |r| r.id == ENV['ADMINS'].to_i }.members
-      maj = m.count > 2 ? m.count/2 : 2
+      maj = m.count > 2 ? m.count/2.0 : 2
       :team_application
     when 'Team Join Request'
       team_id = Team.find_by(channel: event.message.channel.id.to_s).role.to_i
       m = event.server.roles.find{ |r| r.id == team_id }.members
-      maj = m.count > 2 ? m.count/2 : 2
+      maj = m.count > 2 ? m.count/2.0 : 2
       :team_request
     else
       :carousel if carousel
@@ -762,8 +762,8 @@ bot.reaction_add do |event|
 
   vote =
     case
-    when reactions[Emoji::Y]&.count.to_i > maj then :yes
-    when reactions[Emoji::N]&.count.to_i > maj then :no
+    when reactions[Emoji::Y]&.count.to_i > maj.round then :yes
+    when reactions[Emoji::N]&.count.to_i > maj.round then :no
     when reactions[Emoji::CHECK]&.count.to_i > 1 then :check
     when reactions[Emoji::CROSS]&.count.to_i > 1 then :cross
     when reactions[Emoji::CRAYON]&.count.to_i > 1 then :crayon
