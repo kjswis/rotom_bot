@@ -43,6 +43,107 @@ Dir['./lib/*.rb'].each { |f| require f }
 token = ENV['DISCORD_BOT_TOKEN']
 bot = Discordrb::Bot.new(token: token)
 
+# Methods
+
+def stat_image(user, member, stats=nil)
+  size_width = 570;
+  size_height = 376;
+  stats_frame =  "images/LevelUp.png"
+  level_up = "images/LevelUpFont.png"
+  user_url_img = "images/Image_Builder/user_url_img.png"
+  output_file =  "images/Image_Builder/LevelUp"
+
+  Down.download(member.avatar_url, destination: user_url_img)
+
+  #Gif Destroyer
+  i = Magick::ImageList.new(user_url_img)
+  i[0].write(user_url_img) if i.count > 1
+
+  if stats
+    merge_image(
+      [stats_frame, level_up, user_url_img],
+      output_file,
+      size_width,
+      size_height,
+      [nil, nil, 19],
+      [nil, nil, 92],
+      [size_width, size_width, 165],
+      [size_height, size_height, 165]
+    )
+  else
+    merge_image(
+      [stats_frame, user_url_img],
+      output_file,
+      size_width,
+      size_height,
+      [nil, 19],
+      [nil, 92],
+      [size_width, 165],
+      [size_height, 165]
+    )
+  end
+
+  ratio = 0.5
+  user_name = member.nickname || member.name
+  short_name = user_name.length > 25 ? "#{user_name[0..22]}..." : user_name
+  rank = User.order(unboosted_xp: :desc)
+  user_rank = rank.index{ |r| r.id == user.id } + 1
+
+  gc = Draw.new
+
+  gc.font('OpenSans-SemiBold.ttf')
+
+  gc.stroke('#39c4ff').fill('#39c4ff')
+  gc.rectangle(42, 48, 42 + (95 * ratio), 48 + 3)
+
+  gc.stroke('none').fill('black')
+  gc.pointsize('15')
+  gc.text(15,25, short_name)
+  gc.text(40, 45, "Lv.#{user.level}")
+  gc.text(15, 290, "Rank: #{user_rank}")
+  gc.text(40, 65, "Exp: #{user.boosted_xp}")
+
+  gc.stroke('white').fill('white')
+  gc.pointsize('30')
+  gc.text(40,330, user_name)
+  gc.text(40,360, "reached level #{user.level}!")
+
+  if stats
+    gc.stroke('none').fill('black')
+    gc.pointsize('18')
+    gc.text(450, 97, stats['hp'].to_s)
+    gc.text(450, 127, stats['attack'].to_s)
+    gc.text(450, 159, stats['defense'].to_s)
+    gc.text(450, 191, stats['sp_attack'].to_s)
+    gc.text(450, 222, stats['sp_defense'].to_s)
+    gc.text(450, 255, stats['speed'].to_s)
+
+    gc.stroke('none').fill('maroon')
+    gc.text(505, 97, "+ #{stats['hp'] - user.hp}")
+    gc.text(505, 127, "+ #{stats['attack']- user.attack}")
+    gc.text(505, 159, "+ #{stats['defense'] - user.defense}")
+    gc.text(505, 191, "+ #{stats['sp_attack'] - user.sp_attack}")
+    gc.text(505, 222, "+ #{stats['sp_defense']- user.sp_defense}")
+    gc.text(505, 255, "+ #{stats['speed'] - user.speed}")
+  else
+    gc.stroke('none').fill('black')
+    gc.pointsize('18')
+    gc.text(450, 97, user.hp.to_s)
+    gc.text(450, 127, user.attack.to_s)
+    gc.text(450, 159, user.defense.to_s)
+    gc.text(450, 191, user.sp_attack.to_s)
+    gc.text(450, 222, user.sp_defense.to_s)
+    gc.text(450, 255, user.speed.to_s)
+  end
+
+  u = Magick::ImageList.new("#{output_file}.png")
+  gc.draw(u[0])
+
+  u.write("#{output_file}.png")
+  "#{output_file}.png"
+end
+
+#--
 
 # Commands: structure basic bot commands here
 commands = []
@@ -135,108 +236,22 @@ stats = Command.new(:stats, desc, opts) do |event, name|
   when UID
     user_id = UID.match(name)
     user = event.server.member(user_id[1])
-    user_url = user.avatar_url if user
   when String
     #See if you can find the name some other way?
   end
 
   channel = event.channel.id
-  size_width = 570;
-  size_height = 376;
-  stats_frame =  "images/LevelUp.png"
-  level_up = "images/LevelUpFont.png"
-  user_url_img = "images/Image_Builder/user_url_img.png"
-  output_file =  "images/Image_Builder/LevelUp"
-
-  Down.download(user_url, destination: user_url_img)
-
-  #Gif Destroyer
-  i = Magick::ImageList.new(user_url_img)
-  binding.pry
-
-  if(i.count > 1)
-    i[0].write(user_url_img);
-  end
-  #End Gif Destroyer
-
-  merge_image(
-    [stats_frame, level_up, user_url_img],
-    output_file,
-    size_width,
-    size_height,
-    [nil, nil, 19],
-    [nil, nil, 92],
-    [size_width, size_width, 165],
-    [size_height, size_height, 165]
-  )
 
   # C# code for getting the percantage to the next level
     #int levelprior = LevelUp[task].NextLevel - (10 * (LevelUp[task].CurrentLevel - 1) ^ 2);
     #double ratio = (double)(LevelUp[task].Messages - levelprior) / (double)(LevelUp[task].NextLevel - levelprior);
 
-  ratio = 0.5
+  usr = User.find_by!(id: user&.id)
 
-  gc = Draw.new
-
-  gc.font('OpenSans-SemiBold.ttf')
-
-  gc.stroke('#39c4ff').fill('#39c4ff')
-  gc.rectangle(42, 48, 42 + (95 * ratio), 48 + 3)
-
-  gc.stroke('none').fill('black')
-  gc.pointsize('15')
-  name_sm = "Test Name 1"
-  gc.text(15,25, name_sm)
-  level = 'Lv.4'
-  gc.text(40, 45, level)
-  level_rank = 'Rank 104'
-  gc.text(15, 290, level_rank)
-  exp = '12340'
-  gc.text(40, 65, exp)
-
-  gc.stroke('white').fill('white')
-  gc.pointsize('30')
-  name_lg = "Test Name 2"
-  gc.text(40,330, name_lg)
-  reached = "reached level 4!"
-  gc.text(40,360, reached)
-
-  gc.stroke('none').fill('black')
-  gc.pointsize('18')
-  lvl_max_hp = '10'
-  gc.text(450, 97, lvl_max_hp)
-  lvl_atk = '11'
-  gc.text(450, 127, lvl_atk)
-  lvl_def = '12'
-  gc.text(450, 159, lvl_def)
-  lvl_sp_atk = '13'
-  gc.text(450, 191, lvl_sp_atk)
-  lvl_sp_def = '14'
-  gc.text(450, 222, lvl_sp_def)
-  lvl_speed = '15'
-  gc.text(450, 255, lvl_speed)
-
-  gc.stroke('none').fill('maroon')
-  iv_max_hp = '+10'
-  gc.text(505, 97, iv_max_hp)
-  iv_atk = '+11'
-  gc.text(505, 127, iv_atk)
-  iv_def = '+12'
-  gc.text(505, 159, iv_def)
-  iv_sp_atk = '+13'
-  gc.text(505, 191, iv_sp_atk)
-  iv_sp_def = '+14'
-  gc.text(505, 222, iv_sp_def)
-  iv_speed = '+15'
-  gc.text(505, 255, iv_speed)
-
-  u = Magick::ImageList.new("#{output_file}.png")
-  gc.draw(u[0])
-
-  u.write("#{output_file}.png")
-
-  msg = bot.send_file(channel, File.open("#{output_file}.png", 'r'))
-
+  output_file = stat_image(usr, user)
+  bot.send_file(channel, File.open(output_file, 'r'))
+rescue ActiveRecord::RecordNotFound => e
+  error_embed(e.message)
 end
 
 opts = {
@@ -542,6 +557,8 @@ rescue ActiveRecord::RecordNotFound => e
   error_embed("Record Not Found!", e.message)
 end
 
+desc = "Learn about Items"
+opts = { "" => "list all items", "item_name" => "show known info for the item" }
 item = Command.new(:item, desc, opts) do |event, name|
   i = name ? Item.find_by!(name: name.capitalize) : Item.all
 
@@ -558,7 +575,7 @@ rescue ActiveRecord::RecordNotFound
 end
 
 desc = "Add and remove items from characters' inventories"
-opts = { "item | (-/+) amount | character" => "" }
+opts = { "item | (-/+) amount | character" => "negative numbers remove items" }
 inv = Command.new(:inv, desc, opts) do |event, item, amount, name|
   char = Character.find_by!(name: name) if name
   itm = Item.find_by!(name: item) if item
@@ -586,23 +603,33 @@ rescue ActiveRecord::RecordNotFound => e
 end
 
 desc = "Update or edit statuses"
-opts = { "name | effect" => "" }
-status = Command.new(:status, desc, opts) do |event, name, effect|
-  if name && effect
-    s = StatusController.edit_status(name, effect)
+opts = { "name | effect" => "effect displays on user when afflicted" }
+status = Command.new(:status, desc, opts) do |event, name, effect, flag|
+  admin = event.user.roles.map(&:name).include?('Guild Masters')
+
+  if name && effect && admin
+    s = StatusController.edit_status(name, effect, flag)
 
     case s
     when Status
-      success_embed("Created Status: #{name}")
+      status_details(s)
     when Embed
       s
     end
+  elsif name && !effect
+    status_details(Status.find_by!(name: name))
+  elsif !name && !effect
+    status_list
+  elsif !admin
+    error_embed("You do not have permission to do that!")
   else
     command_error_embed("Could not create status!", status)
   end
+rescue ActiveRecord::RecordNotFound => e
+  error_embed(e.message)
 end
 
-opts = { "character | ailment | %afflicted" => "" }
+opts = { "character | ailment | %afflicted" => "afflictions apply in percentages" }
 afflict = Command.new(:afflict, desc, opts) do |event, name, status, amount|
   char = Character.find_by!(name: name) if name
   st = Status.find_by!(name: status) if status
@@ -610,12 +637,12 @@ afflict = Command.new(:afflict, desc, opts) do |event, name, status, amount|
   user = char.user_id.match(/public/i) ?
     'Public' : event.server.member(char.user_id)
 
-  if st && amount && char
+  if st && char
     user = char.user_id.match(/public/i) ?
       'Public' : event.server.member(char.user_id)
     color = CharacterController.type_color(char)
 
-    s = StatusController.edit_char_status(st, amount, char)
+    s = StatusController.edit_char_status(char, st, amount)
 
     case s
     when CharStatus
@@ -624,7 +651,7 @@ afflict = Command.new(:afflict, desc, opts) do |event, name, status, amount|
       s
     end
   else
-    command_error_embed("Error afflicting #{char}", afflict)
+    command_error_embed("Error afflicting #{char.name}", afflict)
   end
 rescue ActiveRecord::RecordNotFound => e
   error_embed(e.message)
@@ -749,17 +776,12 @@ commands = [
   poll,
   raffle,
   member,
-  item,
-  inv,
-<<<<<<< 77a766d541086a3ee08efe0eebbbcad8820c7865
+  #item,
+  #inv,
   status,
   afflict,
   cure,
   team,
-||||||| merged common ancestors
-  weather,
-=======
->>>>>>> level up
   stats
 ]
 
@@ -813,8 +835,8 @@ bot.message do |event|
     usr = User.find_by(id: author.to_s)
     msg = URL.match(content) ? content.gsub(URL, "x" * 149) : content
 
-    usr = usr.update_xp(msg)
-    event.respond(usr) if usr.is_a? String
+    img = usr.update_xp(msg, event.author)
+    bot.send_file(event.message.channel, File.open(img, 'r')) if img
   end
 end
 
@@ -882,8 +904,8 @@ bot.reaction_add do |event|
 
   vote =
     case
-    when reactions[Emoji::Y]&.count.to_i > maj.round then :yes
-    when reactions[Emoji::N]&.count.to_i > maj.round then :no
+    when reactions[Emoji::Y]&.count.to_i > maj then :yes
+    when reactions[Emoji::N]&.count.to_i > maj then :no
     when reactions[Emoji::CHECK]&.count.to_i > 1 then :check
     when reactions[Emoji::CROSS]&.count.to_i > 1 then :cross
     when reactions[Emoji::CRAYON]&.count.to_i > 1 then :crayon
@@ -908,12 +930,16 @@ bot.reaction_add do |event|
     uid = UID.match(app.description)
     user =
       app.description.match(/public/i) ? 'Public' : event.server.member(uid[1])
+    img_url = case
+              when !app.thumbnail&.url.nil? then app.thumbnail.url
+              when !app.image&.url.nil? then app.image.url
+              end
 
     char = CharacterController.edit_character(app)
     img = ImageController.default_image(
-      app.thumbnail.url,
+      img_url,
       char.id
-    )if app.thumbnail
+    )if img_url
     color = CharacterController.type_color(char)
 
     embed = character_embed(

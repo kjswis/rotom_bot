@@ -345,7 +345,8 @@ ALTER SEQUENCE public.natures_id_seq OWNED BY public.natures.id;
 CREATE TABLE public.statuses (
     id integer NOT NULL,
     name character varying,
-    effect character varying
+    effect character varying,
+    amount boolean DEFAULT true
 );
 
 
@@ -566,6 +567,7 @@ COPY public.carousels (id, message_id, char_id, options, image_id) FROM stdin;
 142	644015267847995392	\N	{175,177,178,179,183,185,186}	\N
 143	644018788500635658	\N	{177,179,183,185,186}	\N
 100	642932697777307688	91	\N	\N
+147	644370725385273344	260	{8,260}	\N
 59	641834302409146368	15	\N	31
 107	643592636124495901	7	\N	22
 108	643603065609388037	86	\N	\N
@@ -613,7 +615,6 @@ COPY public.char_images (id, char_id, url, category, keyword) FROM stdin;
 20	4	https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcRG65IsiuZr1HPn4kINl6ECHNcfz6nXWu7hlkdmQjy5H9nujuv-	SFW	Hypnosis
 21	6	https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTXuiY3fH0YZd6rSzhagmmEy70VoTJ6OAO7XFt0vVYeMm9oZo8XzA	SFW	Default
 22	7	https://assets.pokemon.com/assets/cms2/img/pokedex/full/668_f2.png	SFW	Default
-23	8	https://images-ext-2.discordapp.net/external/6sG2JwqdzaGDbM9dOsOQ1303N2vXZNkAtUy8sZ3hbR4/https/media.discordapp.net/attachments/599088586461020161/620117815642554368/unknown.png?width=80&height=74	SFW	Default
 25	1	https://66.media.tumblr.com/c61502da7705c26020d35c5fef0fb446/tumblr_oinlc7e3oa1slli9po1_540.png	SFW	Evolved
 26	1	https://i.pinimg.com/originals/b5/88/be/b588be5e036fd67540588f0e7b233b06.jpg	SFW	Vee
 44	41	https://cdn.discordapp.com/attachments/444263615810240514/452260411257913346/yeah.png	SFW	Default
@@ -920,7 +921,23 @@ COPY public.char_images (id, char_id, url, category, keyword) FROM stdin;
 --
 
 COPY public.char_statuses (id, char_id, status_id, amount) FROM stdin;
-4	1	1	20
+5	268	7	204
+6	212	82	\N
+7	192	61	\N
+8	151	7	300
+9	226	7	12
+10	283	7	400
+11	201	92	\N
+12	209	7	200
+13	209	75	\N
+14	267	31	75
+15	267	27	429
+16	271	7	10
+17	271	47	\N
+18	271	94	\N
+19	150	98	\N
+20	150	94	\N
+21	150	6	100
 \.
 
 
@@ -929,7 +946,63 @@ COPY public.char_statuses (id, char_id, status_id, amount) FROM stdin;
 --
 
 COPY public.char_teams (id, team_id, char_id, active) FROM stdin;
-1	11	3	t
+3	23	3	t
+4	23	252	t
+5	23	142	t
+6	20	1	t
+7	20	165	t
+8	20	260	t
+9	20	4	t
+10	19	6	t
+11	19	7	t
+12	19	157	t
+13	19	156	t
+14	19	251	t
+15	19	285	t
+16	26	87	t
+17	26	88	t
+18	26	89	t
+19	26	90	t
+20	26	252	t
+21	27	39	t
+22	27	38	t
+23	27	42	t
+24	27	47	t
+25	27	48	t
+26	23	299	t
+27	21	2	t
+28	16	195	t
+29	15	268	t
+30	15	236	t
+31	13	290	t
+32	13	212	t
+33	14	151	t
+34	14	232	t
+35	12	199	t
+36	13	226	t
+37	17	190	t
+38	17	286	t
+39	17	234	t
+40	12	172	t
+41	15	237	t
+42	15	238	t
+43	16	194	t
+44	18	239	t
+45	22	241	t
+46	18	261	t
+47	17	209	t
+48	25	208	t
+49	22	216	t
+50	21	216	t
+51	18	250	t
+52	24	243	t
+53	21	271	t
+54	18	256	t
+55	18	158	t
+56	24	159	t
+57	25	168	t
+58	12	41	t
+59	14	46	t
 \.
 
 
@@ -940,14 +1013,12 @@ COPY public.char_teams (id, team_id, char_id, active) FROM stdin;
 COPY public.characters (id, user_id, name, species, types, age, weight, height, gender, orientation, relationship, attacks, likes, dislikes, personality, backstory, other, edit_url, active, dm_notes, location, rumors, hometown, warnings, rating, shiny) FROM stdin;
 49	Public	Cody	Rockruff	Rock	12	252 lbs	1'09"	Male	NA / Child Character	NA / Child Character	Growl|Rollout|Rock Smash|Dig	He loves to burp and see if he can our burp others	\N	\N	\N	\N	?edit2=2_ABaOnufxODheonioOYfjXf9j0ChPYDYEf2vMtO4ECWfVa2nQTOMAhn2v4aaxokNOBLP8wF0	NPC	A fatty that just wants to eat and not care about personal hygiene thanks to Redolent treatment of him	The Village	He is currently in the Slob form due to failure to rescue him in the time frame but he was saved so is home with his family|Pretty good friends with Cody, despite what Quebec's father did to him.	The Village	He will eat just about any food, whether its his or not. He has no manner... anymore	SFW	f
 51	Public	Tyke	Poochyena	Dark	23	20 kg	1'8"	Male	Homosexual	In a Relationship	Play Rough|Crunch|Take Down|Howl	\N	\N	\N	He showed up at Draxton's house unannounced one day and now lives there, eating his food and making a mess at every opportunity. They're in luv.	Leader of a band of pre-evolved punks in Bluelatch Forest.	?edit2=2_ABaOnudXLtklqfQc3ZXlDZUAGBsQvx5Wqvyx22M7qz5D1TlCoMoqhN9t0CViHRyaxgMCzXc	NPC	He's actually quite experienced in terms of levels, but no matter how hard he trains, he can't seem to evolve. This is a source of deep frustration and humiliation for him, which is what inspired him to start this group and take his frustrations out on others. Like the other 'punks', he is an adult, although smol.	Bluelatch Forest	He's actually quite a well-trained and modestly powerful Pokemon... so why hasn't he evolved yet?	Bluelatch Forest	\N	SFW	f
+3	215240568245190656	Zumi	Noivern	Dragon/Flying	10	120 lbs	3'0"	Male	Child Character	Child Character	Dragon Pulse | Screech | Bite | Wing Attack	Zumi loves games and all his friends. He also loves sweets and sour candy	Zumi doesn't like bullies or mean kids that constantly make fun of other kids or exclude them from the fun	Zumi is a fun loving Derg that likes to play with anyone and everyone! He also likes to play fun jokes on people or do a bit of spooking with his ghosty parents -- but he tries not to take it too far. He tries to protect his friends as much as he can, but theres only so much a little dragon can do	Zumi is a young dragon, and doesn't really remember much before coming to the guild house. He doesn't remember his birth parents, or when he met his ghost parents, but he isn't really bothered about it. All he knows, is that he loves his ghost parents and wants to make as many friends as he can!	\N	?edit2=2_ABaOnuf86ZAxBbQfeKlKe40wSsMNOKbAg8yb9OIS7GsZ1Qs8dtVRX13RLf4uJnuRawMf5io	Active	\N	\N	He was abandoned as a baby | He wishes he could fly faster | He was rescued by a ghostly couple | He doesn't scare easy | He's just a dumb kid	\N	Has a spooky set of parents that will ruin your day	\N	f
 2	271741998321369088	Neiro	Vaporeon	Water	33	125 lbs	3'03"	Male	Bisexual	Single	Water Gun|Hydro Pump|Ice Beam|Synchronoise	Likes to overeat, being in the rain, and playing with fat	Hates that his body absorbs any liquids	Carefree and a little bit lazy. Always up for fun things.	He was spoiled from the very beginning of his life. This resulted in him being a bit fat and lazy. He loved it tho but decided to make something more with his life by joining a rescue team. He also wanted to work on his skills as being taken care of his whole life made him pretty useless in battle.	He has the special ability Water Absorb. Neiro's body can bloat up to 250 times his normal size before his body stopped expanding. His tail can also bloat equal to that, making his total potential size 500 times	?edit2=2_ABaOnufidKuBLj5ecAtAjVd0CTTFoJhB0CqE9rM-WW0yeYSfnxeKjblep_Nru3f8jpOzkS4	Active	\N	\N	Uses Water Gun every time he sneezes.|His Water Absorb ability absorbs any liquids into his body.|Too much water makes him bloat like a sponge.|He can piss for an hour.|He is outstanding with his move execution and aim	The Village	Dont share a shower with him... 	\N	f
-3	215240568245190656	Zumi	Noivern	Dragon/Flying	Young	120 lbs	3'0"	Male	\N	\N	Dragon Pulse | Screech | Bite | Wing Attack	Zumi loves games and all his friends. He also loves sweets and sour candy	Zumi doesn't like bullies or mean kids that constantly make fun of other kids or exclude them from the fun	Zumi is a fun loving Derg that likes to play with anyone and everyone! He also likes to play fun jokes on people or do a bit of spooking with his ghosty parents -- but he tries not to take it too far. He tries to protect his friends as much as he can, but theres only so much a little dragon can do	Zumi is a young dragon, and doesn't really remember much before coming to the guild house. He doesn't remember his birth parents, or when he met his ghost parents, but he isn't really bothered about it. All he knows, is that he loves his ghost parents and wants to make as many friends as he can!	\N	?edit2=2_ABaOnuf86ZAxBbQfeKlKe40wSsMNOKbAg8yb9OIS7GsZ1Qs8dtVRX13RLf4uJnuRawMf5io	Active	\N	\N	He was abandoned as a baby | He wishes he could fly faster | He was rescued by a ghostly couple | He doesn't scare easy | He's just a dumb kid	\N	Has a spooky set of parents that will ruin your day	\N	f
 28	Public	Simon	Goodrataur	Dragon	79	623 lbs	8'4"	Male	Heterosexual	Single	Ice Beam|Toxic|Dragon Tail|Swagger	He loves his thick belly and hips and thinks they are a chick magnet	\N	\N	\N	\N	?edit2=2_ABaOnuewSDDFvAQ5rqNRaSVthtOqhUeuPsre-8giEmEKrXUgU10GFF4XZu-0MzN3lmK2WSM	NPC	Hurting his will cause him to drop some blood. If you fail, you can be captured and forced to be a taur and kept in a dungeon below his palace. He has been knows to smother pokemon in his butt, tail, feet, anything body part as its his best method of getting them to taste the Gootaur mixture from his body. He is more than willing to spread it willingly if you just ask.	Taurel	He is the original pokemon taur|His blood is the key to reversing taur effects|He acts sweet to get what he wants|He believes he is the 'God of Taurel'|He is the sole reason Taurel is 99% Taur pokemon.|His goo is contagious if taken over a week or two	Taurel	Don't get on his bad side. Some don't return after he has been angered	SFW	f
 55	Public	Chef Wentworth	Charizard	Fire/Flying	50	120 kg	5'7"	Male	Pansexual	Single	Roast | Flamethrower | Fly | Earthquake	\N	\N	\N	\N	\N	?edit2=2_ABaOnudO7f4Hm3_jBYEcPpUEWNgJjH_OgHeFwD70a_r9J5UzJPEPTlUc4t97XVLPZwhaWaA	NPC	Loves cooking	Obe City	Known to be one of the most talented chefs around! He claims his secret is his creative usage of pudgeberries. | His popular cooking show, which demonstrates fattening recipes and espouses the fun of stuffing yourself silly, has been running for decades, and is said to have contributed to making Obe City the glutton haven that it is. | Sometimes he picks volunteers from the crowds, and cooks them up into a delicious meal before swallowing them whole! They're all given complementary reviver seeds, though.	Obe City	\N	SFW	f
 56	271741998321369088	Quebec	Stunky	Poison/Dark	12	72 lbs	1'02"	Male	NA / Child Character	NA / Child Character	Poison Gas | Scratch | Acid Spray | Smokescreen	\N	\N	His personality reflects more of his kind mother than of his father, Redolent.	\N	\N	?edit2=2_ABaOnudqHHGOmxHKMFyBR4-f-RZu1QxS94H9sD8d3Bj6vsIl5hu40aE2rIpTRBfdKjTYMyw	NPC	Generally kindhearted and loves to command his brothers to do things that will make them bloat, fat, etc. Basically just having fin with them for pay back for all the years of bullying, tho he always makes sure it is reversible and just generally fun. Nothing permanent or damaging.	Melody Springs	Loves to have his brothers under his complete and total control  | Wants to join Team Rocket when he grows up | Was bullied by his brothers until Charlotte places a spell on both of them to forever obey Quebec's commands | Pretty good friends with Cody, despite what Quebec's father did to him.	Melody Springs	\N	SFW	f
-4	215240568245190656	Ozi	Gengar	Ghost/Poison	???	90 lbs	5'0"	Male	Straight	Married	Shadow Ball | Sludge Bomb | Psychic | Dazzling Gleam	Jokes and Spooks	Kill joys and Arrogance	Theres never a dull moment with Ozi! He likes to pull pranks and make people either laugh or scream. He loves his wife (Mizukyu) and son (Zumi) and will spook anyone who harms them to death. So long as you play nice, he's a great ghosty guy!	No one knows where Ozi came from, or why he came here, but he and his wife Mizukyu have caused a lot of mayhem in their many years together. He's been known to suddenly appear or disappear and even caused some unfortunate souls to go mad with insanity. Over time he's learned to dial back the spooks a bit, and even tried to make some new friends	Ozi sometimes causes trouble with his ghost powers, behaving a bit like the Cheshire Cat. He can be a bit slippery, but tries not to cause too much trouble	?edit2=2_ABaOnueS5nTN63soX4wQ0PVKa_tGFghbIpiYlW3kwGw4Cj09Fnio0qNLD47iyOC5H3f4oN4	Active	\N	\N	He taught Zumi how to fly | He's a surprisingly good father | Sometimes he doesn't know when to stop the jokes | His humor is not for everyone | I'm not totally convinced he's real	\N	Spooks ahead!	\N	f
 6	412163685440684052	Kipper	Mudkip	Water	26	20lbs	1'05''	Male	Gay	Single	Water Gun | Mud Slap | Protect | Surf	Water, Mud, His Teammates, Teasing Cecil	Injustice, not being able to evolve, getting picked on	Lazy bum who doesn't like to work, but can't ignore when someone is in need.	N/A	He's a surprisingly good chef, able to easily handle ingredients and mise en place despite being a tiny quadruped.	?edit2=2_ABaOnucXHjYrWRLF9ERHNJYBdtB1t25-lacSlSV1wrmrpgLUEK_swo7p-gtWWRXquXNBsyM	Active	\N	\N	He's easily distracted, like he gets lost in his thoughts a lot. | He's incredibly lazy and hates working. | He's quite the chef, his recipes sounds really good. | He's rather old for a stage 1 Pokémon. He probably can't evolve | I heard he's great to hang with when you're feeling really upset or depressed.	Zaplana	He's really sensitive about the fact that he can't evolve.  Tease him for that at your own risk.	\N	f
-8	473547751221886976	Avery	Sylbreon	Dark/Fairy	20	55 lbs	3'03"	M or F	Bi	Single	Moonblast | Dark Pulse | Venoshock | Misty Terrain	the cold, dry food, anything with running, swimming and water, love, berries, computers, DJ Thunder (AKA his idol), his friends, floof, hacking (usually ethical), and fashion despite being a feral.	heat, excessive food, bitter food, being teased, being told what to do, seeing people get hurt, his father, sadness, damaged electronics.	\N	\N	\N	?edit2=2_ABaOnufmQm1Ss0H-E8yfoZt636DRwCBgN2ZVrt-14dW2QyhHJxrnBEfj6Ie_s46TxqLuZNE	Active	\N	\N	\N	He lives at the Guild, but he's from the Woods.	\N	\N	f
 29	Public	Pi	Pichi	Electric	7	104 lbs	1'0"	Male	NA / Child Character	NA / Child Character	Charm|Thunder Shock|Tail Whip	\N	\N	He is always happy to see guests and is loyal to his father	His full name is Pi Piemakerson	\N	?edit2=2_ABaOnuc29FKRHButsNURl4d5Wc3ov4KNeDDVOm0UhosdbWAPeDY045szBK6zon1_2e7_jc4	NPC	He helps is father make pies but eats most of the ingredients as he makes them. It is predicted that he eats one pie for every two he manages to make.	Pudgeberry Forest	He is fat from non pudgeberry related means.|He actually hates the taste of pudgeberry|He works for his dad at the Piemaker Shop in the Pudgeberry Forest.|His dad has asked him to lose weight but he declines it each time, liking it.|He will turn down Tabol Berries	Pudgeberry Forest	\N	SFW	f
 30	Public	Wayva	Salandit	Poison/Fire	23	182 lbs	2'1"	Female	Bisexual	Single	Flame Burst|Toxic|Venoshock|Sweet Scent	\N	\N	Very carefree now and loves to be pamped and cared for.	\N	\N	?edit2=2_ABaOnueJEEX2ATbJH2tC9rM3dJNAhBFwB7UXR9AJM8zRiTk7DinZLPaeGmBnKSSonNLoXC4	NPC	She used to be a spoiled princess but has realized now that is now how the world works outside of the Salandit Mound. So she is excited to see how things work and wants to explore if she can ever get around to it.	The Village	She was destined to be the leader of the Salandit Mound but after years of trying to evolve and failing, she was tossed out and the other Salandits found another leader|She doesnt ever want to go back home|She is so obese that she had to learn to walk on two legs to get anywhere|She is happy to no longer have the stress of trying to be a leader but some says she stress eats over it anyway	Pudgeberry Forest	She will spray you with pheromones if you piss her off... and by that, she will act like it and just fart on you	SFW	f
 31	Public	Mart	Slowking	Water/Psychic	68	175.8 lbs	6'0"	Male	Heterosexual	Widowed	Focus Punch|Zen Headbutt|Telekinesis|Recycle	\N	\N	He only talks unless its needed. He is a very quiet one	\N	\N	?edit2=2_ABaOnuebtTaPoZh-bu1La-zS69Ne34LKjPob5ve2Rek0PH3BUm3xmUE_DB6v1PKkCgccBXM	NPC	He is a wise monk that knows everything there is to know about the temple and its history. The once great	Tiny Temple	He wants to see his home reborn to its former glory but doesnt wish to do it alone.|He is the reason Tiny Temple is abandoned and why Mortar began a monster.	Tiny Temple	\N	SFW	f
@@ -1077,7 +1148,7 @@ COPY public.characters (id, user_id, name, species, types, age, weight, height, 
 140	Public	Sierra	Persian	Normal	28	70 lbs	3'3"	Female	Pansexual	Single	Nasty Plot | Hyper Voice | Water Pulse | Substitute	\N	\N	She's always looking to make herself wealthy as can be! Either through stealing or treasure hunting.	She's a well versed con artist who will lie and cheat on a whim, especially if it means making money.	A persian who came to Santorini in pursuit of fortune! Her various schemes to get rich quick tend to backfire, however, in all sorts of comedic or kinky ways.	?edit2=2_ABaOnuee61enaCEQmnYrWNkKK4hDDT-uOTQDhxnKKTRM_9o_t35pVsQawfOR-oFdo-mO75U	NPC	She is a treasure hunter and will be stopped at nothing to find the epic bounty of treasure the desert hides	Santorini	She's really working for Team Rocket! This rumor can be pretty easily confirmed, as she does have a big R tattooed on her behind. She found Team Rocket really fits in with her goals of wealth at all costs.	Melody Springs	\N	NSFW	f
 141	Public	Jasper	Glaceon	Ice	19	131 lbs	5'6"	Male	Pansexual	Single	Ice Beam | Frost Breath | Aurora Veil | Shadow Ball	\N	He hates being mistaken for a girl.	\N	He works as a guardian of Snowdrop, helping to keep the citizens safe from harm.	\N	?edit2=2_ABaOnue3iMXHwlqrq3bDpDlDbf7Ak8aKhk-YQGh5qakwRmRlZfMVNwuoomjIXXhMYs99bDE	NPC	Defender of the North. Fighter, Warrior, Friend	Snowdrop	That staff of his was custom-made by himself, specifically designed to boost and focus the power of his own magic. | When he's not busy working as a guard, he's always coming up with new spells and charms.	Unknown	\N	NSFW	f
 143	Public	Tamera	Nidoqueen	Poison/Ground	41	220 lbs	7'9"	Female	Pansexual	Single	Poison Jab |  Dig |  Superpower |  Rock Slide	\N	\N	\N	\N	\N	?edit2=2_ABaOnuc_zssA5wH10BXOkH968P07nwlvjJbuoMRS4_6FFcluQxhY3WxSYt9vuxX5d-YXymk	NPC	Professional pregnant pokemon, populates preschools	LaRousse City	She may have a thing for getting pregnant. Either that or just being huge.  |  It's said that left untreated, her milk can flood an entire room! | She seems to be in a constant state of lactation now. | She works down at the hospital as a neurologist. | She's a professional surrogate, though other people prefer to call it 'broodmother'.	Obe City	She's really quite gravid. At some of her larger sizes, she can bump into things way too easily. Some of her pregnancies can make her grow so huge she's at risk of tearing herself apart!	NSFW	f
-142	330231668004618240	Rufus	Rockruff	Rock	14	495 lbs	4'19''	Male	N/A	Child Character	Rock Throw  |  Bite  |  Howl  |  Rest	Dancing, eating, the beach, playing games on the beach, tummy rubs, ear scritiches,	Sharing food, being hungry, being alone for too long	"Big ol' pup who's all fun-loving and carefree while being a glutton at heart. Full of energy and always up for a good snack or two, all while trying to have some good fun.	\N	\N	?edit2=2_ABaOnudEoNTGXHOIxMFQR583LvPTKtkvVYQAG-9ZhJ1fcpJA9vSZCov5VmTZOMEq8KmKwKw	NPC	The place he enjoys the most is the beach and loves to have a good time there, with how he wears clothes for the summer and is always up for a nice swim in the waters and cause tides rising whenever he cannonballs. He also loves any shakes he can get with his paws, same goes for any snacks!\n He also enjoys any affection that's given in his way - such as belly rubs - and likes to show off how chubby he is.\n He's also a shy pred, meaning that he can eat other pokémons but would rather avoid doing that as he's not too much into it. It's likely that he'll run away if a pokémon in question wants him to eat them and if pressed too much into it, to the point he gets all nervous and feels uncomfortable. However, if one approaches him in the most gentle and calm of ways, it is possible to get him to eat them and let them ride in his belly for a sort while before they're let out again."	The Village	It's likely that he'll try to swipe food away from any other pokémon who's at the beach, and claim it for himself.  |  He's capable of eating other pokémons, but he'll try to constantly avoid doing that to not get himself into any sorts of trouble.  |  If there's any sort of shop that sells food within his vicinity, you can expect it to be raid by him in less than a rooster can call it a morning.  |  He has an odd thing for similarly obese pokémons, as he often looks up at them for how big they are and how much of a glutton they can be. So he tries to hang around them more often then others.	Obe City	He has an odd tendency to sleep walk on some occasions, and go in search of a snack to satisfy his gluttonous hunger in his slumber. He's also really possessive of any food he would be holding, and won't share it with anyone for any particular reason (With rare exceptions.).	SFW	f
+142	330231668004618240	Rufus	Rockruff	Rock	14	495 lbs	4'10''	Male	N/A	Child Character	Rock Throw  |  Bite  |  Howl  |  Rest	Dancing, eating, the beach, playing games on the beach, tummy rubs, ear scritiches,	Sharing food, being hungry, being alone for too long	"Big ol' pup who's all fun-loving and carefree while being a glutton at heart. Full of energy and always up for a good snack or two, all while trying to have some good fun.	\N	\N	?edit2=2_ABaOnudEoNTGXHOIxMFQR583LvPTKtkvVYQAG-9ZhJ1fcpJA9vSZCov5VmTZOMEq8KmKwKw	NPC	The place he enjoys the most is the beach and loves to have a good time there, with how he wears clothes for the summer and is always up for a nice swim in the waters and cause tides rising whenever he cannonballs. He also loves any shakes he can get with his paws, same goes for any snacks!\n He also enjoys any affection that's given in his way - such as belly rubs - and likes to show off how chubby he is.\n He's also a shy pred, meaning that he can eat other pokémons but would rather avoid doing that as he's not too much into it. It's likely that he'll run away if a pokémon in question wants him to eat them and if pressed too much into it, to the point he gets all nervous and feels uncomfortable. However, if one approaches him in the most gentle and calm of ways, it is possible to get him to eat them and let them ride in his belly for a sort while before they're let out again."	The Village	It's likely that he'll try to swipe food away from any other pokémon who's at the beach, and claim it for himself.  |  He's capable of eating other pokémons, but he'll try to constantly avoid doing that to not get himself into any sorts of trouble.  |  If there's any sort of shop that sells food within his vicinity, you can expect it to be raid by him in less than a rooster can call it a morning.  |  He has an odd thing for similarly obese pokémons, as he often looks up at them for how big they are and how much of a glutton they can be. So he tries to hang around them more often then others.	Obe City	He has an odd tendency to sleep walk on some occasions, and go in search of a snack to satisfy his gluttonous hunger in his slumber. He's also really possessive of any food he would be holding, and won't share it with anyone for any particular reason (With rare exceptions.).	SFW	f
 146	412163685440684052	Liam	Midday Lycanroc	Rock	26	2462lbs	10'09''	Male	Pansexual	Single	Rest  |  Sand Attack  |  Rock Throw  |  Earth Power	Eating, making friends, tummy rubs, his brothers Shane and Rufus	Diet, exercising, being lonely, Pokemon getting stuck in his flab	Unlike his brother Shane, Liam is the more moderate of the pair.  Eager to please and wanting to make friends, though some days are harder then others for him.	One of the Lardy Lycanroc brothers, known as the Clumsy Giant. He's timid and apologetic over the fact that his body mass often gets him into trouble  | Every so often visits Obe City Bathhouse to get a deep cleaning and free the pokemon lost in his rolls	\N	?edit2=2_ABaOnudU7XHgl3OTYHcLd8Bmssmiund31KICdnUO30Y45XGF-uSBdxYJRGp3RZxMyz-90UU	NPC	They would be really embarrassed and apologetic about the pokemon trapped within their folds. Really they are super friendly... just very clumsy, tripping and falling over on a little pokemon, or rolling over them in his sleep. In a situation where the guild is tasked with retrieving pokemon from his rolls, he would be compliant, but would need convincing that the guild members aren't going to get lost too. Should guild members attempt to rescue the trapped pokemon without permission, he'd likely panic, which would cause the rescuer to be more likely of getting trapped too. The closest thing to a 'demand' he has is just requesting the rescuer be his friend in exchange for letting them rescue the lost pokemon. Really they are a friendly and gentle soul at heart.	Obe City	All he really wants are friends, though pokemon often avoid him over the reasonable fear of being squished on accident  |  Many of the pokemon stuck in his rolls were actually shoved in there by his brother  | He actually traps pokemon in his rolls in the hope that they will be his friends	Obe City	They are incredibly clumsy and often fall on or bump into pokemon, leading to them getting lost in those rolls. Also be warned that they are a fair bit musky	SFW	f
 145	412163685440684052	Shane	Midnight Lycanroc	Rock	26	2462 lbs	13'04''	Male	Pansexual	Single	Scary Face  |  Attract  |  Sucker Punch | Taunt	Being fat, trapping Pokemon in his pudge, his brothers Liam and Rufus	Dieting, exercise, having his pudge not be filled with Pokemon	A devious prankster and nuisance.  Loves to live the big life of Obe City	One of the Lardy Lycanroc brothers, known as the Red Menace. He's arrogant, smug, and loves to trap smaller 'mons in his oceanic pudge or deep between his cavernous buttcheeks  |  Every so often visits Obe City Bathhouse to trap the cleaners in his rolls	\N	?edit2=2_ABaOnucPaMm7jK8lkcDT3vZfgelw8gaqPaqDXkiP1xXUwsOn7SHphat6mhc3TlITZ7fpo7A	NPC	They would be smug and cocky, always scheming to get pokemon lost within the depths of their folds. In the situation where the guild is tasked with receiving missing pokemon from his rolls, chances are he won't give them up without a bargain. While he may be too big to fight traditionally, if someone were to try and rescue his trapped pokemon without his permission, he'd do everything in his power to sabotage their attempts, trapping them within some crevice on their body as well. Typically his demands consist of either getting to keep some of the pokemon for himself in exchange for freeing the rest, or for the guild member doing the rescue mission to take their place as his temporary prisoner.	Obe City	Outside of the pokemon he stuffs up there, rumor says that if you search deep enough in his cavernous navel, there's quite the amount of treasure lost up there  |  He used to have quite the sweetheart who introduced him to the world of trapping pokemon in his fat  | He is on the prowl for a partner in crime who will help trap pokemon in his pudge	Obe City	He loves trapping smaller pokemon in his fat, and will very likely attempt to do the same with you if you're smaller than him. Also be warned that they are a fair bit musky	SFW	f
 147	473547751221886976	Yin	Vulpix	Fire	11	17 lbs	1'10"	Female	Child Character	Child Character	Tackle | Tail Whip | Ember	She likes to sit on people's heads and pretend to be a fluffy hat - it's adorable, honestly.	\N	\N	\N	She's Yang's sister. She always wears that little scarf. She misses her big sis. Yang often leaves her with Avery if he can't take her somewhere.	?edit2=2_ABaOnufRQ4d6p4Yj3xqRKaTbhVIh9Tr7saVuLi_brGI673QofHrVl2Wjuns4KhO0a1JhzN8	NPC	A very childish and happy gal, though she tends to cling to Yang or the nearest adult if she gets scared. Also prone to pulling tricks on people. May set shoes on fire.	Wanderer	She hasn't really gotten into much trouble, though some say she sneaks out to cause mischief at night. |	Some den in Zaplana's mountains.	I wouldn't suggest going after her. Her brother seems pretty tough...	SFW	f
@@ -1228,6 +1299,8 @@ COPY public.characters (id, user_id, name, species, types, age, weight, height, 
 249	271741998321369088	Jaki	Jolteon	Electric	28	75 lbs	2'08"	Female	Bisexual	Married	Synchronoise | Thunder Wave | Swagger | Thunder	She is a kleptomaniac and prefers physical things to money. She has musicophilia and can get turned on to the right song.	\N	\N	Grew up as the fat kit in the family and ran away from home when she evolved when was 6, got kitnapped and lost, unable to return home. Was able to escape and learned to steal as a way to survive. Been like that ever since.	Mated to Claudette. Sister of Neiro. Known as 'DJ Thunder' tho was never caught. Known Engineer / Hacker. All four of her legs are amputated from the knee and elbow down; replaced with robotics. Each of her legs are detachable and contain a paw grappling hook. Has a round potbelly but other than that is thin and strong. She will bloat up with electricity just like her brother does in water. When she breaks into places, she often times hacks the lights, doors, speakers, cameras, etc, to make them go crazy. She also blasts her favorite music into the place.	?edit2=2_ABaOnuc-5BFfAXdJedXo0zd6NBX5VZanFdFlQEdWIcIKvVfP9RZN-O6ixCHZfHC8egvo5sE	Active	\N	\N	When confronted with a problem, she tends to think of an over the top or arbitrary solution rather than the obvious one. | She used to be the fattest in her family when she was a kit | She ran away from home at a young age and has not seen her family since | She lost her legs due to a deal with Team Rocket that turned very bad | Her legs may start to leak smelly water based lube as a cooling method if her legs start to get to hot.	\N	Her nose ring is a powerful relic that can cause her to turn into a dragon if her rage gets out of control. Her dragon form is documented in her 'Nightmare Jaki' application	\N	f
 278	271741998321369088	Cyra	Vulpix	Fire	6	36 lbs	1'10"	Female	Child Character	Child Character	Tackle|Tail Whip|Ember|Secret Power	Extreme heat, robots, tinkering, the idea of being a princess (mostly just to meet cool dragons), trading card games, electronics and electricity, chocolate	Team Rocket, water, ice and snow, the word 'munch', Alolan Pokemon, most berries, dark chocolate, the possibility of going to school one day	A carefree kit who loves to tinker with clocks and electronics and stuff, just laying in her room all day taking it apart and putting it back together again. She is a huge fan of robots and wants to be a roboticist one day, which is possibly related to both of her mothers having robotic legs. She can be a little mischievous, too, especially when it comes to pulling pranks on her brothers. For the most part, though, she's just a simple youth that tends to spend her time in the least productive ways possible. She also really loves chocolate, and candy in general.	She was apparently fathered by a Ninetales, but her parents don't seem to want to talk about it. It always feels like they might be on the run from something, but if so, Cyra always remains blissfully unaware of whatever seems to have gotten them so stressed out. The kit just spends her days playing around outside and tinkering with stuff, and dreading the days that she'll have to go to school and actually do something productive.	Daughter of Jaki and Claudette.	?edit2=2_ABaOnuetvBkFAMGlq5Y-ktw2eLcWT_HR2wewV712jlhmX6om6_SYfl8iwQysFWKSazozKF4	Inactive	\N	\N	Other kits around the village come to her when they have bully problems. She helps come up with pranks to teach those bullies a lesson.|She designs little, simple robotic contraptions out of spare parts sometimes, though these quickly break down.|She's curious about why she's a Vulpix if her parents are Eeveelutions, but is too nervous to ask. Fears she might be adopted.|Like Jaki, she seems to be developing some kleptomaniac tendencies, stealing things just for fun sometimes.|She seems to never want to stop trotting about in big poofy diapers, taking after her mother, Jaki.	\N	\N	\N	f
 178	174805008456351744	Amelia	Flareon	Fire	20	***GREATLY FLUCTUATES***	5'9"	Herm	Pansexual	Single	Fire Spin | Lava Plume | Giga Impact | Superpower	Clothing that fits, Ice Cream, Memes, People actually getting her references.	Her own 'condition', immobility, "normies", anything with white chocolate in it.	She's often a bit brash, a total fucking nerd, but she tends to compulsively apologise over even the smallest things. She can sometimes be a bit of a grump, too.	"Amelia is a humble Flareon from the Unova region. She had originally intended to get a job in IT, having a fascination with all things computers. She even runs her own gaming/tech review channel on YouTube. Unfortunately, everything started to take a nose-dive the moment she turned 17. It's unsure if it was puberty, or some kind of genetic disorder, but Amelia's metabolism went insane. She began to eat everything around her, more than what most 'mon thought was possible. Her general size and girth lead to her requiring specialised medication just to shed the excess bulk. She did spend a few years struggling with the condition, but one day after she had grown to the size of a Macro, action needed to be done. She was to be forcibly evicted, and sent to a place more suitable for her. Zaplana.\nWith her life effectively flipped upside down, and having to start from scratch, what's next for the Flareon?"	\N	?edit2=2_ABaOnudRDSbtAn8k06brW8u8VLE5geT98bItxytOXioS0E--0nzx863bwV-4rfoHO_R0HNg	Inactive	\N	\N	Apparently she runs her own let's play channel. | Amelia has a 'condition' that gives her an appetite that makes a Snorlax blush. She is always hungry, and if she gets on a roll she won't stop, even if her stomach's about to burst. This also makes it so that whenever she digests everything, something can tend to happen. She either winds up with all the added weight, or all the mass goes to individual body parts. She could wind up incredibly hyper, super macro, or even just plain muscular. She often dislikes her condition, with her size usually getting in the way of her daily life. | Even when she's normally sized, it's said that Amelia is rather well hung. Other sources cite that her natural size is in a constant state of fluctuation. | While she dislikes her size, she does admit it has its uses. Mostly for taunting people, or using it against those she doesn't like. She can also tend to get really... well, messy, I suppose. | It's been rumoured that her hunger has lead her to swallow entire 'mon whole!	\N	\N	\N	f
+4	215240568245190656	Ozi	Gengar	Ghost/Poison	???	90 lbs	5'0"	Male	Heterosexual	Married	Shadow Ball | Sludge Bomb | Psychic | Dazzling Gleam	Jokes and Spooks	Kill joys and Arrogance	Theres never a dull moment with Ozi! He likes to pull pranks and make people either laugh or scream. He loves his wife (Mizukyu) and son (Zumi) and will spook anyone who harms them to death. So long as you play nice, he's a great ghosty guy!	No one knows where Ozi came from, or why he came here, but he and his wife Mizukyu have caused a lot of mayhem in their many years together. He's been known to suddenly appear or disappear and even caused some unfortunate souls to go mad with insanity. Over time he's learned to dial back the spooks a bit, and even tried to make some new friends	Ozi sometimes causes trouble with his ghost powers, behaving a bit like the Cheshire Cat. He can be a bit slippery, but tries not to cause too much trouble	?edit2=2_ABaOnueS5nTN63soX4wQ0PVKa_tGFghbIpiYlW3kwGw4Cj09Fnio0qNLD47iyOC5H3f4oN4	Active	\N	\N	He taught Zumi how to fly | He's a surprisingly good father | Sometimes he doesn't know when to stop the jokes | His humor is not for everyone | I'm not totally convinced he's real	\N	Spooks ahead!	\N	t
+299	584078767870312478	Young Neiro	Eevee	Normal	10	15 lbs	1'01	Male	Child Character	Child Character	Growl	\N	\N	\N	\N	\N	?edit2=2_ABaOnudhSnJyKzMyDvDNwYd4DfgfuCzSfPQkgDHfxwXtfjheLL9HrfYM7yPM0u4-nD4rIH0	NPC	He is a little guy full of energy and hope!	The Village	\N	\N	\N	SFW	f
 \.
 
 
@@ -1296,11 +1369,103 @@ COPY public.natures (id, name, up_stat, down_stat) FROM stdin;
 -- Data for Name: statuses; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-COPY public.statuses (id, name, effect) FROM stdin;
-1	stealth	harder to detect
-2	fat	fatter
-3	slime	more gelatinous
-4	Mizukyu	Stealth
+COPY public.statuses (id, name, effect, amount) FROM stdin;
+5	Effective Boost	bonus to super effective moves	t
+6	Blueberry	blueberry inflated	t
+7	Fatten	fatter	t
+98	Thinning	loosing weight	f
+99	Fat Leech	weight being leeched	f
+8	Udderified	Is an udder	f
+9	Calm	lower attack	t
+10	Gentle	lower defense	t
+11	Adamant	lower special attack	t
+12	Naive	lower special defense	t
+13	Relaxed	lower speed	t
+14	Naughty	higher attack	t
+15	Bold	higher defense	t
+16	Rash	higher special attack	t
+17	Careful	higher special defense	t
+18	Hasty	higher speed	t
+20	Buff	more health	t
+19	Injure	less health	t
+21	Sweaty	sweatier	t
+22	Silence	Unable to use status moves	f
+23	Pump	inflated with air	t
+24	Fill	inflated with water	t
+26	Distract	Special attacks limited	f
+25	Daze	Attacks limited	f
+27	Macro	macro	t
+28	Micro	micro	t
+29	Gummy	squishier	t
+30	Sturdy	more likely to endure a hit	t
+31	Curvy	more pear shaped	t
+32	Slime	transformed into a slime	t
+33	Cow	transformed into a Miltank	t
+34	Centaur	transformed into a Taur	t
+35	Dog	transformed into a Canine	t
+36	Fudge	fudgified	t
+37	Bimbo	Bimbofied	f
+38	Candy	Candified	f
+39	Pinata	Pinatafied	f
+40	Plush	plushie	f
+41	Pool Toy	pool toy	f
+42	Bubble Butt	bigger ass	t
+43	Keg	blubberbeer belly	t
+44	Drunk	drunk	t
+45	Juicy Lips	bigger lips	t
+46	Suggestable	more likely to be hypnotized	t
+48	Vulnerable	weaker to magic	t
+49	Stink	smellier	t
+50	Bloat	gassier	t
+51	Fart Growth	ass grows bigger with each fart	f
+52	Merge	body merged	f
+53	Body Swap	body swapped	f
+54	Gender Swap	genderflipped	f
+55	Caffeinate	Caffeine High	f
+56	Sugar	sugar high	f
+57	Rest	reinvigorated	f
+58	Toony	cartoon physics	f
+59	Charm	charming	f
+60	De-Evolve	de-evolved	f
+61	Temp Evolve	temporarily evolution	f
+62	Melt	melty	f
+63	Haunt	haunted	f
+64	Heart Eyes	heart pupils	f
+65	Cock	hyper cock	f
+66	Balls	hyper balls	f
+67	Scat	hyper scat	f
+68	Incontinent	incontinent	f
+69	Heat Resistance	heat resistant	f
+70	Cold Resistance	cold resistant	f
+71	Name Speak	speech sounds like name	f
+72	Name Species	speech sounds like species	f
+73	Destiny Knot	causes foe to be infatuated when afflicted	f
+74	Candy Scent	smells like candy	f
+75	Slime Addiction	addicted to slime	f
+77	Mind Altered	mental effects last until removed	f
+78	Permanent Status	physical effects last until removed	f
+79	Pregnancy	Pregnant	f
+80	Special Pregnancy	Pregnant from Lake of Origin	f
+81	Taut	filled to near bursting	f
+82	Bottomless	never full, infinite capacity	f
+83	Pudgepression	thinner appearance	t
+84	Rubber Drone	made of latex	f
+85	Adrenaline	all stat boost	f
+86	Elastic Gut	stretchy stomach	f
+87	Lycanthropy	Werewolf	f
+88	High Metabolism	immune to weight gain	f
+89	Inflation Immunity	immune to inflation	f
+90	Transformation Immunity	immune to transformation	f
+91	Beast Within	transformed by emotions	f
+92	Enrage	uncontrollably enraged	f
+93	Whoopi Cushion	uncontrollably gassy	f
+94	Diaper	Stuck in a diaper	f
+95	Fairy Band	resistant to fairy attacks	t
+96	Sentient Fat	fat has become sentient	f
+97	Protective Pads	prevents status changes	f
+100	Kill	dead	f
+76	Urgent Bladder	needs to use the bathroom	f
+47	Hypnotize	under hypnosis	f
 \.
 
 
@@ -1309,7 +1474,22 @@ COPY public.statuses (id, name, effect) FROM stdin;
 --
 
 COPY public.teams (id, name, description, active, role, channel) FROM stdin;
-11	The Worst Roommates	The clubhouse of the fish loving kids! These little rascals are fun loving gamers who laugh at everything. Every day is wonderful so long as they're together	t	642428765909024769	642428766584438805
+12	The Chubb Team	We’re a Team that’s chubby!	t	453263171579281421	455775966359191552
+13	Team Scale	TBD	t	455433552016703501	455776189391437824
+14	Team Rocket	A villainous team in pursuit of evil and causing trouble. While the overall team's main focus is stealing, capturing, and or selling Items or Pokemon, this regional branch is more focused on kinks and torturing other pokemon with in ways that please the team members while torturing the other Pokemon.	t	455820234658414593	455820084510982145
+15	Team Rosewood	The reason Team Rosewood was formed for the excitement of traveling  and  exploring mystery dungeons and Meeting new People. The Goal of Team Rosewood is for 3 reasons determined by each of the Three Founding Members:\nSelma doesn't wants to abandon those who needs her help.\nWinston wants to be truly inspiring for newer teams like he was to a rescue team that saved him when he was younger.\nKaze wants to explore and learn more about mystery dungeons and magic that exists in the world.\nAll three of them Coincide with each other so they are all together because of it.\nZiggy also joined for similar reasons though finds himself being a bit to eager to get stuff and in turn get affected by whatever	t	455832604055437313	455832679472955393
+16	The Butterballs	TBD	t	458108702965104662	458108838315556865
+17	Definitions of Fatness	The Definitions of Fatness is a team bent on finding out the limits of ones size! Trying to get bigger is just a part of the job to them and they try to search out and pamper fatties around the region! To them, exploring is just a way to find their next new and exciting meal!	t	458272832158302229	458370097623597056
+18	Swollen Slithers	TBD	t	563787965730521138	563788256639189038
+19	Team S.W.E.L.L	TBD	t	575845613070057472	575845803889786880
+21	Butt Poof	Team Butt Poof was made by three guild members who have an affinity for wearing diapers and just acting like babies sometimes, even though they would never admit to enjoying such a thing. Said three members will probably deny that Team Butt Poof even exists if asked about it.	t	603401524214759444	603402162252414999
+22	Tiny N Terrible	Team Tiny N Terrible (TNT for short) consists of a Meowstic and a Pancham well known for causing trouble wherever they go. A pretty unrelieable team, most likely to cause more trouble instead of solving any. The team's clubhouse, befitting of their rather chaotic nature, is perpetually in a state of mess and ruin, which doesn't seem to bother their members in the slightest...	t	603401457667932171	603402237720395807
+23	Kit Patrol	The team of the fish loving kits! These little rascals are fun loving gamers who laugh at everything. Every day is wonderful so long as they're together	t	603402891176181800	603404598866214913
+24	Love Bug	TBD	t	605131584688881671	605131807368806488
+25	Danger Noodles	TBD	t	627906041887326208	627906320267214848
+20	Spirits of Sierra Santorini	A curious Flareon filled with determination set out to find new and interesting things. He braved the old ruins of the coast of Santorini, and found 2 ghostly aberrations who seemed to be hiding something. Not being deterred, the Flareon taught them how to live properly in Zaplana, and with some practice, the Mimikyu and Gengar are much more accepted around the world.\nRecently, A High-Tech Sylbreon stumbled across the Observatory's technology along with its inhabitants and joined forces, hoping to take down Association with his new found friends.	t	601536721972232224	601537598800003072
+26	Team Shooting Stars	TBD	t	\N	\N
+27	Marauders of Malacai	The top dogs of the operation run on Mt. Evolution, these evil Pokemon are known kidnappers and slavers. They operate the mines and control the flow of evolutionary and mega stones through the black market, and cut off supplies to the rest of Zaplana.	t	\N	\N
 \.
 
 
@@ -1346,8 +1526,7 @@ COPY public.types (id, name, color) FROM stdin;
 
 COPY public.users (id, level, next_level, boosted_xp, unboosted_xp, hp, attack, defense, sp_attack, sp_defense, speed, hp_ev, a_ev, d_ev, sa_ev, sd_ev, s_ev, hp_iv, a_iv, d_iv, sa_iv, sd_iv, s_iv, nature, hp_base, a_base, d_base, sa_base, sd_base, s_base) FROM stdin;
 Public	1	22	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	\N	0	0	0	0	0	0
-215240568245190656	35	6400	5958	1100	157	108	127	34	27	36	0	0	0	0	0	0	24	6	27	5	16	16	13	148	145	161	40	24	37
-271741998321369088	60	27463	27155	18461	274	230	104	21	154	40	0	0	0	0	0	0	22	8	26	26	19	7	1	159	184	70	1	115	26
+215240568245190656	36	6892	6532	1234	161	111	130	35	28	37	0	0	0	0	0	0	24	6	27	5	16	16	13	148	145	161	40	24	37
 152231245282148352	14	686	625	625	69	50	26	18	37	13	0	0	0	0	0	0	13	8	21	15	16	2	5	157	144	76	41	109	28
 455903666780504064	48	14888	14640	3418	67	37	121	161	89	187	0	0	0	0	0	0	0	11	24	24	1	30	24	10	34	98	151	87	175
 354840009829908480	47	14061	13382	2964	162	75	118	121	78	91	0	0	0	0	0	0	18	9	0	22	29	19	4	103	72	121	113	64	82
@@ -1374,6 +1553,7 @@ Public	1	22	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	\N	0	0	0	0	0	0
 204318262803169280	16	926	882	477	45	36	23	38	50	46	0	0	0	0	0	0	9	14	4	18	25	2	19	57	90	55	95	130	128
 409742624111460352	34	5932	5869	5468	98	42	32	101	114	85	0	0	0	0	0	0	1	10	30	5	15	25	2	79	45	32	140	153	106
 258036673785364480	11	410	354	314	33	13	41	41	7	37	0	0	0	0	0	0	30	27	11	7	17	9	20	40	22	183	163	2	145
+271741998321369088	60	27463	27235	18541	274	230	104	21	154	40	0	0	0	0	0	0	22	8	26	26	19	7	1	159	184	70	1	115	26
 279780491245125633	1	22	2	2	12	7	7	6	5	7	0	0	0	0	0	0	12	26	24	7	7	12	22	48	121	141	64	44	137
 273205789999628289	20	1563	1521	1017	90	42	67	42	33	23	0	0	0	0	0	0	6	2	25	29	28	19	21	149	105	129	80	56	36
 107572336923774976	4	73	53	53	19	16	11	8	13	14	0	0	0	0	0	0	13	21	11	7	13	15	4	68	140	81	45	104	117
@@ -1490,7 +1670,7 @@ UserID	1	22	0	0	14	7	7	6	5	5	0	0	0	0	0	0	9	0	22	2	8	23	20	152	111	142	74	43	33
 -- Name: carousels_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.carousels_id_seq', 143, true);
+SELECT pg_catalog.setval('public.carousels_id_seq', 152, true);
 
 
 --
@@ -1504,21 +1684,21 @@ SELECT pg_catalog.setval('public.char_images_id_seq', 327, true);
 -- Name: char_statuses_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.char_statuses_id_seq', 4, true);
+SELECT pg_catalog.setval('public.char_statuses_id_seq', 21, true);
 
 
 --
 -- Name: char_teams_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.char_teams_id_seq', 2, true);
+SELECT pg_catalog.setval('public.char_teams_id_seq', 59, true);
 
 
 --
 -- Name: characters_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.characters_id_seq', 298, true);
+SELECT pg_catalog.setval('public.characters_id_seq', 299, true);
 
 
 --
@@ -1553,14 +1733,14 @@ SELECT pg_catalog.setval('public.natures_id_seq', 25, true);
 -- Name: statuses_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.statuses_id_seq', 4, true);
+SELECT pg_catalog.setval('public.statuses_id_seq', 100, true);
 
 
 --
 -- Name: teams_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.teams_id_seq', 11, true);
+SELECT pg_catalog.setval('public.teams_id_seq', 27, true);
 
 
 --
