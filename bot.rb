@@ -816,21 +816,8 @@ bot.message do |event|
     else
       approval_react(event)
     end
-  #elsif content == 'test'
-    #User.import_user(File.open('users.txt', 'r'))
-  elsif content == 'pry'
-    binding.pry
-  elsif content == 'show me dem illegals'
-    users = User.all
-    illegals = []
-
-    users.each do |u|
-      allowed = u.level / 10 + 1
-      active = Character.where(user_id: u.id, active: 'Active').count
-      illegals.push("<@#{u.id}>, Level #{u.level}: #{active}/#{allowed}") if active > allowed
-    end
-    embed = error_embed("Members with too many pokemon", illegals.join("\n"))
-    event.send_embed("", embed)
+  elsif content == 'import users' && author == 215240568245190656
+    User.import_user(File.open('users.txt', 'r'))
   elsif !event.author.current_bot?
     usr = User.find_by(id: author.to_s)
     msg = URL.match(content) ? content.gsub(URL, "x" * 149) : content
