@@ -1234,7 +1234,7 @@ bot.reaction_add do |event|
       mentionable: true,
       reason: "New Team"
     )
-    #role.sort_above(ENV['TEAM_ROLE'])
+    role.sort_above(ENV['TEAM_ROLE'])
     # create channel
     channel = event.server.create_channel(
       t.name,
