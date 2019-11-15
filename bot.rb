@@ -230,7 +230,7 @@ opts = {
   "@user" => "List all user stats",
 }
 desc = "Shows ones stats, level, rank, and experience"
-stats = Command.new(:stats, desc, opts) do |event, name|
+stats = Command.new(:stats, desc, opts) do |event, name, all|
 
   case name
   when UID
@@ -240,16 +240,14 @@ stats = Command.new(:stats, desc, opts) do |event, name|
     #See if you can find the name some other way?
   end
 
-  channel = event.channel.id
-
-  # C# code for getting the percantage to the next level
-    #int levelprior = LevelUp[task].NextLevel - (10 * (LevelUp[task].CurrentLevel - 1) ^ 2);
-    #double ratio = (double)(LevelUp[task].Messages - levelprior) / (double)(LevelUp[task].NextLevel - levelprior);
-
   usr = User.find_by!(id: user&.id)
 
-  output_file = stat_image(usr, user)
-  bot.send_file(channel, File.open(output_file, 'r'))
+  if all
+    show_stats(usr, user)
+  else
+    output_file = stat_image(usr, user)
+    bot.send_file(event.channel.id, File.open(output_file, 'r'))
+  end
 rescue ActiveRecord::RecordNotFound => e
   error_embed(e.message)
 end
