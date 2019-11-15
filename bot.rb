@@ -4,7 +4,7 @@ require 'yaml'
 require 'json'
 require 'terminal-table'
 require 'rmagick'
-require "down"
+require 'down'
 
 BOT_ENV = ENV.fetch('BOT_ENV') { 'development' }
 Bundler.require(:default, BOT_ENV)
