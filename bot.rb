@@ -820,7 +820,6 @@ bot.message do |event|
     usr = User.find_by(id: author.to_s)
     msg = URL.match(content) ? content.gsub(URL, "x" * 149) : content
 
-    binding.pr
     img = usr.update_xp(msg, event.author)
     bot.send_file(event.message.channel, File.open(img, 'r')) if img
   end
