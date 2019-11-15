@@ -5,7 +5,7 @@ def new_poll_embed(event, question, options)
   options.map.with_index do |option, index|
     fields.push({
       name: "#{Emoji::LETTERS[index]} #{option}",
-      value: CharAppResponses::INLINE_SPACE, inline: true
+      value: CharApp::INLINE_SPACE, inline: true
     })
   end
 
