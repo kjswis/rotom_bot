@@ -85,7 +85,7 @@ def stat_image(user, member, stats=nil)
 
   ratio = 0.5
   user_name = member.nickname || member.name
-  short_name = user_name.length > 25 ? "#{user_name[0..22]}..." : user_name
+  short_name = user_name.length > 15 ? "#{user_name[0..14]}..." : user_name
   rank = User.order(unboosted_xp: :desc)
   user_rank = rank.index{ |r| r.id == user.id } + 1
 

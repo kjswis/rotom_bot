@@ -89,19 +89,19 @@ class User < ActiveRecord::Base
       (((2 * s_base + s_iv + (s_ev / 4)) * level) / 100) + 5
 
     case up_stat
-    when /attack/ then stats['attack'] = stats['attack'] * 1.1
-    when /defense/ then stats['defense'] = stats['defense'] * 1.1
-    when /sp_attack/ then stats['sp_attack'] = stats['sp_attack'] * 1.1
-    when /sp_defense/ then stats['sp_defense'] = stats['sp_defense'] * 1.1
-    when /speed/ then stats['speed'] = stats['speed'] * 1.1
+    when /attack/ then stats['attack'] = (stats['attack'] * 1.1).round
+    when /defense/ then stats['defense'] = (stats['defense'] * 1.1).round
+    when /sp_attack/ then stats['sp_attack'] = (stats['sp_attack'] * 1.1).round
+    when /sp_defense/ then stats['sp_defense'] = (stats['sp_defense'] * 1.1).round
+    when /speed/ then stats['speed'] = (stats['speed'] * 1.1).round
     end
 
     case down_stat
-    when /attack/ then stats['attack'] = stats['attack'] * 0.9
-    when /defense/ then stats['defense'] = stats['defense'] * 0.9
-    when /sp_attack/ then stats['sp_attack'] = stats['sp_attack'] * 0.9
-    when /sp_defense/ then stats['sp_defense'] = stats['sp_defense'] * 0.9
-    when /speed/ then stats['speed'] = stats['speed'] * 0.9
+    when /attack/ then stats['attack'] = (stats['attack'] * 0.9).round
+    when /defense/ then stats['defense'] = (stats['defense'] * 0.9).round
+    when /sp_attack/ then stats['sp_attack'] = (stats['sp_attack'] * 0.9).round
+    when /sp_defense/ then stats['sp_defense'] = (stats['sp_defense'] * 0.9).round
+    when /speed/ then stats['speed'] = (stats['speed'] * 0.9).round
     end
 
     stats
