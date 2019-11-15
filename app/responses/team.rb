@@ -34,12 +34,12 @@ def team_embed(team)
 
   fields.push({
     name: 'Active Members',
-    value: active.join(",")
+    value: active.join(", ")
   })unless active.empty?
 
   fields.push({
     name: 'Inactive Members',
-    value: inactive.join(",")
+    value: inactive.join(", ")
   })unless inactive.empty?
 
   embed = Embed.new(

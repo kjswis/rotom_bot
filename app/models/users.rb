@@ -32,7 +32,7 @@ class User < ActiveRecord::Base
     self
   end
 
-  def update_xp(msg)
+  def update_xp(msg, user=nil)
     xp =
       case msg.length
       when 0..40 then 0
@@ -49,12 +49,12 @@ class User < ActiveRecord::Base
     )
 
     self.reload
-    level_up if next_level && boosted_xp > next_level
+    reply = level_up(user) if next_level && boosted_xp > next_level
 
-    self
+    reply
   end
 
-  def level_up
+  def level_up(user=nil)
     if level < 100
       next_level = (level + 6) ** 3 / 10.0
       self.update(level: level + 1, next_level: next_level.round)
@@ -65,10 +65,12 @@ class User < ActiveRecord::Base
     n = Nature.find(nature)
 
     stats = stat_calc(n.up_stat, n.down_stat)
+    img = stat_image(self, user, stats) if user
+
     self.update(stats)
     self.reload
 
-    self
+    img
   end
 
   def stat_calc(up_stat, down_stat)

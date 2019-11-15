@@ -2,56 +2,35 @@ require 'rmagick'
 include Magick
 
 def append_image(image1_in, images2_in, image_out)
-  i = Magick::ImageList.new
   i = Magick::ImageList.new(image1_in,images2_in)
 
   u = i.append(true);
   u.write('images/Type Double.png');
 end
 
-def crop_image()
-  images = ['images/Type Bug.png', 'images/Type Dark.png', 'images/Type Dark - Copy.png']
+def merge_image(image_array, image_out, output_width, output_height, xaxis, yaxis, image_width, image_height)
+  i = Magick::ImageList.new(*image_array)
 
-  img = Magick::Image.read(images[0]).first # path of Orignal image that has to be worked upon
-  puts img.inspect
+  v = Magick::ImageList.new
+  arr = Array.new(0)
 
-  def try(x,y,width,height)
-    images = ['images/Type Bug.png', 'images/Type Dark.png', 'images/Type Dark - Copy.png']
+  i.each.with_index do |item, index|
+    if image_width[index] && image_height[index]
+      i[index] = item.resize(image_width[index], image_height[index])
+    end
 
-    # converting x,y , width and height to integer values in next four statements
-    x= x.to_i
-    y= y.to_i
-    width= width.to_i
-    height= height.to_i
+    if xaxis[index] && yaxis[index]
+      v.new_image(output_width, output_height) { self.background_color = "transparent" }
 
-    # Demonstrate the Image#crop method
-    @st = images[0] # path of image written after changing size or not changing also
-    img = Magick::Image.read(@st)[0]
+      i[index] = v.composite(i[index], xaxis[index], yaxis[index], OverCompositeOp).write(image_out + index.to_s + ".png");  
+    else
+      i[index].write(image_out + index.to_s + ".png");  
+    end
 
-    # Crop the specified rectangle out of the img.
-    chopped = img.crop(x, y, width,height)
-
-    # Go back to the original and highlight the area
-    # corresponding to the retained rectangle.
-    rect = Magick::Draw.new
-    rect.stroke('transparent')
-    rect.fill('black')
-    rect.fill_opacity(1.0)
-    rect.rectangle(x, y, 100+x, 10+y)
-    rect.draw(img)
-
-    img.write(images[1]) #path of image written before cropping
-
-    # Create a image to use as a background for
-    # the “after” image.
-    bg = Magick::Image.new(img.columns, img.rows)
-
-    # Composite the the “after” (chopped) image on the background
-    bg = bg.composite(chopped, 38,81, Magick::OverCompositeOp)
-
-    bg.write(images[2]) # path of image written after cropping the desired part
-    exit
+    arr << image_out + index.to_s + ".png"
   end
 
-  try(100, 50, 150, 100)
+  i = Magick::ImageList.new(*arr)
+  i = i.flatten_images();
+  i.write(image_out + ".png")
 end

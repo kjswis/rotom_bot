@@ -149,7 +149,11 @@ def char_status(char, fields, status_effects=nil)
   afs = []
   status_effects.each do |se|
     s = Status.find(se.status_id)
-    afs.push("#{se.amount}% #{s.effect.downcase}")
+    if s.amount
+      afs.push("#{se.amount}% #{s.effect.downcase}")
+    else
+      afs.push(s.effect.capitalize)
+    end
   end
 
   fields.push(
