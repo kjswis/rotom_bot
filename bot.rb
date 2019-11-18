@@ -83,7 +83,8 @@ def stat_image(user, member, stats=nil)
     )
   end
 
-  ratio = 0.5
+  this_level = user.next_level - ((user.level + 4) ** 3 / 10.0)
+  ratio = (user.next_level - user.boosted_xp).to_f / this_level
   user_name = member.nickname || member.name
   short_name = user_name.length > 15 ? "#{user_name[0..14]}..." : user_name
   rank = User.order(unboosted_xp: :desc)
@@ -106,7 +107,8 @@ def stat_image(user, member, stats=nil)
   gc.stroke('white').fill('white')
   gc.pointsize('30')
   gc.text(40,330, user_name)
-  gc.text(40,360, "reached level #{user.level}!")
+  gc.text(40,360, "reached level #{user.level}!") if stats
+  gc.text(40,360, "is level #{user.level}!") if !stats
 
   if stats
     gc.stroke('none').fill('black')
