@@ -10,7 +10,7 @@ module CharApp
   INVALID = "One or more responses are\ninvalid"
   VULGAR = "Your application is too vulgar,\nor conflicts with server rules"
   DM_NOTES = "Please elaborate on your\nDM Notes"
-  INLINE_SPACE = "------------------------------------"
+  INLINE_SPACE = "------------------------------"
 
   REJECT_MESSAGES = {
     Emoji::SPEECH_BUBBLE => GRAMMAR,
