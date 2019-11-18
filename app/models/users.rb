@@ -35,11 +35,11 @@ class User < ActiveRecord::Base
   def update_xp(msg, user=nil)
     xp =
       case msg.length
-      when 0..40 then 0
+      when 0..39 then 0
       when 40..149 then 1
       when 150..299 then 2
       when 300..599 then 3
-      when 600..1000 then 4
+      when 600..999 then 4
       else 5
       end
 

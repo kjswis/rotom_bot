@@ -820,7 +820,9 @@ bot.message do |event|
     User.import_user(File.open('users.txt', 'r'))
   elsif !event.author.bot_account? && !event.author.webhook?
     usr = User.find_by(id: author.to_s)
-    msg = URL.match(content) ? content.gsub(URL, "x" * 149) : content
+    msg = URL.match(content) ? content.gsub(URL, "x" * 150) : content
+    file = event.message.attachments.map(&:filename).count
+    msg = file > 0 ? msg + ("x" * 40) : msg
 
     img = usr.update_xp(msg, event.author)
     bot.send_file(event.message.channel, File.open(img, 'r')) if img
