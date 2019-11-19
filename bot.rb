@@ -244,7 +244,12 @@ stats = Command.new(:stats, desc, opts) do |event, name, all|
 
   usr = User.find_by!(id: user&.id)
 
-  if all
+  case all
+  when /all/i
+    show_stats(usr, user)
+  when /reroll/i
+    usr.make_stats
+    usr.reload
     show_stats(usr, user)
   else
     output_file = stat_image(usr, user)
@@ -1434,8 +1439,8 @@ end
 
 # This will trigger when anyone joins the server
 bot.member_join do |event|
-  unless User.find_by(id: event.author.id.to_s)
-    usr = User.create(id: event.author.id.to_s)
+  unless User.find_by(id: event.user.id)
+    usr = User.create(id: event.user.id)
     usr.make_stats
   end
 end
