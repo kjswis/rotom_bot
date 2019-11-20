@@ -17,6 +17,7 @@ def character_embed(char:, img: nil, user: nil, color:, section: nil)
   footer_text += " | #{navigate}" unless section.nil?
 
   status_effects = CharStatus.where(char_id: char.id)
+  char_teams = CharTeam.where(char_id: char.id)
 
   embed = Embed.new(
     footer: {
@@ -31,14 +32,14 @@ def character_embed(char:, img: nil, user: nil, color:, section: nil)
     embed.description = char.personality if char.personality
     fields = char_type(char, fields)
     fields = char_status(char, fields, status_effects)
-    fields = char_bio(char, fields)
+    fields = char_bio(char, fields, char_teams)
     fields = char_rumors(char, fields)
   when :default
     embed.description = navigate
     fields = char_sections(fields)
   when :bio
     embed.description = char.personality if char.personality
-    fields = char_bio(char, fields)
+    fields = char_bio(char, fields, char_teams)
   when :type
     fields = char_type(char, fields)
   when :status
@@ -66,7 +67,12 @@ def character_embed(char:, img: nil, user: nil, color:, section: nil)
   embed
 end
 
-def char_bio(char, fields)
+def char_bio(char, fields, char_teams)
+  teams = []
+  char_teams.each do |ct|
+    teams.push(Team.find(ct.team_id).name)
+  end
+
   fields.push(
     { name: 'Hometown', value: char.hometown, inline: true }
   )if char.hometown
@@ -88,6 +94,9 @@ def char_bio(char, fields)
   fields.push(
     { name: 'DM Notes', value: char.dm_notes }
   )if char.dm_notes
+  fields.push(
+    { name: 'Team', value: teams.join("\n") }
+  )
 
   fields
 end

@@ -866,7 +866,7 @@ bot.reaction_add do |event|
   maj = 100
 
   form =
-    case app.author&.name
+    case app&.author&.name
     when 'New App' then :new_app
     when 'Character Application'
       m = event.server.roles.find{ |r| r.id == ENV['ADMINS'].to_i }.members
