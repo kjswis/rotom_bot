@@ -70,6 +70,8 @@ def stat_image(user, member, stats=nil)
       [size_width, size_width, 165],
       [size_height, size_height, 165]
     )
+
+    this_level = user.next_level - ((user.level + 5) ** 3 / 10.0)
   else
     merge_image(
       [stats_frame, user_url_img],
@@ -81,9 +83,10 @@ def stat_image(user, member, stats=nil)
       [size_width, 165],
       [size_height, 165]
     )
+
+    this_level = user.next_level - ((user.level + 4) ** 3 / 10.0)
   end
 
-  this_level = user.next_level - ((user.level + 4) ** 3 / 10.0)
   ratio = (user.next_level - user.boosted_xp).to_f / this_level
   user_name = member.nickname || member.name
   short_name = user_name.length > 15 ? "#{user_name[0..14]}..." : user_name
