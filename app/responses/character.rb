@@ -96,7 +96,7 @@ def char_bio(char, fields, char_teams)
   )if char.dm_notes
   fields.push(
     { name: 'Team', value: teams.join("\n") }
-  )
+  )if !teams.empty?
 
   fields
 end
