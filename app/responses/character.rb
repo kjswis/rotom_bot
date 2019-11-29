@@ -11,7 +11,7 @@ def character_embed(char:, img: nil, user: nil, color:, section: nil)
 
   footer_text = "#{user_name} | #{char.active}"
   footer_text += " | #{char.rating}" if char.rating
-  footer_text += " | #{img.category} " if section == :image
+  footer_text += " | #{img&.category} " if section == :image
 
   navigate = "React to Navigate"
   footer_text += " | #{navigate}" unless section.nil?
@@ -285,7 +285,9 @@ def user_char_embed(chars, user)
     fields.push({ name: "#{user_name}'s NPCs", value: npcs.join(", ") })
   end
 
-  allowed = User.find_by(id: chars.first.user_id).level / 10 + 1
+  allowed = User.find_by(id: user.id).level / 10 + 1
+  allowed =
+    user.roles.map(&:name).include?('Nitro Booster') ? allowed + 1 : allowed
 
   embed = Embed.new(
     title: "#{user_name}'s Characters [#{active.count}/#{allowed}]",

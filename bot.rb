@@ -568,18 +568,18 @@ end
 desc = "Learn about Items"
 opts = { "" => "list all items", "item_name" => "show known info for the item" }
 item = Command.new(:item, desc, opts) do |event, name|
-  i = name ? Item.find_by!(name: name.capitalize) : Item.all
+  #i = name ? Item.find_by!(name: name.capitalize) : Item.all
 
-  case
-  when name && i
-    item_embed(i)
-  when !name && i
-    item_list_embed(i)
-  else
-    command_error_embed("Error proccessing your request!", item)
-  end
-rescue ActiveRecord::RecordNotFound
-  error_embed("Item Not Found!")
+  #case
+  #when name && i
+    #item_embed(i)
+  #when !name && i
+    #item_list_embed(i)
+  #else
+    #command_error_embed("Error proccessing your request!", item)
+  #end
+#rescue ActiveRecord::RecordNotFound
+  #error_embed("Item Not Found!")
 end
 
 desc = "Add and remove items from characters' inventories"
@@ -743,7 +743,7 @@ team = Command.new(:team, desc, opts) do |event, team_name, action, desc|
     )
   when /apply/i
     members = CharTeam.where(team_id: t.id)
-    if members.count >= 6
+    if members.count < 6
       embed = team_app_embed(t, char, event.server.member(char.user_id))
       msg = bot.send_message(t.channel.to_i, "", false, embed)
 
@@ -784,7 +784,7 @@ commands = [
   poll,
   raffle,
   member,
-  #item,
+  item,
   #inv,
   status,
   afflict,
@@ -1173,7 +1173,7 @@ bot.reaction_add do |event|
       char_id: char.id,
       nsfw: event.channel.nsfw?,
     )
-    carousel.update(id: carousel.id, image_id: img.id)
+    carousel.update(id: carousel.id, image_id: img&.id)
     user =
       case
       when char.user_id.match(/public/i)
