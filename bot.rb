@@ -774,6 +774,54 @@ rescue ActiveRecord::RecordNotFound => e
   error_embed(e.message)
 end
 
+desc = 'roll or create dice'
+opts = {
+  '' => 'shows die options',
+  'xdy' => 'rolls x number of y sided die',
+  'a,b,c,d' => 'rolls the between the provided options',
+  'die_name' => 'rolls the given die',
+  'die_name | a,b,c,d' => 'creates the die'
+}
+roll = Command.new(:roll, desc, opts) do |event, die, array|
+  usr = event.message.author
+  usr_name = usr.nickname || usr.name
+  color = usr.color&.combined
+
+  case die
+  when /([0-9]*?)d([0-9]+)/i
+    result = DiceController.roll(die)
+  when /,/
+    result = DiceController.roll(die.split(/\s?,\s?/))
+  when nil
+    result = dice_embed
+  else
+    unless usr.roles.map(&:name).include?('Guild Master')
+      d = DieArray.find_by(name: die)
+
+      if !d && array
+        result = DieArray.create(name: die, sides: array.split(/\s?,\s?/))
+      elsif d && array
+        d.update(sides: array.split(/\s?,\s?/))
+        d.reload
+        result = d
+      elsif d && !array
+        result = DiceController.roll(d.sides)
+      else
+        result = error_embed('Die not found!')
+      end
+    end
+  end
+
+  case result
+  when String, Integer
+    Embed.new(description: "#{usr_name} rolled #{result}!", color: color)
+  when DieArray
+    success_embed("Created Die, #{die}, with sides: #{result.sides}")
+  when Embed
+    result
+  end
+end
+
 # ---
 
 commands = [
@@ -790,7 +838,8 @@ commands = [
   afflict,
   cure,
   team,
-  stats
+  stats,
+  roll
 ]
 
 #locked_commands = [inv]
