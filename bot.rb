@@ -70,8 +70,6 @@ def stat_image(user, member, stats=nil)
       [size_width, size_width, 165],
       [size_height, size_height, 165]
     )
-
-    this_level = user.next_level - ((user.level + 5) ** 3 / 10.0)
   else
     merge_image(
       [stats_frame, user_url_img],
@@ -83,10 +81,9 @@ def stat_image(user, member, stats=nil)
       [size_width, 165],
       [size_height, 165]
     )
-
-    this_level = user.next_level - ((user.level + 4) ** 3 / 10.0)
   end
 
+  this_level = user.next_level - ((user.level + 4) ** 3 / 10.0)
   ratio = (user.next_level - user.boosted_xp).to_f / this_level
   user_name = member.nickname || member.name
   short_name = user_name.length > 15 ? "#{user_name[0..14]}..." : user_name
@@ -719,8 +716,8 @@ team = Command.new(:team, desc, opts) do |event, team_name, action, desc|
     char = if event.author.roles.map(&:name).include?('Guild Masters')
              Character.find_by!(name: desc) if desc
            else
-             c = Character.where(user_id: event.author.id).find_by!(name: desc)
-             ct = CharTeam.where(char_id: c.id).find_by(active: true)
+             c = Character.where(user_id: event.author.id).find_by!(name: desc) if desc
+             ct = CharTeam.where(char_id: c.id).find_by(active: true) if c
              action = "second_team" if ct && action.match(/apply/i)
              c
            end
@@ -795,20 +792,20 @@ roll = Command.new(:roll, desc, opts) do |event, die, array|
   when nil
     result = dice_embed
   else
-    unless usr.roles.map(&:name).include?('Guild Master')
-      d = DieArray.find_by(name: die)
+    a = usr.roles.map(&:name).include?('Guild Master')
+    d = DieArray.find_by(name: die.capitalize)
 
-      if !d && array
-        result = DieArray.create(name: die, sides: array.split(/\s?,\s?/))
-      elsif d && array
-        d.update(sides: array.split(/\s?,\s?/))
-        d.reload
-        result = d
-      elsif d && !array
-        result = DiceController.roll(d.sides)
-      else
-        result = error_embed('Die not found!')
-      end
+    if !d && array && a
+      result =
+        DieArray.create(name: die.capitalize, sides: array.split(/\s?,\s?/))
+    elsif d && array && a
+      d.update(sides: array.split(/\s?,\s?/))
+      d.reload
+      result = d
+    elsif d && !array
+      result = DiceController.roll(d.sides)
+    else
+      result = error_embed('Die not found!')
     end
   end
 
@@ -945,7 +942,11 @@ bot.reaction_add do |event|
       maj = m.count > 2 ? m.count/2.0 : 2
       :team_request
     else
-      :carousel if carousel
+      if event.server == nil
+        :new_app
+      elsif carousel
+        :carousel
+      end
     end
 
   vote =

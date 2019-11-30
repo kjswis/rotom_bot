@@ -58,8 +58,10 @@ class User < ActiveRecord::Base
     if level < 100
       next_level = (level + 6) ** 3 / 10.0
       self.update(level: level + 1, next_level: next_level.round)
+      self.reload
     else
       self.update(level: level + 1, next_level: nil)
+      self.reload
     end
 
     n = Nature.find(nature)
