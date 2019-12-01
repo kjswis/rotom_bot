@@ -83,8 +83,10 @@ def stat_image(user, member, stats=nil)
     )
   end
 
-  this_level = user.next_level - ((user.level + 4) ** 3 / 10.0)
-  ratio = (user.next_level - user.boosted_xp).to_f / this_level
+  last_level = user.level == 1 ? 0 : ((user.level + 4) **3) / 10.0
+  this_level = user.next_level - last_level
+  ratio = 1 - ((user.next_level - user.boosted_xp).to_f / this_level)
+
   user_name = member.nickname || member.name
   short_name = user_name.length > 15 ? "#{user_name[0..14]}..." : user_name
   rank = User.order(unboosted_xp: :desc)
