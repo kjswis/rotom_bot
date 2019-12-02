@@ -1419,36 +1419,42 @@ bot.reaction_add do |event|
     carousel.delete
 
   when [:team_application, :yes]
-    t = Team.create!(name: app.title, description: app.description)
+    t = Team.find_by(name: app.title)
 
-    # create role
-    role = event.server.create_role(
-      name: t.name,
-      colour: 3447003,
-      hoist: true,
-      mentionable: true,
-      reason: "New Team"
-    )
-    role.sort_above(ENV['TEAM_ROLE'])
-    # create channel
-    channel = event.server.create_channel(
-      t.name,
-      parent: 455776627125780489,
-      permission_overwrites: [
-        { id: event.server.everyone_role.id, deny: 1024 },
-        { id: role.id, allow: 1024 }
-      ]
-    )
+    if t
+      t.update(description: app.description)
+    else
+      t = Team.create!(name: app.title, description: app.description)
 
-    t.update(role: role.id.to_s, channel: channel.id.to_s)
-    # embed
-    embed = message_embed(
-      "Team Approved: #{t.name}!",
-      "You can join with ```pkmn-team #{t.name} | apply | character_name```"
-    )
+      # create role
+      role = event.server.create_role(
+        name: t.name,
+        colour: 3447003,
+        hoist: true,
+        mentionable: true,
+        reason: "New Team"
+      )
+      role.sort_above(ENV['TEAM_ROLE'])
+      # create channel
+      channel = event.server.create_channel(
+        t.name,
+        parent: 455776627125780489,
+        permission_overwrites: [
+          { id: event.server.everyone_role.id, deny: 1024 },
+          { id: role.id, allow: 1024 }
+        ]
+      )
 
-    bot.send_message(ENV['TEAM_CH'], "", false, embed)
-    event.message.delete
+      t.update(role: role.id.to_s, channel: channel.id.to_s)
+      # embed
+      embed = message_embed(
+        "Team Approved: #{t.name}!",
+        "You can join with ```pkmn-team #{t.name} | apply | character_name```"
+      )
+
+      bot.send_message(ENV['TEAM_CH'], "", false, embed)
+      event.message.delete
+    end
   when [:team_application, :no]
     event.message.delete
 
