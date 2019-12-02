@@ -1433,7 +1433,7 @@ bot.reaction_add do |event|
     # create channel
     channel = event.server.create_channel(
       t.name,
-      parent: 642055732321189928,
+      parent: 455776627125780489,
       permission_overwrites: [
         { id: event.server.everyone_role.id, deny: 1024 },
         { id: role.id, allow: 1024 }
