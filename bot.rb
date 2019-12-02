@@ -990,6 +990,7 @@ bot.reaction_add do |event|
       char.id
     )if img_url
     color = CharacterController.type_color(char)
+    channel = char.rating.match(/nsfw/i) ? ENV['CHAR_NSFW_CH'] : ENV['CHAR_CH']
 
     embed = character_embed(
       char: char,
@@ -1000,7 +1001,7 @@ bot.reaction_add do |event|
 
     if embed
       bot.send_message(
-        ENV['CHAR_CH'].to_i,
+        channel.to_i,
         "Good news, #{uid}! Your character was approved",
         false,
         embed
