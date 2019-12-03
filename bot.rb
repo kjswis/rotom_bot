@@ -482,18 +482,25 @@ member = Command.new(:member, desc, opts) do |event, name, section, keyword|
 
     option_react(msg, chars_id)
   when name && char && !section
-    embed = character_embed(
-      char: char,
-      img: img,
-      section: :default,
-      user: user,
-      color: color
-    )
+    if char.rating == 'NSFW' && !event.channel.nsfw?
+      embed = error_embed(
+        "Wrong Channel!",
+        "The requested character is NSFW"
+      )
+    else
+      embed = character_embed(
+        char: char,
+        img: img,
+        section: :default,
+        user: user,
+        color: color
+      )
 
-    msg = event.send_embed("", embed)
-    Carousel.create(message_id: msg.id, char_id: char.id)
+      msg = event.send_embed("", embed)
+      Carousel.create(message_id: msg.id, char_id: char.id)
 
-    section_react(msg)
+      section_react(msg)
+    end
   when char && section && keyword
     embed = command_error_embed(
       "Invalid Arguments",
@@ -534,7 +541,12 @@ member = Command.new(:member, desc, opts) do |event, name, section, keyword|
       nsfw: nsfw
     )if section == :image
 
-    if sections.detect{ |s| s == sect }
+    if char.category == 'NSFW' && !event.channel.nsfw?
+      embed = error_embed(
+        "Wrong Channel!",
+        "The requested character is NSFW"
+      )
+    elsif sections.detect{ |s| s == sect }
       embed = character_embed(
         char: char,
         img: img,
@@ -732,6 +744,10 @@ team = Command.new(:team, desc, opts) do |event, team_name, action, desc|
     if ct
       ct.update(active: false)
       user = event.server.member(char.user_id.to_i)
+
+      #user_char_team = Character.where(user_id: user.id).joins(:char_teams).where(team_id: t.id, active: true)
+      #binding.pry
+
       user.remove_role(t.role.to_i) if user
     end
     bot.send_message(
@@ -1067,7 +1083,7 @@ bot.reaction_add do |event|
     channel = if img.category == 'SFW'
                 ENV['CHAR_CH'].to_i
               else
-                ENV['CHAR_CH_NSFW'].to_i
+                ENV['CHAR_NSFW_CH'].to_i
               end
     bot.send_message(channel, "Image Approved!", false, embed)
   when [:image_application, :no]
