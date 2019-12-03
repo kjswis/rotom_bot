@@ -502,21 +502,20 @@ member = Command.new(:member, desc, opts) do |event, name, section, keyword|
       section_react(msg)
     end
   when char && section && keyword
-    embed = command_error_embed(
-      "Invalid Arguments",
-      member
-    )unless /image/i.match(section)
+    img = CharImage.where(char_id: char.id).find_by!(keyword: keyword)
 
-    unless embed
-      img = CharImage.where(char_id: char.id).find_by!(keyword: keyword)
+    if img.category == 'NSFW' && !event.channel.nsfw?
 
       embed = error_embed(
         "Wrong Channel!",
         "The requested image is NSFW"
-      )if img.category == 'NSFW' && !event.channel.nsfw?
-    end
-
-    unless embed
+      )
+    elsif !/image/i.match(section)
+      embed = command_error_embed(
+        "Invalid Arguments",
+        member
+      )
+    else
       embed = character_embed(
         char: char,
         img: img,
@@ -530,8 +529,6 @@ member = Command.new(:member, desc, opts) do |event, name, section, keyword|
 
       arrow_react(msg)
     end
-
-    embed
   when name && char && section
     sect = section.downcase.to_sym
     nsfw = event.channel.nsfw?
