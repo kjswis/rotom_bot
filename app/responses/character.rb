@@ -202,6 +202,13 @@ def char_list_embed(chars, user = nil)
   owned_npcs = []
   unowned_npcs = []
 
+  list = {
+    "Active Guild Members" => active,
+    "Former Guild Members" => inactive,
+    "NPCs" => owned_npcs,
+    "Public NPCs" => unowned_npcs
+  }
+
   chars.each do |char|
     case char.active
     when 'Active'
@@ -214,25 +221,48 @@ def char_list_embed(chars, user = nil)
     end
   end
 
-  fields.push({
-    name: "Active Guild Members [#{active.count}]",
-    value: active.sort.join(", ")
-  })if active.length > 0
+  list.each do |name, array|
+    unless array.empty?
+      array = array.sort
 
-  fields.push({
-    name: "Former Guild Members [#{inactive.count}]",
-    value: inactive.sort.join(", ")
-  })if inactive.length > 0
+      array.each_slice(100).each_with_index do |a, i|
+        fields.push({
+          name: "#{name} [#{i > 0 ? 'cont' : array.count}]",
+          value: a.join(", ")
+        })
+      end
+    end
+  end
 
-  fields.push({
-    name: "NPCs [#{owned_npcs.count}]",
-    value: owned_npcs.sort.join(", ")
-  })if owned_npcs.length > 0
+  #if active.count / 100 > 0
+    #active = active.sort
+    #active.each_slice(100) do |a|
+      #fields.push({
+        #name: "Active Guild Members [#{active.count}]",
+        #value: a.join(", ")
+      #})
+    #end
+  #else
+    #fields.push({
+      #name: "Active Guild Members [#{active.count}]",
+      #value: active.sort.join(", ")
+    #})if active.length > 0
+  #end
 
-  fields.push({
-    name: "Public NPCs [#{unowned_npcs.count}]",
-    value: unowned_npcs.sort.join(", ")
-  })if unowned_npcs.length > 0
+  #fields.push({
+    #name: "Former Guild Members [#{inactive.count}]",
+    #value: inactive.sort.join(", ")
+  #})if inactive.length > 0
+
+  #fields.push({
+    #name: "NPCs [#{owned_npcs.count}]",
+    #value: owned_npcs.sort.join(", ")
+  #})if owned_npcs.length > 0
+
+  #fields.push({
+    #name: "Public NPCs [#{unowned_npcs.count}]",
+    #value: unowned_npcs.sort.join(", ")
+  #})if unowned_npcs.length > 0
 
   embed = Embed.new(
     title: "Registered Pokemon [#{chars.count}]",
