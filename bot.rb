@@ -541,7 +541,7 @@ member = Command.new(:member, desc, opts) do |event, name, section, keyword|
       nsfw: nsfw
     )if section == :image
 
-    if char.category == 'NSFW' && !event.channel.nsfw?
+    if char.rating == 'NSFW' && !event.channel.nsfw?
       embed = error_embed(
         "Wrong Channel!",
         "The requested character is NSFW"
@@ -745,7 +745,7 @@ team = Command.new(:team, desc, opts) do |event, team_name, action, desc|
       ct.update(active: false)
       user = event.server.member(char.user_id.to_i)
 
-      #user_char_team = Character.where(user_id: user.id).joins(:char_teams).where(team_id: t.id, active: true)
+      #user_char_team = Character.where(user_id: user.id).joins(:teams).where(team_id: t.id)
       #binding.pry
 
       user.remove_role(t.role.to_i) if user
