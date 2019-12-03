@@ -745,17 +745,25 @@ team = Command.new(:team, desc, opts) do |event, team_name, action, desc|
       ct.update(active: false)
       user = event.server.member(char.user_id.to_i)
 
-      #user_char_team = Character.where(user_id: user.id).joins(:teams).where(team_id: t.id)
-      #binding.pry
+      sql = "SELECT name " +
+        "FROM char_teams JOIN characters " +
+        "ON char_teams.char_id = characters.id " +
+        "WHERE characters.user_id = ? " +
+        "AND char_teams.team_id = ? " +
+        "and char_teams.active = true;"
 
-      user.remove_role(t.role.to_i) if user
+      sql =
+        ActiveRecord::Base.send(:sanitize_sql_array, [sql, user.id.to_s, t.id])
+      user_characters_team = ActiveRecord::Base.connection.exec_query(sql)
+      user.remove_role(t.role.to_i) if user_characters_team.count == 0
+
+      bot.send_message(
+        t.channel.to_i,
+        "#{char.name} has left the team",
+        false,
+        nil
+      )
     end
-    bot.send_message(
-      t.channel.to_i,
-      "#{char.name} has left the team",
-      false,
-      nil
-    )
   when /apply/i
     members = CharTeam.where(team_id: t.id)
     if members.count < 6
