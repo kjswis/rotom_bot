@@ -440,6 +440,10 @@ member = Command.new(:member, desc, opts) do |event, name, section, keyword|
     user_id = UID.match(name)
   when String
     chars = Character.where(name: name)
+    unless event.channel.nsfw?
+      chars = chars.reject { |c| c['rating'] == 'NSFW' }
+    end
+
     char = chars.first if chars.length == 1
 
     if char
