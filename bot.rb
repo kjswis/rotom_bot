@@ -53,7 +53,11 @@ def stat_image(user, member, stats=nil)
   user_url_img = "images/Image_Builder/user_url_img.png"
   output_file =  "images/Image_Builder/LevelUp"
 
-  Down.download(member.avatar_url, destination: user_url_img)
+  begin
+    Down.download(member.avatar_url, destination: user_url_img)
+  rescue Down::NotFound
+    user_url_img = "images/Image_Builder/unknown_img.png"
+  end
 
   #Gif Destroyer
   i = Magick::ImageList.new(user_url_img)
