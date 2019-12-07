@@ -171,7 +171,7 @@ hello = Command.new(:hello, "Says hello!") do |event|
 
   Embed.new(
     description: greetings.sample,
-    color: event.author.color.combined,
+    color: event.author&.color&.combined,
     thumbnail: {
       url: img.url
     }
@@ -274,7 +274,7 @@ desc = "Everything to do with character applications"
 app = Command.new(:app, desc, opts) do |event, name, status|
   user = event.author
   user_name = user.nickname || user.name
-  color = user.color.combined if user.color
+  color = user.color.combined if event.server && user.color
   chars = []
 
   character =
@@ -312,14 +312,14 @@ app = Command.new(:app, desc, opts) do |event, name, status|
     embed = edit_app_dm(name, edit_url, color)
 
     bot.send_message(user.dm.id, "", false, embed)
-    edit_app_embed(user_name, name, color)
+    edit_app_embed(user_name, name, color) if event.server
   when !name && !status
     embed = new_app_dm(user_name, user.id, color)
 
     message = bot.send_message(user.dm.id, "", false, embed)
     message.react(Emoji::PHONE)
 
-    new_app_embed(user_name, color)
+    new_app_embed(user_name, color) if event.server
   else
     command_error_embed("There was an error processing your application!", app)
   end
@@ -813,7 +813,7 @@ opts = {
 roll = Command.new(:roll, desc, opts) do |event, die, array|
   usr = event.message.author
   usr_name = usr.nickname || usr.name
-  color = usr.color&.combined
+  color = usr.color&.combined if event.server
 
   case die
   when /([0-9]*?)d([0-9]+)/i
