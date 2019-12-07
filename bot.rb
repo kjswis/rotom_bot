@@ -1019,7 +1019,14 @@ bot.reaction_add do |event|
       char.id
     )if img_url
     color = CharacterController.type_color(char)
-    channel = char.rating&.match(/nsfw/i) ? ENV['CHAR_NSFW_CH'] : ENV['CHAR_CH']
+    channel = case char.rating
+              when /nsfw/i
+                ENV['CHAR_NSFW_CH']
+              when /hidden/i
+                user.dm&.id
+              else
+                ENV['CHAR_CH']
+              end
 
     embed = character_embed(
       char: char,
