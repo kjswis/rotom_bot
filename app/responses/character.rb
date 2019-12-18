@@ -111,8 +111,10 @@ def char_bio(char, fields, char_teams)
 end
 
 def char_type(char, fields)
+  sp = char.shiny ? "#{char.species} #{Emoji::STAR}" : char.species
+
   fields.push(
-    { name: 'Species', value: "#{char.species} #{Emoji::STAR}", inline: true }
+    { name: 'Species', value: sp, inline: true }
   )if char.species
   fields.push(
     { name: 'Type', value: char.types, inline: true }
