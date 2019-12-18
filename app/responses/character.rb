@@ -112,7 +112,7 @@ end
 
 def char_type(char, fields)
   fields.push(
-    { name: 'Species', value: char.species, inline: true }
+    { name: 'Species', value: "#{char.species} #{Emoji::STAR}", inline: true }
   )if char.species
   fields.push(
     { name: 'Type', value: char.types, inline: true }
