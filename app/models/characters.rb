@@ -62,7 +62,15 @@ class Character < ActiveRecord::Base
     user_id = UID.match(app.description)
     active = app.title == "Personal Character" ? 'Active' : 'NPC'
 
-    hash["user_id"] = app.description.match(/public/i) ? 'Public' : user_id[1]
+    hash["user_id"] = case app.description
+                      when /public/i
+                        'Public'
+                      when /server/i
+                        'Server'
+                      else
+                        user_id[1]
+                      end
+
     hash["active"] = active
     hash["edit_url"] = app.footer.text
 
@@ -89,7 +97,7 @@ class Character < ActiveRecord::Base
     active = app.title
     user_id = UID.match(app.description)
 
-    if app.description.match(/public/i)
+    if app.description.match(/public/i) || app.description.match(/server/i)
       approval_react(event)
       return
     end

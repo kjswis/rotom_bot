@@ -1,11 +1,20 @@
-def character_embed(char:, img: nil, user: nil, color:, section: nil)
+UNKNOWN_USER_IMG = "https://i.imgur.com/oRJwgRa.png"
+
+def character_embed(char:, img: nil, user: nil, color:, section: nil, event: nil)
   fields = []
+  icon = nil
+
   user_name = case user
-              when String
+              when /Public/i
                 'Adopt Me!'
+              when /Server/i
+                icon = event.server.icon_url if event
+                'Server Owned'
               when nil
+                icon = UNKNOWN_USER_IMG
                 'Unknown User'
               else
+                icon = user.avatar_url
                 "#{user.name}##{user.tag}"
               end
 
@@ -62,7 +71,7 @@ def character_embed(char:, img: nil, user: nil, color:, section: nil)
 
   embed.thumbnail = { url: img.url } if img && section != :image
   embed.fields = fields
-  embed.footer.icon_url = user.avatar_url if user && user != 'Public'
+  embed.footer.icon_url = icon
 
   embed
 end

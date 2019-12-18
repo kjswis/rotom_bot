@@ -452,8 +452,12 @@ member = Command.new(:member, desc, opts) do |event, name, section, keyword|
 
     if char
       img = CharImage.where(char_id: char.id).find_by(keyword: 'Default')
-      user = char.user_id.match(/public/i) ?
-        char.user_id : event.server.member(char.user_id)
+      user = case char.user_id
+             when /public/i, /server/i
+               char.user_id
+             else
+               event.server.member(char.user_id)
+             end
       color = CharacterController.type_color(char)
     end
   end
@@ -501,7 +505,8 @@ member = Command.new(:member, desc, opts) do |event, name, section, keyword|
         img: img,
         section: :default,
         user: user,
-        color: color
+        color: color,
+        event: event
       )
 
       msg = event.send_embed("", embed)
@@ -529,7 +534,8 @@ member = Command.new(:member, desc, opts) do |event, name, section, keyword|
         img: img,
         section: :image,
         user: user,
-        color: color
+        color: color,
+        event: event
       )
 
       msg = event.send_embed("", embed)
@@ -558,6 +564,7 @@ member = Command.new(:member, desc, opts) do |event, name, section, keyword|
         section: sect,
         user: user,
         color: color,
+        event: event
       )
 
       msg = event.send_embed("", embed)
@@ -613,7 +620,7 @@ inv = Command.new(:inv, desc, opts) do |event, item, amount, name|
 
     case i
     when Inventory, true
-      character_embed(char: char, user: user, color: color, section: :bags)
+      character_embed(char: char, user: user, color: color, section: :bags, event: event)
     when Embed
       i
     else
@@ -670,7 +677,7 @@ afflict = Command.new(:afflict, desc, opts) do |event, name, status, amount|
 
     case s
     when CharStatus
-      character_embed(char: char, user: user, color: color, section: :status)
+      character_embed(char: char, user: user, color: color, section: :status, event: event)
     when Embed
       s
     end
@@ -700,7 +707,7 @@ cure = Command.new(:cure, desc, opts) do |event, name, status, amount|
 
     case s
     when CharStatus
-      character_embed(char: char, user: user, color: color, section: :status)
+      character_embed(char: char, user: user, color: color, section: :status, event: event)
     when Embed
       s
     end
@@ -1032,7 +1039,8 @@ bot.reaction_add do |event|
       char: char,
       img: img,
       user: user,
-      color: color
+      color: color,
+      event: event
     )if char
 
     if embed
@@ -1174,7 +1182,8 @@ bot.reaction_add do |event|
       img: CharImage.where(char_id: char.id).find_by(keyword: 'Default'),
       user: user,
       color: CharacterController.type_color(char),
-      section: :bio
+      section: :bio,
+      event: event
     )
     event.message.edit("", embed)
   when [:carousel, :question]
@@ -1200,7 +1209,8 @@ bot.reaction_add do |event|
       img: CharImage.where(char_id: char.id).find_by(keyword: 'Default'),
       user: user,
       color: CharacterController.type_color(char),
-      section: :status
+      section: :status,
+      event: event
     )
     event.message.edit("", embed)
   when [:carousel, :pallet]
@@ -1226,7 +1236,8 @@ bot.reaction_add do |event|
       img: CharImage.where(char_id: char.id).find_by(keyword: 'Default'),
       user: user,
       color: CharacterController.type_color(char),
-      section: :type
+      section: :type,
+      event: event
     )
     event.message.edit("", embed)
   when [:carousel, :ear]
@@ -1252,7 +1263,8 @@ bot.reaction_add do |event|
       img: CharImage.where(char_id: char.id).find_by(keyword: 'Default'),
       user: user,
       color: CharacterController.type_color(char),
-      section: :rumors
+      section: :rumors,
+      event: event
     )
     event.message.edit("", embed)
   when [:carousel, :picture]
@@ -1279,7 +1291,8 @@ bot.reaction_add do |event|
       img: img,
       user: user,
       color: CharacterController.type_color(char),
-      section: :image
+      section: :image,
+      event: event
     )
     event.message.edit("", embed)
     arrow_react(event.message)
@@ -1306,7 +1319,8 @@ bot.reaction_add do |event|
       img: CharImage.where(char_id: char.id).find_by(keyword: 'Default'),
       user: user,
       color: CharacterController.type_color(char),
-      section: :bags
+      section: :bags,
+      event: event
     )
     event.message.edit("", embed)
   when [:carousel, :family]
@@ -1333,7 +1347,8 @@ bot.reaction_add do |event|
       img: CharImage.where(char_id: char.id).find_by(keyword: 'Default'),
       user: user,
       color: CharacterController.type_color(char),
-      section: :all
+      section: :all,
+      event: event
     )
     event.message.edit("", embed)
   when [:carousel, :key]
@@ -1359,7 +1374,8 @@ bot.reaction_add do |event|
       img: CharImage.where(char_id: char.id).find_by(keyword: 'Default'),
       user: user,
       color: CharacterController.type_color(char),
-      section: :default
+      section: :default,
+      event: event
     )
     event.message.edit("", embed)
   when [:carousel, :back]
@@ -1380,7 +1396,8 @@ bot.reaction_add do |event|
       img: CharImage.where(char_id: char.id).find_by(keyword: 'Default'),
       user: user,
       color: CharacterController.type_color(char),
-      section: :default
+      section: :default,
+      event: event
     )
     event.message.edit("", embed)
     section_react(event.message)
@@ -1416,7 +1433,8 @@ bot.reaction_add do |event|
       img: img,
       user: user,
       color: CharacterController.type_color(char),
-      section: :image
+      section: :image,
+      event: event
     )
     event.message.edit("", embed)
 
@@ -1446,7 +1464,8 @@ bot.reaction_add do |event|
         img: CharImage.where(char_id: char.id).find_by(keyword: 'Default'),
         user: user,
         color: CharacterController.type_color(char),
-        section: :default
+        section: :default,
+        event: event
       )
       event.message.edit("", embed)
       section_react(event.message)
