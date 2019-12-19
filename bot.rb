@@ -306,7 +306,7 @@ app = Command.new(:app, desc, opts) do |event, name, status|
     if active[1].nil?
       uid = character.user_id
       user_allowed = (User.find_by(id: uid).level / 10) + 1
-      user_allowed = user_allowed + 1 if user.roles.include?('Nitro Booster')
+      user_allowed = user_allowed + 1 if user.roles.map(&:name).include?('Nitro Booster')
       active_chars = Character.where(user_id: uid, active: 'Active')
 
       allowed = active_chars.count < user_allowed && character.active == 'Inactive'
