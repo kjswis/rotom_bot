@@ -303,10 +303,27 @@ app = Command.new(:app, desc, opts) do |event, name, status|
     app_not_found_embed(user_name, name)
 
   when status && active && character
-    character.update!(active: active[0].capitalize)
-    character.reload
+    if active[1].nil?
+      uid = character.user_id
+      user_allowed = (User.find_by(id: uid).level / 10)
+      user_allowed = user_allowed + 1 if user.roles.include?('Nitro Booster')
+      active_chars = Character.where(user_id: uid, active: 'Active')
 
-    success_embed("Successfully updated #{name} to be #{active[0].downcase}")
+      allowed = active_chars.count < user_allowed && character.active == 'Inactive'
+    else
+      allowed = true
+    end
+
+    if allowed
+      character.update!(active: active[0].capitalize)
+      character.reload
+      success_embed("Successfully updated #{name} to be #{active[0].downcase}")
+    else
+      error_embed(
+        "You're not allowed to do that!",
+        "You either have too many active characters, the character is already active, or it is an NPC"
+      )
+    end
   when name && character && !status
     edit_url = Url::CHARACTER + character.edit_url
     embed = edit_app_dm(name, edit_url, color)
