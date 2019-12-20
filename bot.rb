@@ -608,16 +608,16 @@ end
 desc = "Learn about Items"
 opts = { "" => "list all items", "item_name" => "show known info for the item" }
 item = Command.new(:item, desc, opts) do |event, name|
-  #i = name ? Item.find_by!(name: name.capitalize) : Item.all
+  i = name ? Item.find_by!(name: name.capitalize) : Item.all
 
-  #case
-  #when name && i
-    #item_embed(i)
-  #when !name && i
-    #item_list_embed(i)
+  case
+  when name && i
+    item_embed(i)
+  when !name && i
+    item_list_embed(i)
   #else
     #command_error_embed("Error proccessing your request!", item)
-  #end
+  end
 #rescue ActiveRecord::RecordNotFound
   #error_embed("Item Not Found!")
 end
@@ -629,8 +629,7 @@ inv = Command.new(:inv, desc, opts) do |event, item, amount, name|
   itm = Item.find_by!(name: item) if item
   amt = amount.to_i
 
-  case
-  when char && itm && amt
+  if char && itm && amt && event.user.roles.map(&:name).include?('Guild Masters')
     i = Inventory.update_inv(itm, amt, char)
     user = event.server.member(char.user_id.to_i)
     color = CharacterController.type_color(char)
@@ -643,6 +642,8 @@ inv = Command.new(:inv, desc, opts) do |event, item, amount, name|
     else
       error_embed("Something went wrong!", "Could not update inventory")
     end
+  elsif !event.user.roles.map(&:name).include?('Guild Masters')
+    error_embed("You don't have permission to do that!")
   else
     command_error_embed("Could not proccess your request", inv)
   end
@@ -885,7 +886,7 @@ commands = [
   raffle,
   member,
   item,
-  #inv,
+  inv,
   status,
   afflict,
   cure,
@@ -925,8 +926,7 @@ bot.message do |event|
     else
       approval_react(event)
     end
-  elsif content == 'import users' && author == 215240568245190656
-    User.import_user(File.open('users.txt', 'r'))
+  elsif event.message.channel == 454082477192118275 || event.message.channel == 613365750383640584
   elsif !event.author.bot_account? && !event.author.webhook?
     usr = User.find_by(id: author.to_s)
     msg = URL.match(content) ? content.gsub(URL, "x" * 150) : content
@@ -1159,7 +1159,7 @@ bot.reaction_add do |event|
     embed = item_embed(item)
 
     event.message.delete
-    bot.send_message(ENV['CHAR_CH'], "New Item!", false, embed)
+    #bot.send_message(ENV['CHAR_CH'], "New Item!", false, embed)
   when [:item_application, :no]
     embed = reject_app_embed(app)
 
