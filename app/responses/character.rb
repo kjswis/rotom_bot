@@ -65,7 +65,7 @@ def character_embed(char:, img: nil, user: nil, color:, section: nil, event: nil
     end
   when :bags
     bags = Inventory.where(char_id: char.id)
-    fields = char_inv(bags, fields)
+    fields = char_inv(bags, fields, char.name)
   end
 
 
@@ -183,7 +183,7 @@ def char_status(char, fields, status_effects=nil)
   fields
 end
 
-def char_inv(bags, fields)
+def char_inv(bags, fields, name=nil)
   inv = []
   bags.each do |line|
     item = Item.find(line.item_id)
@@ -191,7 +191,8 @@ def char_inv(bags, fields)
     inv.push(inv_line)
   end
 
-  fields.push({ name: "Bags", value: inv.join("\n"), inline: true })
+  value = inv.join("\n") || "#{name} doesn't have any items"
+  fields.push({ name: "Bags", value: value, inline: true })
 end
 
 def char_sections(fields)
@@ -244,36 +245,6 @@ def char_list_embed(chars, user = nil)
       end
     end
   end
-
-  #if active.count / 100 > 0
-    #active = active.sort
-    #active.each_slice(100) do |a|
-      #fields.push({
-        #name: "Active Guild Members [#{active.count}]",
-        #value: a.join(", ")
-      #})
-    #end
-  #else
-    #fields.push({
-      #name: "Active Guild Members [#{active.count}]",
-      #value: active.sort.join(", ")
-    #})if active.length > 0
-  #end
-
-  #fields.push({
-    #name: "Former Guild Members [#{inactive.count}]",
-    #value: inactive.sort.join(", ")
-  #})if inactive.length > 0
-
-  #fields.push({
-    #name: "NPCs [#{owned_npcs.count}]",
-    #value: owned_npcs.sort.join(", ")
-  #})if owned_npcs.length > 0
-
-  #fields.push({
-    #name: "Public NPCs [#{unowned_npcs.count}]",
-    #value: unowned_npcs.sort.join(", ")
-  #})if unowned_npcs.length > 0
 
   embed = Embed.new(
     title: "Registered Pokemon [#{chars.count}]",
