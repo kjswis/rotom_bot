@@ -5,12 +5,11 @@ def approval_react(event)
   event.message.react(Emoji::N)
 end
 
-#def too_many(event, user, edit_url, model)
-def too_many(event, edit_url, model)
+def too_many(event, user, edit_url, model)
   message = "You have too many #{model}!" +
     "\nPlease deactivate and try again #{Url::CHARACTER}#{edit_url}"
 
-  #event.server.member(user).dm(message)
+  event.server.member(user).dm(message)
   event.respond(message)
   event.message.delete
 end
