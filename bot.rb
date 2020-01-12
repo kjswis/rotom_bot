@@ -795,7 +795,7 @@ team = Command.new(:team, desc, opts) do |event, team_name, action, desc|
       )
     end
   when /apply/i
-    members = CharTeam.where(team_id: t.id)
+    members = CharTeam.where(team_id: t.id, active: true)
     if members.count < 6
       embed = team_app_embed(t, char, event.server.member(char.user_id))
       msg = bot.send_message(t.channel.to_i, "", false, embed)
