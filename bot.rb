@@ -969,7 +969,7 @@ bot.reaction_add do |event|
   reactions = event.message.reactions
   app = event.message.embeds.first
   carousel = Carousel.find_by(message_id: event.message.id)
-  team_chat = Team.find_by(channel: event.message.channel)
+  team_chat = Team.find_by(channel: event.message.channel.id)
   maj = 100
 
   form =
