@@ -756,6 +756,7 @@ opts = {
 team = Command.new(:team, desc, opts) do |event, team_name, action, desc|
   unless action&.match(/create/i)
     t = Team.find_by!(name: team_name) if team_name
+    user = User.find_by(id: event.author.id)
 
     char = if event.author.roles.map(&:name).include?('Guild Masters')
              Character.find_by!(name: desc) if desc
@@ -796,26 +797,32 @@ team = Command.new(:team, desc, opts) do |event, team_name, action, desc|
     end
   when /apply/i
     members = CharTeam.where(team_id: t.id, active: true)
-    if members.count < 6
+    if members.count >= 6
+      error_embed("#{t.name} is full!")
+    elsif user.level < 5
+      error_embed("You are not high enough level!")
+    else
       embed = team_app_embed(t, char, event.server.member(char.user_id))
       msg = bot.send_message(t.channel.to_i, "", false, embed)
 
       msg.react(Emoji::Y)
       msg.react(Emoji::N)
       success_embed("Your request has been posted to #{t.name}!")
-    else
-      error_embed("#{t.name} is full!")
     end
   when /create/i
-    team_name = team_name || ""
-    desc = desc || ""
+    if user.level < 5
+      error_embed("You are not high enough level!")
+    else
+      team_name = team_name || ""
+      desc = desc || ""
 
-    embed = new_team_embed(event.message.author, team_name, desc)
-    msg = bot.send_message(ENV['APP_CH'], "", false, embed)
+      embed = new_team_embed(event.message.author, team_name, desc)
+      msg = bot.send_message(ENV['APP_CH'], "", false, embed)
 
-    msg.react(Emoji::Y)
-    msg.react(Emoji::N)
-    success_embed("Your Team Application has been submitted!")
+      msg.react(Emoji::Y)
+      msg.react(Emoji::N)
+      success_embed("Your Team Application has been submitted!")
+    end
   when nil
     t ? team_embed(t) : teams_embed()
   when /second_team/i
@@ -914,11 +921,11 @@ bot.message do |event|
     when String
       event.respond(reply)
     end
-  elsif command && !cmd && event.server
-    event.send_embed(
-      "",
-      error_embed("Command not found!")
-    )
+  #elsif command && !cmd && event.server
+    #event.send_embed(
+      #"",
+      #error_embed("Command not found!")
+    #)
   elsif author == ENV['WEBHOOK'].to_i
     app = event.message.embeds.first
     if app.author.name == 'Character Application'
@@ -927,7 +934,7 @@ bot.message do |event|
       approval_react(event)
     end
   elsif event.message.channel == 454082477192118275 || event.message.channel == 613365750383640584
-  elsif !event.author.bot_account? && !event.author.webhook?
+  elsif !event.author.bot_account? && !event.author.webhook? && event.server
     usr = User.find_by(id: author.to_s)
     msg = URL.match(content) ? content.gsub(URL, "x" * 150) : content
     file = event.message.attachments.map(&:filename).count
@@ -962,11 +969,7 @@ bot.reaction_add do |event|
   reactions = event.message.reactions
   app = event.message.embeds.first
   carousel = Carousel.find_by(message_id: event.message.id)
-
-  app = event.message.embeds.first
-  carousel = Carousel.find_by(message_id: event.message.id)
-
-  carousel = Carousel.find_by(message_id: event.message.id)
+  team_chat = Team.find_by(channel: event.message.channel)
   maj = 100
 
   form =
@@ -1001,6 +1004,8 @@ bot.reaction_add do |event|
         :new_app
       elsif carousel
         :carousel
+      elsif team_chat
+        :team_chat
       end
     end
 
@@ -1024,6 +1029,7 @@ bot.reaction_add do |event|
     when reactions[Emoji::LEFT]&.count.to_i > 1 then :left
     when reactions[Emoji::RIGHT]&.count.to_i > 1 then :right
     when reactions[Emoji::UNDO]&.count.to_i > 1 then :back
+    when reactions[Emoji::PIN]&.count.to_i > 1 then :pin
     when reactions.any? { |k,v| Emoji::NUMBERS.include? k } then :number
     end
 
@@ -1090,6 +1096,17 @@ bot.reaction_add do |event|
 
   when [:character_application, :cross]
     event.message.delete
+
+  when [:character_application, :crayon]
+    event.message.delete
+    bot.send_temporary_message(
+      event.channel.id,
+      "",
+      35,
+      false,
+      self_edit_embed(app, Url::CHARACTER)
+    )
+
   when [:character_rejection, :check]
     user = event.server.member(UID.match(app.description)[1])
     embed = user_char_app(event)
@@ -1560,6 +1577,9 @@ bot.reaction_add do |event|
     )
 
     event.message.delete
+
+  when [:team_chat, :pin]
+    event.message.pin
   end
 end
 
