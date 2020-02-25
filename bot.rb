@@ -1029,7 +1029,7 @@ bot.reaction_add do |event|
     when reactions[Emoji::LEFT]&.count.to_i > 1 then :left
     when reactions[Emoji::RIGHT]&.count.to_i > 1 then :right
     when reactions[Emoji::UNDO]&.count.to_i > 1 then :back
-    when reactions[Emoji::PIN]&.count.to_i > 1 then :pin
+    when reactions[Emoji::PIN]&.count.to_i > 0 then :pin
     when reactions.any? { |k,v| Emoji::NUMBERS.include? k } then :number
     end
 
