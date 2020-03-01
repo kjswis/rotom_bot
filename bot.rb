@@ -882,6 +882,53 @@ roll = Command.new(:roll, desc, opts) do |event, die, array|
   end
 end
 
+opts = {
+  "" => "List all landmarks",
+  "name " => "Display the given landmark",
+}
+desc = "Display info about the guild members"
+landmark = Command.new(:landmark, desc, opts) do |event, name, section, keyword|
+  lm = Landmark.find_by!(name: name) if name
+
+  usr = case lm&.user_id
+        when /server/i
+          lm&.user_id
+        else
+          event.server.member(lm&.user_id)
+        end
+
+  if lm && !section && !keyword
+    embed = landmark_embed(lm: lm, user: usr, event: event)
+    msg = event.send_embed("", embed)
+    Carousel.create(message_id: msg.id, landmark_id: lm.id)
+
+    landmark_react(msg)
+  elsif lm && section && !keyword
+    case section
+    when /history/i
+      embed = landmark_embed(lm: lm, user: usr, section: :history, event: event)
+    when /warnings?/i
+      embed = landmark_embed(lm: lm, user: usr, section: :warning, event: event)
+    when /map/i
+      embed = landmark_embed(lm: lm, user: usr, section: :map, event: event)
+    when /layout/i
+      embed = landmark_embed(lm: lm, user: usr, section: :layout, event: event)
+    when /npcs?/i
+      embed = landmark_embed(lm: lm, user: usr, section: :npcs, event: event)
+    end
+
+    msg = event.send_embed("", embed)
+    Carousel.create(message_id: msg.id, landmark_id: lm.id)
+
+    landmark_react(msg)
+  elsif !name && !section && !keyword
+    landmark_list
+  end
+rescue ActiveRecord::RecordNotFound => e
+  error_embed("Record Not Found!", e.message)
+end
+
+
 # ---
 
 commands = [
@@ -899,7 +946,8 @@ commands = [
   cure,
   team,
   stats,
-  roll
+  roll,
+  landmark
 ]
 
 #locked_commands = [inv]
@@ -1002,8 +1050,10 @@ bot.reaction_add do |event|
     else
       if event.server == nil
         :new_app
-      elsif carousel
-        :carousel
+      elsif carousel&.char_id
+        :member
+      elsif carousel&.landmark_id
+        :landmark
       elsif team_chat
         :team_chat
       end
@@ -1029,6 +1079,11 @@ bot.reaction_add do |event|
     when reactions[Emoji::LEFT]&.count.to_i > 1 then :left
     when reactions[Emoji::RIGHT]&.count.to_i > 1 then :right
     when reactions[Emoji::UNDO]&.count.to_i > 1 then :back
+    when reactions[Emoji::BOOKS]&.count.to_i > 1 then :books
+    when reactions[Emoji::SKULL]&.count.to_i > 1 then :skull
+    when reactions[Emoji::MAP]&.count.to_i > 1 then :map
+    when reactions[Emoji::HOUSES]&.count.to_i > 1 then :houses
+    when reactions[Emoji::PEOPLE]&.count.to_i > 1 then :people
     when reactions[Emoji::PIN]&.count.to_i > 0 then :pin
     when reactions.any? { |k,v| Emoji::NUMBERS.include? k } then :number
     end
@@ -1193,7 +1248,7 @@ bot.reaction_add do |event|
   when [:item_rejection, :cross]
     event.message.delete
 
-  when [:carousel, :notebook]
+  when [:member, :notebook]
     emoji = Emoji::NOTEBOOK
     users = event.message.reacted_with(emoji)
     users.each do |user|
@@ -1220,7 +1275,7 @@ bot.reaction_add do |event|
       event: event
     )
     event.message.edit("", embed)
-  when [:carousel, :question]
+  when [:member, :question]
     emoji = Emoji::QUESTION
     users = event.message.reacted_with(emoji)
     users.each do |user|
@@ -1247,7 +1302,7 @@ bot.reaction_add do |event|
       event: event
     )
     event.message.edit("", embed)
-  when [:carousel, :pallet]
+  when [:member, :pallet]
     emoji = Emoji::PALLET
     users = event.message.reacted_with(emoji)
     users.each do |user|
@@ -1274,7 +1329,7 @@ bot.reaction_add do |event|
       event: event
     )
     event.message.edit("", embed)
-  when [:carousel, :ear]
+  when [:member, :ear]
     emoji = Emoji::EAR
     users = event.message.reacted_with(emoji)
     users.each do |user|
@@ -1301,7 +1356,7 @@ bot.reaction_add do |event|
       event: event
     )
     event.message.edit("", embed)
-  when [:carousel, :picture]
+  when [:member, :picture]
     event.message.delete_all_reactions
     char = Character.find(carousel.char_id)
     img = ImageController.img_scroll(
@@ -1330,7 +1385,7 @@ bot.reaction_add do |event|
     )
     event.message.edit("", embed)
     arrow_react(event.message)
-  when [:carousel, :bags]
+  when [:member, :bags]
     emoji = Emoji::BAGS
     users = event.message.reacted_with(emoji)
     users.each do |user|
@@ -1357,8 +1412,8 @@ bot.reaction_add do |event|
       event: event
     )
     event.message.edit("", embed)
-  when [:carousel, :family]
-  when [:carousel, :eyes]
+  when [:member, :family]
+  when [:member, :eyes]
     emoji = Emoji::EYES
     users = event.message.reacted_with(emoji)
     users.each do |user|
@@ -1385,7 +1440,7 @@ bot.reaction_add do |event|
       event: event
     )
     event.message.edit("", embed)
-  when [:carousel, :key]
+  when [:member, :key]
     emoji = Emoji::KEY
     users = event.message.reacted_with(emoji)
     users.each do |user|
@@ -1412,7 +1467,7 @@ bot.reaction_add do |event|
       event: event
     )
     event.message.edit("", embed)
-  when [:carousel, :back]
+  when [:member, :back]
     event.message.delete_all_reactions
     char = Character.find(carousel.char_id)
     user =
@@ -1435,7 +1490,7 @@ bot.reaction_add do |event|
     )
     event.message.edit("", embed)
     section_react(event.message)
-  when [:carousel, :left], [:carousel, :right]
+  when [:member, :left], [:member, :right]
     emoji = vote == :left ? Emoji::LEFT : Emoji::RIGHT
     users = event.message.reacted_with(emoji)
     users.each do |user|
@@ -1472,7 +1527,7 @@ bot.reaction_add do |event|
     )
     event.message.edit("", embed)
 
-  when [:carousel, :number]
+  when [:member, :number]
     char_index = nil
     Emoji::NUMBERS.each.with_index do |emoji, i|
       char_index = i if reactions[emoji]&.count.to_i > 1
@@ -1504,7 +1559,116 @@ bot.reaction_add do |event|
       event.message.edit("", embed)
       section_react(event.message)
     end
-  when [:carousel, :cross]
+  when [:member, :cross]
+    event.message.delete
+    carousel.delete
+
+  when [:landmark, :books]
+    emoji = Emoji::BOOKS
+    users = event.message.reacted_with(emoji)
+    users.each do |user|
+      event.message.delete_reaction(user.id, emoji) unless user.current_bot?
+    end
+
+    lm = Landmark.find(carousel.landmark_id)
+    user =
+      case
+      when lm.user_id.match(/server/i)
+        "Server Owned"
+      when member = event.server.member(lm.user_id)
+        member
+      else
+        nil
+      end
+
+    embed = landmark_embed(lm: lm, user: user, section: :history, event: event)
+    event.message.edit("", embed)
+
+  when [:landmark, :skull]
+    emoji = Emoji::SKULL
+    users = event.message.reacted_with(emoji)
+    users.each do |user|
+      event.message.delete_reaction(user.id, emoji) unless user.current_bot?
+    end
+
+    lm = Landmark.find(carousel.landmark_id)
+    user =
+      case
+      when lm.user_id.match(/server/i)
+        "Server Owned"
+      when member = event.server.member(lm.user_id)
+        member
+      else
+        nil
+      end
+
+    embed = landmark_embed(lm: lm, user: user, section: :warning, event: event)
+    event.message.edit("", embed)
+
+  when [:landmark, :map]
+    emoji = Emoji::MAP
+    users = event.message.reacted_with(emoji)
+    users.each do |user|
+      event.message.delete_reaction(user.id, emoji) unless user.current_bot?
+    end
+
+    lm = Landmark.find(carousel.landmark_id)
+    user =
+      case
+      when lm.user_id.match(/server/i)
+        "Server Owned"
+      when member = event.server.member(lm.user_id)
+        member
+      else
+        nil
+      end
+
+    embed = landmark_embed(lm: lm, user: user, section: :map, event: event)
+    event.message.edit("", embed)
+
+  when [:landmark, :houses]
+    emoji = Emoji::HOUSES
+    users = event.message.reacted_with(emoji)
+    users.each do |user|
+      event.message.delete_reaction(user.id, emoji) unless user.current_bot?
+    end
+
+    lm = Landmark.find(carousel.landmark_id)
+    user =
+      case
+      when lm.user_id.match(/server/i)
+        "Server Owned"
+      when member = event.server.member(lm.user_id)
+        member
+      else
+        nil
+      end
+
+    embed = landmark_embed(lm: lm, user: user, section: :layout, event: event)
+    event.message.edit("", embed)
+
+  when [:landmark, :people]
+    emoji = Emoji::PEOPLE
+    users = event.message.reacted_with(emoji)
+    users.each do |user|
+      event.message.delete_reaction(user.id, emoji) unless user.current_bot?
+    end
+
+    lm = Landmark.find(carousel.landmark_id)
+    user =
+      case
+      when lm.user_id.match(/server/i)
+        "Server Owned"
+      when member = event.server.member(lm.user_id)
+        member
+      else
+        nil
+      end
+
+    embed = landmark_embed(lm: lm, user: user, section: :npcs, event: event)
+    event.message.edit("", embed)
+
+  when [:landmark, :cross]
     event.message.delete
     carousel.delete
 

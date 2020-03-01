@@ -19,3 +19,12 @@ def option_react(message, opts)
   end
   message.react(Emoji::CROSS)
 end
+
+def landmark_react(message)
+  message.react(Emoji::BOOKS)
+  message.react(Emoji::SKULL)
+  message.react(Emoji::MAP)
+  message.react(Emoji::HOUSES)
+  message.react(Emoji::PEOPLE)
+  message.react(Emoji::CROSS)
+end
