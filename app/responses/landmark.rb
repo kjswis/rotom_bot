@@ -45,7 +45,7 @@ def landmark_embed(lm:, user: nil, section: nil, event: nil)
     embed.description = lm.description
     embed.thumbnail = { url: lm.w_url } if lm.w_url
 
-    fields.push({name: 'Kinks', value: lm.kink.join("\n")}) unless lm.kink.empty?
+    fields.push({name: 'Kinks', value: lm.kink.join("\n")}) if lm.kink
     fields.push({name: 'Warning', value: lm.warning}) if lm.warning
   when :map
     if lm.map_url
