@@ -1,3 +1,5 @@
+NO_GOLD = 'https://cdn.discordapp.com/attachments/645493256821669888/683732758199140387/fcece3957f27d25f9c7aee13a89b7e7c.png'
+
 def landmark_embed(lm:, user: nil, section: nil, event: nil)
   fields = []
   icon = nil
@@ -27,7 +29,7 @@ def landmark_embed(lm:, user: nil, section: nil, event: nil)
 
   embed = Embed.new(
     footer: {
-      text: "#{user_name} | #{lm.category} | #{lm.rating}"
+      text: "#{user_name} | #{lm.category}"
     },
     title: lm.name
   )
@@ -43,10 +45,16 @@ def landmark_embed(lm:, user: nil, section: nil, event: nil)
     fields.push({name: 'Folk Lore', value: lm.folk_lore}) if lm.folk_lore
   when :warning
     embed.description = lm.description
-    embed.thumbnail = { url: lm.w_url } if lm.w_url
 
-    fields.push({name: 'Kinks', value: lm.kink.join("\n")}) if lm.kink
-    fields.push({name: 'Warning', value: lm.warning}) if lm.warning
+    if !event.channel.nsfw? && lm.w_rating == 'NSFW'
+      embed.thumbnail = { url: NO_GOLD }
+      fields.push({name: 'Kinks', value: lm.kink.join("\n")}) if lm.kink
+      fields.push({name: 'Warning', value: 'This warning is NSFW!'})
+    else
+      embed.thumbnail = { url: lm.w_url } if lm.w_url
+      fields.push({name: 'Kinks', value: lm.kink.join("\n")}) if lm.kink
+      fields.push({name: 'Warning', value: lm.warning}) if lm.warning
+    end
   when :map
     if lm.map_url
       embed.image = { url: lm.map_url }
