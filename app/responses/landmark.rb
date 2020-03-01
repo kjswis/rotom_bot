@@ -15,6 +15,7 @@ def landmark_embed(lm:, user: nil, section: nil, event: nil)
               end
 
   r = Region.find(lm.region)
+  plm = Landmark.find(lm.location)
   npcs = []
   npc_list = LandmarkNpcs.where(landmark_id: lm.id)
   npc_list.each do |lmnpc|
@@ -36,7 +37,7 @@ def landmark_embed(lm:, user: nil, section: nil, event: nil)
     embed.description = lm.description
     embed.thumbnail = { url: lm.url } if lm.url
 
-    fields.push({name: 'Location', value: lm.location, inline: true}) if lm.location
+    fields.push({name: 'Location', value: plm.name, inline: true}) if lm.location
     fields.push({name: 'Region', value: r.name, inline: true}) if r
     fields.push({name: 'History', value: lm.history}) if lm.history
     fields.push({name: 'Folk Lore', value: lm.folk_lore}) if lm.folk_lore

@@ -1047,6 +1047,10 @@ bot.reaction_add do |event|
       m = event.server.roles.find{ |r| r.id == team_id }.members
       maj = m.count > 2 ? m.count/2.0 : 2
       :team_request
+    when 'Landmark Application'
+      m = event.server.roles.find{ |r| r.id == ENV['ADMINS'].to_i }.members
+      maj = m.count > 2 ? m.count/2.0 : 2
+      :landmark_application
     else
       if event.server == nil
         :new_app
@@ -1180,6 +1184,47 @@ bot.reaction_add do |event|
       35,
       false,
       self_edit_embed(app, Url::CHARACTER)
+    )
+
+  when [:landmark_application, :yes]
+    uid = UID.match(app.description)
+    user =
+      app.description.match(/server/i) ? 'Server' : event.server.member(uid[1])
+    img_url = case
+              when !app.thumbnail&.url.nil? then app.thumbnail.url
+              when !app.image&.url.nil? then app.image.url
+              end
+
+    lm = LandmarkController.edit_landmark(app)
+
+    embed = landmark_embed(lm: lm, user: user, event: event)if lm
+    channel = '453277760429883393'
+    if embed
+      bot.send_message(
+        channel.to_i,
+        "Good news, #{uid}! Your landmark was approved",
+        false,
+        embed
+      )
+      event.message.delete
+    else
+      event.respond(
+        "",
+        admin_error_embed("Something went wrong when saving application")
+      )
+    end
+
+  when [:landmark_application, :cross]
+    event.message.delete
+
+  when [:landmark_application, :crayon]
+    event.message.delete
+    bot.send_temporary_message(
+      event.channel.id,
+      "",
+      35,
+      false,
+      self_edit_embed(app, Url::LANDMARK)
     )
 
   when [:new_app, :phone]
