@@ -1,7 +1,7 @@
 require_relative '../../lib/emoji.rb'
 
 def section_react(message)
-  Emoji::CAROUSEL.each do |emote|
+  Emoji::MEMBER.each do |emote|
     message.react(emote)
   end
 end

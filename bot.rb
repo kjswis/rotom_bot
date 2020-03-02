@@ -1088,6 +1088,7 @@ bot.reaction_add do |event|
     when reactions[Emoji::MAP]&.count.to_i > 1 then :map
     when reactions[Emoji::HOUSES]&.count.to_i > 1 then :houses
     when reactions[Emoji::PEOPLE]&.count.to_i > 1 then :people
+    when reactions[Emoji::BUST]&.count.to_i > 1 then :bust
     when reactions[Emoji::PIN]&.count.to_i > 0 then :pin
     when reactions.any? { |k,v| Emoji::NUMBERS.include? k } then :number
     end
@@ -1293,114 +1294,6 @@ bot.reaction_add do |event|
   when [:item_rejection, :cross]
     event.message.delete
 
-  when [:member, :notebook]
-    emoji = Emoji::NOTEBOOK
-    users = event.message.reacted_with(emoji)
-    users.each do |user|
-      event.message.delete_reaction(user.id, emoji) unless user.current_bot?
-    end
-
-    char = Character.find(carousel.char_id)
-    user =
-      case
-      when char.user_id.match(/public/i)
-        "Public"
-      when member = event.server.member(char.user_id)
-        member
-      else
-        nil
-      end
-
-    embed = character_embed(
-      char: char,
-      img: CharImage.where(char_id: char.id).find_by(keyword: 'Default'),
-      user: user,
-      color: CharacterController.type_color(char),
-      section: :bio,
-      event: event
-    )
-    event.message.edit("", embed)
-  when [:member, :question]
-    emoji = Emoji::QUESTION
-    users = event.message.reacted_with(emoji)
-    users.each do |user|
-      event.message.delete_reaction(user.id, emoji) unless user.current_bot?
-    end
-
-    char = Character.find(carousel.char_id)
-    user =
-      case
-      when char.user_id.match(/public/i)
-        "Public"
-      when member = event.server.member(char.user_id)
-        member
-      else
-        nil
-      end
-
-    embed = character_embed(
-      char: char,
-      img: CharImage.where(char_id: char.id).find_by(keyword: 'Default'),
-      user: user,
-      color: CharacterController.type_color(char),
-      section: :status,
-      event: event
-    )
-    event.message.edit("", embed)
-  when [:member, :pallet]
-    emoji = Emoji::PALLET
-    users = event.message.reacted_with(emoji)
-    users.each do |user|
-      event.message.delete_reaction(user.id, emoji) unless user.current_bot?
-    end
-
-    char = Character.find(carousel.char_id)
-    user =
-      case
-      when char.user_id.match(/public/i)
-        "Public"
-      when member = event.server.member(char.user_id)
-        member
-      else
-        nil
-      end
-
-    embed = character_embed(
-      char: char,
-      img: CharImage.where(char_id: char.id).find_by(keyword: 'Default'),
-      user: user,
-      color: CharacterController.type_color(char),
-      section: :type,
-      event: event
-    )
-    event.message.edit("", embed)
-  when [:member, :ear]
-    emoji = Emoji::EAR
-    users = event.message.reacted_with(emoji)
-    users.each do |user|
-      event.message.delete_reaction(user.id, emoji) unless user.current_bot?
-    end
-
-    char = Character.find(carousel.char_id)
-    user =
-      case
-      when char.user_id.match(/public/i)
-        "Public"
-      when member = event.server.member(char.user_id)
-        member
-      else
-        nil
-      end
-
-    embed = character_embed(
-      char: char,
-      img: CharImage.where(char_id: char.id).find_by(keyword: 'Default'),
-      user: user,
-      color: CharacterController.type_color(char),
-      section: :rumors,
-      event: event
-    )
-    event.message.edit("", embed)
   when [:member, :picture]
     event.message.delete_all_reactions
     char = Character.find(carousel.char_id)
@@ -1485,33 +1378,31 @@ bot.reaction_add do |event|
       event: event
     )
     event.message.edit("", embed)
-  when [:member, :key]
-    emoji = Emoji::KEY
-    users = event.message.reacted_with(emoji)
-    users.each do |user|
-      event.message.delete_reaction(user.id, emoji) unless user.current_bot?
-    end
 
+  when [:member, :bust]
+    event.message.delete_all_reactions
     char = Character.find(carousel.char_id)
-    user =
-      case
-      when char.user_id.match(/public/i)
-        "Public"
-      when member = event.server.member(char.user_id)
-        member
-      else
-        nil
-      end
+    chars = []
+    actives = []
 
-    embed = character_embed(
-      char: char,
-      img: CharImage.where(char_id: char.id).find_by(keyword: 'Default'),
-      user: user,
-      color: CharacterController.type_color(char),
-      section: :default,
-      event: event
-    )
+    embed = case char.user_id
+            when /pulic/i, /server/i
+              chars = Character.all
+
+              char_list_embed(chars)
+            else
+              chars = Character.where(user_id: char.user_id)
+              user = event.server.member(char.user_id)
+              actives = Character.where(user_id: char.user_id, active: 'Active')
+              ids = actives.map(&:id)
+
+              carousel.update(options: ids)
+              user_char_embed(chars, user)
+            end
+
     event.message.edit("", embed)
+    option_react(event.message, actives) unless actives.empty?
+
   when [:member, :back]
     event.message.delete_all_reactions
     char = Character.find(carousel.char_id)

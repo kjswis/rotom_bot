@@ -37,15 +37,12 @@ def character_embed(char:, img: nil, user: nil, color:, section: nil, event: nil
   )
 
   case section
-  when :all, nil
+  when :all, nil, :default
     embed.description = char.personality if char.personality
     fields = char_type(char, fields)
     fields = char_status(char, fields, status_effects)
     fields = char_bio(char, fields, char_teams)
     fields = char_rumors(char, fields)
-  when :default
-    embed.description = navigate
-    fields = char_sections(fields)
   when :bio
     embed.description = char.personality if char.personality
     fields = char_bio(char, fields, char_teams)
