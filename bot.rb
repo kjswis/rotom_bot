@@ -1054,7 +1054,7 @@ bot.reaction_add do |event|
     else
       if event.server == nil
         :new_app
-      elsif carousel&.char_id
+      elsif carousel&.char_id || carousel&.options
         :member
       elsif carousel&.landmark_id
         :landmark
