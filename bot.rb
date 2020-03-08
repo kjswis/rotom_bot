@@ -810,19 +810,15 @@ team = Command.new(:team, desc, opts) do |event, team_name, action, desc|
       success_embed("Your request has been posted to #{t.name}!")
     end
   when /create/i
-    if user.level < 5
-      error_embed("You are not high enough level!")
-    else
-      team_name = team_name || ""
-      desc = desc || ""
+    team_name = team_name || ""
+    desc = desc || ""
 
-      embed = new_team_embed(event.message.author, team_name, desc)
-      msg = bot.send_message(ENV['APP_CH'], "", false, embed)
+    embed = new_team_embed(event.message.author, team_name, desc)
+    msg = bot.send_message(ENV['APP_CH'], "", false, embed)
 
-      msg.react(Emoji::Y)
-      msg.react(Emoji::N)
-      success_embed("Your Team Application has been submitted!")
-    end
+    msg.react(Emoji::Y)
+    msg.react(Emoji::N)
+    success_embed("Your Team Application has been submitted!")
   when nil
     t ? team_embed(t) : teams_embed()
   when /second_team/i
