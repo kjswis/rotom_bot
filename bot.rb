@@ -751,10 +751,11 @@ opts = {
   "" => "list of teams",
   "team_name" => "display team info",
   "team_name | (leave/apply) | character" => "leave or apply for team",
-  "team_name | create | description" => "admin only command"
+  "team_name | create | description" => "apply to create a new team",
+  "team_name | update | description" => "must be used in team chat channel"
 }
 team = Command.new(:team, desc, opts) do |event, team_name, action, desc|
-  unless action&.match(/create/i)
+  unless action&.match(/create/i) || action&.match(/update/i)
     t = Team.find_by!(name: team_name) if team_name
     user = User.find_by(id: event.author.id)
 
@@ -819,6 +820,20 @@ team = Command.new(:team, desc, opts) do |event, team_name, action, desc|
     msg.react(Emoji::Y)
     msg.react(Emoji::N)
     success_embed("Your Team Application has been submitted!")
+  when /update/i
+    team_name = team_name || ""
+    desc = desc || ""
+
+    t = Team.find_by(channel: event.message.channel.id)
+
+    if t
+      t.update(name: team_name, description: desc)
+      t.reload
+
+      team_embed(t)
+    else
+      error_embed("Must be used in team chat")
+    end
   when nil
     t ? team_embed(t) : teams_embed()
   when /second_team/i
