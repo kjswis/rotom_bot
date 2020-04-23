@@ -277,6 +277,8 @@ app = Command.new(:app, desc, opts) do |event, name, status|
   color = user.color.combined if event.server && user.color
   chars = []
 
+  landmark = true if status.match(/landmark/i) && user.roles.map(&:name).include?('Guild Masters')
+
   character =
     if user.roles.map(&:name).include?('Guild Masters')
       chars = Character.where(name: name)
@@ -287,6 +289,12 @@ app = Command.new(:app, desc, opts) do |event, name, status|
   active = status.match(/(in)?active/i) if status
 
   case
+  when landmark
+    lm = Landmark.find_by(name: name)
+    edit_url = 'https://docs.google.com/forms/d/e/1FAIpQLSc1aFBTJxGbvauUOGF1WGEvik5SJ_3SFkyIfbR2h8eK8Fxe7Q/viewform'
+    edit_url+= lm.edit_url
+
+    embed = edit_app_dm(name, edit_url)
   when !chars.empty? && !character
     chars.each do |char|
       edit_url = Url::CHARACTER + char.edit_url
