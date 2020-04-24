@@ -277,7 +277,7 @@ app = Command.new(:app, desc, opts) do |event, name, status|
   color = user.color.combined if event.server && user.color
   chars = []
 
-  landmark = true if status.match(/landmark/i) && user.roles.map(&:name).include?('Guild Masters')
+  landmark = true if status&.match(/landmark/i) && user.roles.map(&:name).include?('Guild Masters')
 
   character =
     if user.roles.map(&:name).include?('Guild Masters')
