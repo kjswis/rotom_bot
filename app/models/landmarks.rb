@@ -2,6 +2,15 @@ class Landmark < ActiveRecord::Base
   validates :name, presence: true
   validates :description, presence: true
   validates :category, presence: true
+  before_save :set_default_warning
+
+  def set_default_warning
+    if warning.nil?
+      warning = "This is a verified safe location!"
+      w_url = "https://cdn.dribbble.com/users/250235/screenshots/2850450/pokemon_center_1x.png"
+      w_rating = "SFW"
+    end
+  end
 
   def self.from_form(app)
     key_mapping = {

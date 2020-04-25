@@ -277,7 +277,13 @@ app = Command.new(:app, desc, opts) do |event, name, status|
   color = user.color.combined if event.server && user.color
   chars = []
 
-  landmark = true if status&.match(/landmark/i) && user.roles.map(&:name).include?('Guild Masters')
+  if user.roles.map(&:name).include?('Guild Masters')
+    flag = case status
+           when /landmark/i then :lm
+           when /legend/i then :legend
+           when /guild/i then :guild
+           end
+  end
 
   character =
     if user.roles.map(&:name).include?('Guild Masters')
@@ -289,12 +295,18 @@ app = Command.new(:app, desc, opts) do |event, name, status|
   active = status.match(/(in)?active/i) if status
 
   case
-  when landmark
-    lm = Landmark.find_by(name: name)
-    edit_url = 'https://docs.google.com/forms/d/e/1FAIpQLSc1aFBTJxGbvauUOGF1WGEvik5SJ_3SFkyIfbR2h8eK8Fxe7Q/viewform'
-    edit_url+= lm.edit_url
+  when flag
+    case flag
+    when :lm
+      lm = Landmark.find_by(name: name)
+      edit_url = 'https://docs.google.com/forms/d/e/1FAIpQLSc1aFBTJxGbvauUOGF1WGEvik5SJ_3SFkyIfbR2h8eK8Fxe7Q/viewform'
+      edit_url+= lm.edit_url
 
-    embed = edit_app_dm(name, edit_url)
+      embed = edit_app_dm(name, edit_url)
+    when :legend, :guild
+      character.update(special: status.downcase)
+      success_embed("Updated #{name} to have #{status} flag")
+    end
   when !chars.empty? && !character
     chars.each do |char|
       edit_url = Url::CHARACTER + char.edit_url
