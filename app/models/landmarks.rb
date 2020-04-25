@@ -5,10 +5,10 @@ class Landmark < ActiveRecord::Base
   before_save :set_default_warning
 
   def set_default_warning
-    if warning.nil?
-      warning = "This is a verified safe location!"
-      w_url = "https://cdn.dribbble.com/users/250235/screenshots/2850450/pokemon_center_1x.png"
-      w_rating = "SFW"
+    if self.warning.nil?
+      self.warning = "This is a verified safe location!"
+      self.w_url = "https://cdn.dribbble.com/users/250235/screenshots/2850450/pokemon_center_1x.png"
+      self.w_rating = "SFW"
     end
   end
 
