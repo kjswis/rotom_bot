@@ -87,7 +87,7 @@ def landmark_list
   rs.each do |r|
     lms = Landmark.where(region: r.id)
 
-    fields.push({ name: r.name, value: lms.map(&:name).join("\n") }) unless lms.empty?
+    fields.push({ name: r.name, value: lms.map(&:name).join("\n"), inline: true}) unless lms.empty?
   end
 
   Embed.new(
