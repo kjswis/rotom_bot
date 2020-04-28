@@ -1005,6 +1005,12 @@ bot.message do |event|
       #"",
       #error_embed("Command not found!")
     #)
+  elsif event.message.channel.id == 644771348073152522 && content.match(/clear chat/i)
+    msgs = event.message.channel.history(10)
+    msgs.reject { |msg| msg.author.webhook? || msg.id == 651836628486062081 }
+
+    event.message.channel.delete_messages(msgs)
+
   elsif author == ENV['WEBHOOK'].to_i
     app = event.message.embeds.first
     if app.author.name == 'Character Application'
