@@ -294,9 +294,13 @@ def user_char_embed(chars, user)
     fields.push({ name: "#{user_name}'s NPCs", value: npcs.join(", ") })
   end
 
-  allowed = User.find_by(id: user.id).level / 10 + 1
-  allowed =
-    user.roles.map(&:name).include?('Nitro Booster') ? allowed + 1 : allowed
+  if user
+    allowed = User.find_by(id: user&.id).level / 10 + 1
+    allowed =
+      user.roles.map(&:name).include?('Nitro Booster') ? allowed + 1 : allowed
+  else
+    allowed = '???'
+  end
 
   embed = Embed.new(
     title: "#{user_name}'s Characters [#{active.count}/#{allowed}]",
