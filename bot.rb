@@ -987,6 +987,7 @@ commands = [
 bot.message do |event|
   content = event.message.content
   author = event.author.id
+  clear_channels = [473582694802915328, 644771348073152522, 705530816410943539 ]
 
   command = /^pkmn-(\w+)/.match(content)
   cmd = commands.detect { |c| c.name == command[1].to_sym } if command
@@ -1005,7 +1006,7 @@ bot.message do |event|
       #"",
       #error_embed("Command not found!")
     #)
-  elsif event.message.channel.id == 644771348073152522 && content.match(/clear chat/i)
+  elsif clear_channels.include? event.message.channel.id && content.match(/clear chat/i)
     msgs = event.message.channel.history(50)
     msgs = msgs.reject { |msg| msg.author.webhook? || msg.id == 651836628486062081 }
 
