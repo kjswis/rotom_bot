@@ -1021,7 +1021,7 @@ bot.message do |event|
     else
       approval_react(event)
     end
-  elsif event.message.channel == 454082477192118275 || event.message.channel == 613365750383640584 || event.message.channel == 473582694802915328
+  elsif event.message.channel.id == 454082477192118275 || event.message.channel.id == 613365750383640584 || event.message.channel.id == 473582694802915328 || event.message.channel.id == 598217431202398259
   elsif !event.author.bot_account? && !event.author.webhook? && event.server
     usr = User.find_by(id: author.to_s)
     msg = URL.match(content) ? content.gsub(URL, "x" * 150) : content
