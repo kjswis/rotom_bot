@@ -1006,6 +1006,13 @@ bot.message do |event|
       #"",
       #error_embed("Command not found!")
     #)
+  elsif author == ENV['WEBHOOK'].to_i
+    app = event.message.embeds.first
+    if app.author.name == 'Character Application'
+      Character.check_user(event)
+    else
+      approval_react(event)
+    end
   elsif clear_channels.include? event.message.channel.id
     if content.match(/clear chat/i)
       msgs = event.message.channel.history(50)
@@ -1014,13 +1021,6 @@ bot.message do |event|
       event.message.channel.delete_messages(msgs)
     end
 
-  elsif author == ENV['WEBHOOK'].to_i
-    app = event.message.embeds.first
-    if app.author.name == 'Character Application'
-      Character.check_user(event)
-    else
-      approval_react(event)
-    end
   elsif event.message.channel.id == 454082477192118275 || event.message.channel.id == 613365750383640584 || event.message.channel.id == 473582694802915328 || event.message.channel.id == 598217431202398259
   elsif !event.author.bot_account? && !event.author.webhook? && event.server
     usr = User.find_by(id: author.to_s)
