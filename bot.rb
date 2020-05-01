@@ -292,7 +292,12 @@ app = Command.new(:app, desc, opts) do |event, name, status|
     else
       Character.where(user_id: user.id).find_by(name: name) if name
     end
-  active = status.match(/(in)?active/i) if status
+  active = case status
+           when /inactive/i, /archive/i
+             false
+           when /active/i
+             true
+           end
 
   case
   when flag
@@ -322,22 +327,49 @@ app = Command.new(:app, desc, opts) do |event, name, status|
   when name && !character
     app_not_found_embed(user_name, name)
 
-  when status && active && character
-    if active[1].nil?
+  when status && character
+    if active
       uid = character.user_id
       user_allowed = (User.find_by(id: uid).level / 10) + 1
       user_allowed = user_allowed + 1 if user.roles.map(&:name).include?('Nitro Booster')
       active_chars = Character.where(user_id: uid, active: 'Active')
 
-      allowed = active_chars.count < user_allowed && character.active == 'Inactive'
+      allowed = active_chars.count < user_allowed && character.active == 'Archived'
     else
       allowed = true
     end
 
-    if allowed
-      character.update!(active: active[0].capitalize)
+    if allowed && active
+      # create re-approval character embed
+      img = CharImage.where(char_id: character.id).find_by(keyword: 'Default')
+      color = CharacterController.type_color(character)
+
+      app = character_embed(
+        char: character,
+        img: img,
+        section: :default,
+        user: user,
+        color: color,
+        event: event
+      )
+
+      app.author = { name: "Reactivation Application [#{character.id}]" }
+      msg = bot.send_message(ENV['APP_CH'], "", false, app)
+      msg.react(Emoji::Y)
+      msg.react(Emoji::N)
+      msg.react(Emoji::CRAYON)
+      msg.react(Emoji::CROSS)
+
+      #character.update!(active: active[0].capitalize)
+      #character.reload
+      #success_embed("Successfully updated #{name} to be #{active[0].downcase}")
+    elsif allowed && !active
+      character.update!(active: 'Archived')
       character.reload
-      success_embed("Successfully updated #{name} to be #{active[0].downcase}")
+
+      embed = success_embed("Successfully archived #{name}")
+      bot.send_message(ENV['APP_CH'], "", false, embed)
+      embed
     else
       error_embed(
         "You're not allowed to do that!",
@@ -1091,6 +1123,12 @@ bot.reaction_add do |event|
       m = event.server.roles.find{ |r| r.id == ENV['ADMINS'].to_i }.members
       maj = m.count > 2 ? m.count/2.0 : 2
       :landmark_application
+    when /Reactivation\sApplication/
+      m = event.server.roles.find{ |r| r.id == ENV['ADMINS'].to_i }.members
+      maj = m.count > 2 ? m.count/2.0 : 2
+
+      maj = 1
+      :reactivation
     else
       if event.server == nil
         :new_app
@@ -1225,6 +1263,79 @@ bot.reaction_add do |event|
       35,
       false,
       self_edit_embed(app, Url::CHARACTER)
+    )
+
+  when [:reactivation, :yes]
+    ch_id = app.author.name.match(/\[(\d)+\]/)
+    char = Character.find(ch_id[1])
+
+    img = CharImage.where(char_id: char.id).find_by(keyword: 'Default')
+    color = CharacterController.type_color(char)
+    user = case char.user_id
+           when /server/i
+             char.user_id
+           else
+             event.server.member(char.user_id.to_i)
+           end
+
+    channel = case char.rating
+              when /nsfw/i
+                ENV['CHAR_NSFW_CH']
+              when /hidden/i
+                user.dm&.id
+              else
+                ENV['CHAR_CH']
+              end
+
+    char.update(active: 'Active')
+    char.reload
+
+    embed = character_embed(
+      char: char,
+      img: img,
+      user: user,
+      color: color,
+      event: event
+    )if char
+
+    if embed
+      bot.send_message(
+        channel.to_i,
+        "Good news, <@#{char.user_id}>! Your character was approved",
+        false,
+        embed
+      )
+      event.message.delete
+    else
+      event.respond(
+        "",
+        admin_error_embed("Something went wrong when saving application")
+      )
+    end
+  when [:reactivation, :no]
+    ch_id = app.author.name.match(/\[(\d)+\]/)
+    char = Character.find(ch_id[1])
+
+    user = event.server.member(char.user_id)
+    embed = char_reactive(Url::CHARACTER, char.edit_url)
+
+    event.message.delete
+    bot.send_temporary_message(event.channel.id, "", 5, false, embed)
+    bot.send_message(user.dm.id, "", false, embed)
+  when [:reactivation, :cross]
+    event.message.delete
+
+  when [:reactivation, :crayon]
+    ch_id = app.author.name.match(/\[(\d)+\]/)
+    char = Character.find(ch_id[1])
+
+    event.message.delete
+    bot.send_temporary_message(
+      event.channel.id,
+      "",
+      35,
+      false,
+      char_reactive(Url::CHARACTER, char.edit_url)
     )
 
   when [:landmark_application, :yes]

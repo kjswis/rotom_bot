@@ -207,13 +207,13 @@ end
 def char_list_embed(chars, user = nil)
   fields = []
   active = []
-  inactive= []
+  archived = []
   owned_npcs = []
   unowned_npcs = []
 
   list = {
     "Active Guild Members" => active,
-    "Former Guild Members" => inactive,
+    "Archived Guild Members" => archived,
     "NPCs" => owned_npcs,
     "Public NPCs" => unowned_npcs
   }
@@ -222,8 +222,8 @@ def char_list_embed(chars, user = nil)
     case char.active
     when 'Active'
       active.push char.name
-    when 'Inactive'
-      inactive.push char.name
+    when 'Archived'
+      archived.push char.name
     when 'NPC'
       owned_npcs.push char.name if char.user_id != 'Public'
       unowned_npcs.push char.name if char.user_id == 'Public'
@@ -261,7 +261,7 @@ end
 def user_char_embed(chars, user)
   fields = []
   active = []
-  inactive = []
+  archived = []
   npcs = []
   user_name = user&.nickname || user&.name
 
@@ -269,8 +269,8 @@ def user_char_embed(chars, user)
     case char.active
     when 'Active'
       active.push char
-    when 'Inactive'
-      inactive.push char.name
+    when 'Archived'
+      archived.push char.name
     when 'NPC'
       npcs.push char.name
     end
@@ -283,10 +283,10 @@ def user_char_embed(chars, user)
     })
   end
 
-  unless inactive.empty?
+  unless archived.empty?
     fields.push({
-      name: "#{user_name}'s Inactive Characters",
-      value: inactive.join(", ")
+      name: "#{user_name}'s Archived Characters",
+      value: archived.join(", ")
     })
   end
 

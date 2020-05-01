@@ -141,3 +141,11 @@ def self_edit_embed(app, form)
     description: "[Edit the Application](#{form}#{app.footer.text})"
   )
 end
+
+def char_reactive(form, edit_url)
+  Embed.new(
+    title: "Your reactivation request has been declined!",
+    color: ERROR,
+    description: "[Edit the Application](#{form}#{edit_url})"
+  )
+end
