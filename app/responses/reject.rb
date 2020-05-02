@@ -14,9 +14,9 @@ def reject_app_embed(app, opts = nil)
 
   fields = []
 
-  app.fields.each do |f|
-    fields.push({ name: f.name, value: f.value, inline: true })
-  end
+  #app.fields.each do |f|
+    #fields.push({ name: f.name, value: f.value, inline: true })
+  #end
 
   if opts
     fields.push({ name: "\u200b", value: "\u200b" })

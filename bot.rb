@@ -1091,6 +1091,14 @@ bot.reaction_add do |event|
   carousel = Carousel.find_by(message_id: event.message.id)
   team_chat = Team.find_by(channel: event.message.channel.id)
   maj = 100
+  star = false
+
+  if stars = event.message.reacted_with(Emoji::STAR)
+    stars.each do |s|
+      u = event.server.member(s.id)
+      star = true if u.roles.map(&:name).include? "Guild Masters"
+    end
+  end
 
   form =
     case app&.author&.name
@@ -1143,7 +1151,7 @@ bot.reaction_add do |event|
 
   vote =
     case
-    when reactions[Emoji::Y]&.count.to_i > maj then :yes
+    when reactions[Emoji::Y]&.count.to_i > maj && star then :yes
     when reactions[Emoji::N]&.count.to_i > maj then :no
     when reactions[Emoji::CHECK]&.count.to_i > 1 then :check
     when reactions[Emoji::CROSS]&.count.to_i > 1 then :cross
@@ -1322,6 +1330,7 @@ bot.reaction_add do |event|
     event.message.delete
     bot.send_temporary_message(event.channel.id, "", 5, false, embed)
     bot.send_message(user.dm.id, "", false, embed)
+
   when [:reactivation, :cross]
     event.message.delete
 
