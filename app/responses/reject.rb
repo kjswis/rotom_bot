@@ -19,8 +19,6 @@ def reject_app_embed(app, opts = nil)
   #end
 
   if opts
-    fields.push({ name: "\u200b", value: "\u200b" })
-
     msgs =
       case opts
       when :character
@@ -49,7 +47,7 @@ def reject_app_embed(app, opts = nil)
 
   embed = Embed.new(
     title: app.title,
-    description: app.description,
+    description: "#{app.description} -- #{app.fields[0].value}: #{app.fields[1].value}",
     author: {
       name: app.author.name.gsub('Application', 'Rejection'),
       icon_url: app.author.icon_url
