@@ -1199,7 +1199,7 @@ bot.reaction_add do |event|
               when /nsfw/i
                 ENV['CHAR_NSFW_CH']
               when /hidden/i
-                if user.current_bot?
+                if user&.current_bot?
                   event.channel.id
                 else
                   user.dm&.id
