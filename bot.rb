@@ -244,8 +244,20 @@ stats = Command.new(:stats, desc, opts) do |event, name, all|
   when UID
     user_id = UID.match(name)
     user = event.server.member(user_id[1])
-  when String
-    #See if you can find the name some other way?
+  when /ghost/i
+    users = User.all
+    ghosts = []
+
+    users.each do |u|
+      ghosts.push("<@#{u.id}>") if event.server.member(u.id).nil?
+    end
+
+    embed = Embed.new(
+      title: "Ghost Members",
+      description: ghosts.join(", ")
+    )
+
+    event.send_embed("", embed)
   end
 
   usr = User.find_by!(id: user&.id)
