@@ -1550,7 +1550,7 @@ bot.reaction_add do |event|
                 img: CharImage.where(char_id: char.id).find_by(keyword: 'Default'),
                 user: user,
                 color: color,
-                section: :bags,
+                section: :default,
                 event: event
               )
             end
@@ -1603,7 +1603,7 @@ bot.reaction_add do |event|
                 img: CharImage.where(char_id: char.id).find_by(keyword: 'Default'),
                 user: user,
                 color: color,
-                section: :bags,
+                section: :default,
                 event: event
               )
             end
@@ -1668,18 +1668,18 @@ bot.reaction_add do |event|
           nil
         end
 
-    embed = if char.rating == 'NSFW' && !event.channel.nsfw?
-              nsfw_char_embed(char: char, user: user, color: color, event: event)
-            else
-              character_embed(
-                char: char,
-                img: CharImage.where(char_id: char.id).find_by(keyword: 'Default'),
-                user: user,
-                color: color,
-                section: :bags,
-                event: event
-              )
-            end
+      embed = if char.rating == 'NSFW' && !event.channel.nsfw?
+                nsfw_char_embed(char: char, user: user, color: color, event: event)
+              else
+                character_embed(
+                  char: char,
+                  img: CharImage.where(char_id: char.id).find_by(keyword: 'Default'),
+                  user: user,
+                  color: color,
+                  section: :default,
+                  event: event
+                )
+              end
 
       event.message.edit("", embed)
       section_react(event.message)
