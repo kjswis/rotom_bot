@@ -1904,7 +1904,7 @@ bot.member_leave do |event|
 
   embed = Embed.new(
     title: "I've lost track of a user!",
-    description: "It seems #{event.user.name} has left the server!",
+    description: "It seems <@#{event.user.name}>, (#{event.user.nickname}) has left the server!",
     fields: [
       { name: "```Flagging Guild Members......```", value: updated.join("\n") }
     ]
