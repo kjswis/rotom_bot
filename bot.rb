@@ -360,9 +360,7 @@ app = Command.new(:app, desc, opts) do |event, name, status|
       msg.react(Emoji::CRAYON)
       msg.react(Emoji::CROSS)
 
-      #character.update!(active: active[0].capitalize)
-      #character.reload
-      #success_embed("Successfully updated #{name} to be #{active[0].downcase}")
+      success_embed("Successfully requested #{name} to be Reactivated!")
     elsif allowed && !active
       character.update!(active: 'Archived')
       character.reload
@@ -513,10 +511,6 @@ member = Command.new(:member, desc, opts) do |event, name, section, keyword|
     user_id = UID.match(name)
   when String
     chars = Character.where(name: name)
-    unless event.channel.nsfw?
-      chars = chars.reject { |c| c['rating'] == 'NSFW' }
-    end
-
     char = chars.first if chars.length == 1
 
     if char
@@ -564,10 +558,7 @@ member = Command.new(:member, desc, opts) do |event, name, section, keyword|
     option_react(msg, chars_id)
   when name && char && !section
     if char.rating == 'NSFW' && !event.channel.nsfw?
-      embed = error_embed(
-        "Wrong Channel!",
-        "The requested character is NSFW"
-      )
+      embed = nsfw_char_embed(char: char, user: user, color: color, event: event)
     else
       embed = character_embed(
         char: char,
@@ -577,12 +568,11 @@ member = Command.new(:member, desc, opts) do |event, name, section, keyword|
         color: color,
         event: event
       )
-
-      msg = event.send_embed("", embed)
-      Carousel.create(message_id: msg.id, char_id: char.id)
-
-      section_react(msg)
     end
+    msg = event.send_embed("", embed)
+    Carousel.create(message_id: msg.id, char_id: char.id)
+
+    section_react(msg)
   when char && section && keyword
     img = CharImage.where(char_id: char.id).find_by!(keyword: keyword)
 
@@ -622,10 +612,15 @@ member = Command.new(:member, desc, opts) do |event, name, section, keyword|
     )if section == :image
 
     if char.rating == 'NSFW' && !event.channel.nsfw?
-      embed = error_embed(
-        "Wrong Channel!",
-        "The requested character is NSFW"
+      embed = nsfw_char_embed(char: char, user: user, color: color, event: event)
+
+      msg = event.send_embed("", embed)
+      Carousel.create(
+        message_id: msg.id,
+        char_id: char.id,
       )
+
+      section_react(msg)
     elsif sections.detect{ |s| s == sect }
       embed = character_embed(
         char: char,
@@ -1523,6 +1518,7 @@ bot.reaction_add do |event|
     end
 
     char = Character.find(carousel.char_id)
+    color = CharacterController.type_color(char)
     user =
       case
       when char.user_id.match(/public/i)
@@ -1533,14 +1529,19 @@ bot.reaction_add do |event|
         nil
       end
 
-    embed = character_embed(
-      char: char,
-      img: CharImage.where(char_id: char.id).find_by(keyword: 'Default'),
-      user: user,
-      color: CharacterController.type_color(char),
-      section: :all,
-      event: event
-    )
+    embed = if char.rating == 'NSFW' && !event.channel.nsfw?
+              nsfw_char_embed(char: char, user: user, color: color, event: event)
+            else
+              character_embed(
+                char: char,
+                img: CharImage.where(char_id: char.id).find_by(keyword: 'Default'),
+                user: user,
+                color: color,
+                section: :bags,
+                event: event
+              )
+            end
+
     event.message.edit("", embed)
 
   when [:member, :bust]
@@ -1570,6 +1571,7 @@ bot.reaction_add do |event|
   when [:member, :back]
     event.message.delete_all_reactions
     char = Character.find(carousel.char_id)
+    color = CharacterController.type_color(char)
     user =
       case
       when char.user_id.match(/public/i)
@@ -1580,14 +1582,19 @@ bot.reaction_add do |event|
         nil
       end
 
-    embed = character_embed(
-      char: char,
-      img: CharImage.where(char_id: char.id).find_by(keyword: 'Default'),
-      user: user,
-      color: CharacterController.type_color(char),
-      section: :default,
-      event: event
-    )
+    embed = if char.rating == 'NSFW' && !event.channel.nsfw?
+              nsfw_char_embed(char: char, user: user, color: color, event: event)
+            else
+              character_embed(
+                char: char,
+                img: CharImage.where(char_id: char.id).find_by(keyword: 'Default'),
+                user: user,
+                color: color,
+                section: :bags,
+                event: event
+              )
+            end
+
     event.message.edit("", embed)
     section_react(event.message)
   when [:member, :left], [:member, :right]
@@ -1637,6 +1644,7 @@ bot.reaction_add do |event|
 
       char = Character.find(carousel.options[char_index])
       carousel.update(id: carousel.id, char_id: char.id)
+      color =  CharacterController.type_color(char)
       user =
         case
         when char.user_id.match(/public/i)
@@ -1647,15 +1655,19 @@ bot.reaction_add do |event|
           nil
         end
 
+    embed = if char.rating == 'NSFW' && !event.channel.nsfw?
+              nsfw_char_embed(char: char, user: user, color: color, event: event)
+            else
+              character_embed(
+                char: char,
+                img: CharImage.where(char_id: char.id).find_by(keyword: 'Default'),
+                user: user,
+                color: color,
+                section: :bags,
+                event: event
+              )
+            end
 
-      embed = character_embed(
-        char: char,
-        img: CharImage.where(char_id: char.id).find_by(keyword: 'Default'),
-        user: user,
-        color: CharacterController.type_color(char),
-        section: :default,
-        event: event
-      )
       event.message.edit("", embed)
       section_react(event.message)
     end

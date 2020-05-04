@@ -26,7 +26,7 @@ def character_embed(char:, img: nil, user: nil, color:, section: nil, event: nil
   footer_text += " | #{navigate}" unless section.nil?
 
   status_effects = CharStatus.where(char_id: char.id)
-  char_teams = CharTeam.where(char_id: char.id)
+  char_teams = CharTeam.where(char_id: char.id, active: true)
 
   embed = Embed.new(
     footer: {
@@ -371,4 +371,39 @@ def image_list_embed(char, images, user, color)
       text: "#{user.name}##{user.tag} | #{char.active}"
     }
   )
+end
+
+def nsfw_char_embed(char:, user: nil, color:, event: nil)
+  icon = nil
+
+  user_name = case user
+              when /Public/i
+                'Adopt Me!'
+              when /Server/i
+                icon = event.server.icon_url if event
+                'Server Owned'
+              when nil
+                icon = UNKNOWN_USER_IMG
+                'Unknown User'
+              else
+                icon = user.avatar_url
+                "#{user.name}##{user.tag}"
+              end
+
+  footer_text = "#{user_name} | #{char.active}"
+  footer_text += " | #{char.rating}" if char.rating
+
+  embed = Embed.new(
+    footer: {
+      icon_url: icon,
+      text: footer_text
+    },
+    title: char.name,
+    color: color,
+    fields: [
+      { name: 'Wrong Channel!', value: "The requested information has contains NSFW content" }
+    ]
+  )
+
+  embed
 end

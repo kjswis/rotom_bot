@@ -60,7 +60,14 @@ class Character < ActiveRecord::Base
     }
 
     user_id = UID.match(app.description)
-    active = app.title == "Personal Character" ? 'Active' : 'NPC'
+    active = case app.title
+             when /Personal Character/
+               'Active'
+             when /NPC/
+               'NPC'
+             when /Archived Character/
+               'Archived'
+             end
 
     hash["user_id"] = case app.description
                       when /public/i
@@ -114,10 +121,9 @@ class Character < ActiveRecord::Base
     if user
       active_chars =
         Character.where(user_id: user_id[1]).where(active: "Active")
-      active_chars = active_chars.map(&:edit_url)
 
       new_active =
-        active == "Personal Character" && !active_chars.include?(edit_url)
+        active == "Personal Character" && !active_chars.map(&:edit_url).include?(edit_url)
 
       too_many = new_active ? active_chars.count >= allowed_chars : false
       approval_react(event) unless too_many
