@@ -1878,6 +1878,12 @@ end
 
 # This will trigger when anyone leaves the server
 bot.member_leave do |event|
+  chars = Character.where(user_id: event.user.id)
+  chars.each do |char|
+    unless char.active == 'NPC'
+      char.update(active: 'Deleted')
+    end
+  end
 end
 
 # This will trigger when anyone is banned from the server
