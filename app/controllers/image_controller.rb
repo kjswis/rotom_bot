@@ -1,5 +1,5 @@
 class ImageController
-  def self.default_image(url, char_id)
+  def self.default_image(url, char_id, rating)
     img = CharImage.where(char_id: char_id).find_by(keyword: 'Default')
 
     case
@@ -10,7 +10,7 @@ class ImageController
       img = CharImage.create(
         char_id: char_id,
         url: url,
-        category: 'SFW',
+        category: rating,
         keyword: 'Default'
       )
     end

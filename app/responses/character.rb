@@ -401,7 +401,7 @@ def nsfw_char_embed(char:, user: nil, color:, event: nil)
     title: char.name,
     color: color,
     fields: [
-      { name: 'Wrong Channel!', value: "The requested information has contains NSFW content" }
+      { name: 'Wrong Channel!', value: "The requested information contains NSFW content" }
     ]
   )
 

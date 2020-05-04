@@ -1187,7 +1187,8 @@ bot.reaction_add do |event|
     char = CharacterController.edit_character(app)
     img = ImageController.default_image(
       img_url,
-      char.id
+      char.id,
+      char.rating
     )if img_url
     color = CharacterController.type_color(char)
     channel = case char.rating
