@@ -1890,12 +1890,27 @@ end
 
 # This will trigger when anyone leaves the server
 bot.member_leave do |event|
+  updated = []
   chars = Character.where(user_id: event.user.id)
+
   chars.each do |char|
     unless char.active == 'NPC'
       char.update(active: 'Deleted')
+      char.reload
     end
+
+    updated.push("#{char.name} -- #{char.active}")
   end
+
+  embed = Embed.new(
+    title: "I've lost track of a user!",
+    description: "It seems #{event.user.name} has left the server!",
+    fields: [
+      { name: "```Flagging Guild Members......```", value: updated.join("\n") }
+    ]
+  )
+
+  bot.send_message(588464466048581632, "", false, embed)
 end
 
 # This will trigger when anyone is banned from the server
