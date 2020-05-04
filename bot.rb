@@ -1892,6 +1892,8 @@ end
 bot.member_leave do |event|
   updated = []
   chars = Character.where(user_id: event.user.id)
+  roles = event.user.roles
+  roles = roles.map{ |r| "<@#{r}>" }
 
   chars.each do |char|
     unless char.active == 'NPC'
@@ -1906,7 +1908,8 @@ bot.member_leave do |event|
     title: "I've lost track of a user!",
     description: "It seems <@#{event.user.name}>, (#{event.user.nickname}) has left the server!",
     fields: [
-      { name: "```Flagging Guild Members......```", value: updated.join("\n") }
+      { name: "```Flagging Guild Members......```", value: updated.join("\n") },
+      { name: "User's Roles", value: roles.join(", ") }
     ]
   )
 
