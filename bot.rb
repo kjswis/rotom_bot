@@ -1141,8 +1141,6 @@ bot.reaction_add do |event|
     when /Reactivation\sApplication/
       m = event.server.roles.find{ |r| r.id == ENV['ADMINS'].to_i }.members
       maj = m.count > 2 ? m.count/2.0 : 2
-
-      maj = 1
       :reactivation
     else
       if event.server == nil
@@ -1286,7 +1284,7 @@ bot.reaction_add do |event|
     )
 
   when [:reactivation, :yes]
-    ch_id = app.author.name.match(/\[(\d)+\]/)
+    ch_id = app.author.name.match(/\[(\d+)\]/)
     char = Character.find(ch_id[1])
 
     img = CharImage.where(char_id: char.id).find_by(keyword: 'Default')
