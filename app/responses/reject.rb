@@ -59,9 +59,6 @@ def reject_app_embed(app, opts = nil)
     fields: fields
   )
 
-  embed.thumbnail = { url: app.image.url } if app.image
-  embed.thumbnail = { url: app.thumbnail.url } if app.thumbnail
-
   embed
 end
 
