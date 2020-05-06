@@ -539,7 +539,7 @@ member = Command.new(:member, desc, opts) do |event, name, section, keyword|
 
   case
   when !name
-    chars = Character.where(active: 'Active')
+    chars = Character.where(active: 'Active').order(:name)
     types = Type.all
 
     embed = char_list_embed(chars, 'active', types)
@@ -1707,12 +1707,12 @@ bot.reaction_add do |event|
 
       case char_index
       when 0
-        chars = Character.where(active: 'Active')
+        chars = Character.where(active: 'Active').order(:name)
         types = Type.all
 
         embed = char_list_embed(chars, 'active', types)
       when 1
-        chars = Character.where(active: 'Archived')
+        chars = Character.where(active: 'Archived').order(:name)
         types = Type.all
 
         embed = char_list_embed(chars, 'archived', types)
@@ -1722,12 +1722,12 @@ bot.reaction_add do |event|
           .joins('LEFT OUTER JOIN landmarks l on l.name = characters.location')
           .joins('LEFT OUTER JOIN regions r on r.id = l.region')
           .joins('LEFT OUTER JOIN regions r2 on characters.location = r2.name')
-          .where(active: 'NPC')
+          .where(active: 'NPC').order(:name)
 
         regions = Region.all
         embed = char_list_embed(chars, 'npc', regions)
       when 3
-        chars = Character.where.not(special: nil)
+        chars = Character.where.not(special: nil).order(:name)
         embed = char_list_embed(chars, 'special')
       end
 
