@@ -5,6 +5,7 @@ module CharApp
   GRAMMAR = "Please check your grammar and capitalization"
   IMAGE = "Please check your units, grammar, and capitalization"
   LORE = "Your image is inappropriate or conflicts with the age rating"
+  DM_NOTES = "Please elaborate on your DM Notes"
   NONSENSE = "The character has conflicting personality traits or backstory"
   DUPLICATE = "This character is either very similar to another, or does not have a proper reason to exist"
   OVERPOWERED = "This character has unexplained abilities or is generally too powerful"
