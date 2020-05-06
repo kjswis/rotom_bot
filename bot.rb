@@ -539,8 +539,18 @@ member = Command.new(:member, desc, opts) do |event, name, section, keyword|
 
   case
   when !name
-    chars = Character.all
-    char_list_embed(chars)
+    chars = Character.where(active: 'Active')
+    types = Type.all
+
+    embed = char_list_embed(chars, 'active', types)
+    msg = event.send_embed("", embed)
+    Carousel.create(message_id: msg.id)
+
+    msg.react(Emoji::ONE)
+    msg.react(Emoji::TWO)
+    msg.react(Emoji::THREE)
+    msg.react(Emoji::FOUR)
+    msg.react(Emoji::CROSS)
   when name && user_id
     chars = Character.where(user_id: user_id[1])
     user = event.server.member(user_id[1])
@@ -1149,6 +1159,8 @@ bot.reaction_add do |event|
         :member
       elsif carousel&.landmark_id
         :landmark
+      elsif carousel&.message_id
+        :member
       elsif team_chat
         :team_chat
       end
@@ -1647,10 +1659,16 @@ bot.reaction_add do |event|
 
   when [:member, :number]
     char_index = nil
+    emote = nil
+
     Emoji::NUMBERS.each.with_index do |emoji, i|
-      char_index = i if reactions[emoji]&.count.to_i > 1
+      if reactions[emoji]&.count.to_i > 1
+        char_index = i
+        emote = emoji
+      end
     end
-    if char_index
+
+    if char_index && carousel&.options
       event.message.delete_all_reactions
 
       char = Character.find(carousel.options[char_index])
@@ -1681,6 +1699,39 @@ bot.reaction_add do |event|
 
       event.message.edit("", embed)
       section_react(event.message)
+    elsif char_index && carousel&.options.nil?
+      users = event.message.reacted_with(emote)
+      users.each do |user|
+        event.message.delete_reaction(user.id, emote) unless user.current_bot?
+      end
+
+      case char_index
+      when 0
+        chars = Character.where(active: 'Active')
+        types = Type.all
+
+        embed = char_list_embed(chars, 'active', types)
+      when 1
+        chars = Character.where(active: 'Archived')
+        types = Type.all
+
+        embed = char_list_embed(chars, 'archived', types)
+      when 2
+        chars = Character
+          .select('characters.*, COALESCE(r.name, r2.name) AS region')
+          .joins('LEFT OUTER JOIN landmarks l on l.name = characters.location')
+          .joins('LEFT OUTER JOIN regions r on r.id = l.region')
+          .joins('LEFT OUTER JOIN regions r2 on characters.location = r2.name')
+          .where(active: 'NPC')
+
+        regions = Region.all
+        embed = char_list_embed(chars, 'npc', regions)
+      when 3
+        chars = Character.where.not(special: nil)
+        embed = char_list_embed(chars, 'special')
+      end
+
+      event.message.edit("", embed)
     end
   when [:member, :cross]
     event.message.delete

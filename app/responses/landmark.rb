@@ -19,9 +19,8 @@ def landmark_embed(lm:, user: nil, section: nil, event: nil)
   r = Region.find(lm.region)
   plm = Landmark.find(lm.location) if lm.location
   npcs = []
-  npc_list = LandmarkNpcs.where(landmark_id: lm.id)
-  npc_list.each do |lmnpc|
-    npc = Character.find(lmnpc.character_id)
+  npc_list = Character.where(location: lm.name)
+  npc_list.each do |npc|
     npcs.push "#{npc.name} - #{npc.species}"
   end
 

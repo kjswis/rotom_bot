@@ -204,58 +204,92 @@ def char_sections(fields)
   fields
 end
 
-def char_list_embed(chars, user = nil)
+def char_list_embed(chars, group, sort = nil)
   fields = []
-  active = []
-  archived = []
-  owned_npcs = []
-  unowned_npcs = []
+  list = {}
 
-  list = {
-    "Active Guild Members" => active,
-    "Archived Guild Members" => archived,
-    "NPCs" => owned_npcs,
-    "Public NPCs" => unowned_npcs
-  }
-
-  chars.each do |char|
-    case char.active
-    when 'Active'
-      active.push char.name
-    when 'Archived'
-      archived.push char.name
-    when 'NPC'
-      owned_npcs.push char.name if char.user_id != 'Public'
-      unowned_npcs.push char.name if char.user_id == 'Public'
-    end
+  case group
+  when /active/i
+    title = "Registered Guild Members -- [#{chars.count}]"
+    desc = "These are the pokemon registered to the guild, sorted by primary type"
+  when /archived/i
+    title = "Archived Guild Members -- [#{chars.count}]"
+    desc = "These are the pokemon in the guild archives, sorted by primary type"
+  when /npc/i
+    title = "Registered Guild NPCs -- [#{chars.length}]"
+    desc = "These are the NPCs from all around Zaplana, sorted by primary type"
+  when /special/i
+    title = "Specail Characters -- [#{chars.count}]"
+    desc = "These are the special pokemon around Zaplana, sorted by category"
   end
 
-  list.each do |name, array|
-    unless array.empty?
-      array = array.sort
+  case sort&.first
+  when Type
+    sort.each do |s|
+      list[s.name] = chars.map{ |c| c.name if c.types.split("/").first === s.name }.compact
+    end
 
-      array.each_slice(100).each_with_index do |a, i|
-        fields.push({
-          name: "#{name} [#{i > 0 ? 'cont' : array.count}]",
-          value: a.join(", ")
-        })
+    list = list.reject { |k,v| v == [] }
+    list.each do |k,v|
+      fields.push({ name: k, value: v.join(", ") })
+    end
+  when Region
+    sort.each do |s|
+      list[s.name] = chars.map do |c|
+        next unless c.region == s.name
+        name = c.name
+        name += "*#{name}*" if c.user_id === /public/i
+        name += "~~#{name}~~" if c.rating === /NSFW/i
+        name
+      end.compact
+    end
+
+
+    list["Unknown"] = chars.map do |c|
+      next unless c.region.nil?
+      name = c.name
+      name += "*#{name}*" if c.user_id === /public/i
+      name += "~~#{name}~~" if c.rating === /NSFW/i
+      name
+    end.compact
+
+    list = list.reject { |k,v| v == [] }
+    list.each do |k,v|
+      fields.push({ name: k, value: v.join(", ") })
+    end
+  when nil
+    list["guild"] = []
+    list["legend"] = []
+
+    chars.each do |c|
+      case c.special
+      when /legend/i
+        list["legend"].push("#{c.name}, #{c.species} -- last seen: #{c.location || "???"}")
+      when /guild/i
+        list["guild"].push("#{c.name}, #{c.species}")
+      end
+    end
+
+    list = list.reject { |k,v| v == [] }
+    list.each do |k,v|
+      case k
+      when /legend/i
+        fields.push({ name: "Mythic/Legend Pokemon", value: v.join("\n") })
+      when /guild/i
+        fields.push({ name: "Guild Employees", value: v.join("\n") })
       end
     end
   end
 
-  embed = Embed.new(
-    title: "Registered Pokemon [#{chars.count}]",
-    fields: fields
-  )
-
-  if user
-    user_name = user.nickname || user.name
-
-    embed.color = user.color.combined
-    embed.title = "#{user_name}'s Characters"
+  if fields.empty?
+    fields.push({name: "No Resulst", value: "--"})
   end
 
-  embed
+  Embed.new(
+    title: title,
+    description: desc,
+    fields: fields
+  )
 end
 
 def user_char_embed(chars, user)
