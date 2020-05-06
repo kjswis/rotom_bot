@@ -264,6 +264,7 @@ def char_list_embed(chars, group, sort = nil)
     end
   when nil
     list["guild"] = []
+    list["adoptable"] = []
     list["legend"] = []
 
     chars.each do |c|
@@ -272,6 +273,8 @@ def char_list_embed(chars, group, sort = nil)
         list["legend"].push("#{c.name}, #{c.species} -- last seen: #{c.location || "???"}")
       when /guild/i
         list["guild"].push("#{c.name}, #{c.species}")
+      when /adoptable/i
+        list["adoptable"].push("#{c.name}, #{c.species} -- #{c.location || "???"}")
       end
     end
 
@@ -282,6 +285,8 @@ def char_list_embed(chars, group, sort = nil)
         fields.push({ name: "Mythic/Legend Pokemon", value: v.join("\n") })
       when /guild/i
         fields.push({ name: "Guild Employees", value: v.join("\n") })
+      when /adoptable/i
+        fields.push({ name: "Adoptable NPCs", value: v.join("\n") })
       end
     end
   end
@@ -289,6 +294,8 @@ def char_list_embed(chars, group, sort = nil)
   if fields.empty?
     fields.push({name: "No Resulst", value: "--"})
   end
+
+  binding.pry
 
   Embed.new(
     title: title,

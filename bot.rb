@@ -294,6 +294,7 @@ app = Command.new(:app, desc, opts) do |event, name, status|
            when /landmark/i then :lm
            when /legend/i then :legend
            when /guild/i then :guild
+           when /adoptable/i then :adoptable
            end
   end
 
@@ -320,7 +321,7 @@ app = Command.new(:app, desc, opts) do |event, name, status|
       edit_url+= lm.edit_url
 
       embed = edit_app_dm(name, edit_url)
-    when :legend, :guild
+    when :legend, :guild, :adoptable
       character.update(special: status.downcase)
       success_embed("Updated #{name} to have #{status} flag")
     end
