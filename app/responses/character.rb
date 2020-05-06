@@ -219,7 +219,7 @@ def char_list_embed(chars, group, sort = nil)
     title = "Registered Guild NPCs -- [#{chars.length}]"
     desc = "These are the NPCs from all around Zaplana, sorted by current location"
   when /special/i
-    title = "Specail Characters -- [#{chars.count}]"
+    title = "Special Characters -- [#{chars.count}]"
     desc = "These are the special pokemon around Zaplana, sorted by category"
   end
 
@@ -295,12 +295,13 @@ def char_list_embed(chars, group, sort = nil)
     fields.push({name: "No Resulst", value: "--"})
   end
 
-  binding.pry
-
   Embed.new(
     title: title,
     description: desc,
-    fields: fields
+    fields: fields,
+    footer: {
+      text: "React to Navigate | 1. Active | 2. Archived | 3. NPCs | 4. Special"
+    }
   )
 end
 
