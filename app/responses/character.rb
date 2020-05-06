@@ -217,7 +217,7 @@ def char_list_embed(chars, group, sort = nil)
     desc = "These are the pokemon in the guild archives, sorted by primary type"
   when /npc/i
     title = "Registered Guild NPCs -- [#{chars.length}]"
-    desc = "These are the NPCs from all around Zaplana, sorted by primary type"
+    desc = "These are the NPCs from all around Zaplana, sorted by current location"
   when /special/i
     title = "Specail Characters -- [#{chars.count}]"
     desc = "These are the special pokemon around Zaplana, sorted by category"
