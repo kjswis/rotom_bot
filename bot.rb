@@ -1037,7 +1037,7 @@ commands = [
 bot.message do |event|
   content = event.message.content
   author = event.author.id
-  clear_channels = [473582694802915328, 644771348073152522, 705530816410943539]
+  clear_channels = [473582694802915328, 644771348073152522, 705530816410943539, 710292384956809255]
 
   command = /^pkmn-(\w+)/.match(content)
   cmd = commands.detect { |c| c.name == command[1].to_sym } if command
@@ -1924,6 +1924,8 @@ end
 
 # This will trigger when any reaction is removed in discord
 bot.reaction_remove do |event|
+  binding.pry
+
 end
 
 # This will trigger when a member is updated
@@ -1941,9 +1943,11 @@ end
 # This will trigger when anyone leaves the server
 bot.member_leave do |event|
   updated = []
+  fields = []
+
   chars = Character.where(user_id: event.user.id)
-  roles = event.user.roles
-  roles = roles.map{ |r| "<@#{r}>" }
+  roles = event.roles
+  roles = roles.map{ |r| "<@#{r}>" } if roles
 
   chars.each do |char|
     unless char.active == 'NPC'
@@ -1954,16 +1958,27 @@ bot.member_leave do |event|
     updated.push("#{char.name} -- #{char.active}")
   end
 
+  fields.push({
+    name: "```Flagging Guild Members......```",
+    value: updated.join("\n")
+  }) unless updated.empty?
+
+  fields.push({
+    name: "User's Roles",
+    value: roles.join(", ")
+  }) unless roles.empty?
+
   embed = Embed.new(
     title: "I've lost track of a user!",
-    description: "It seems <@#{event.user.name}>, (#{event.user.nickname}) has left the server!",
-    fields: [
-      { name: "```Flagging Guild Members......```", value: updated.join("\n") },
-      { name: "User's Roles", value: roles.join(", ") }
-    ]
+    description: "It seems #{event.member.mention}, (#{event.user.username}) has left the server!",
+    fields: fields
   )
 
+  # production channel
   bot.send_message(588464466048581632, "", false, embed)
+
+  # development channel
+  #bot.send_message(594244240020865035, "", false, embed)
 end
 
 # This will trigger when anyone is banned from the server
