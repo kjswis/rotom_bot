@@ -38,7 +38,7 @@ def team_embed(team)
   })unless active.empty?
 
   fields.push({
-    name: 'Inactive Members',
+    name: 'Former Members',
     value: inactive.join(", ")
   })unless inactive.empty?
 

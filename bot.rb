@@ -1954,8 +1954,11 @@ bot.member_leave do |event|
       char.update(active: 'Deleted')
       char.reload
     end
+    ct = CharTeam.find_by(char_id: char.id)
+    ct.update(active: false) if ct
+    t = Team.find_by(ct.team_id) if ct
 
-    updated.push("#{char.name} -- #{char.active}")
+    updated.push("#{char.name}, #{t.name} -- #{char.active}")
   end
 
   fields.push({
