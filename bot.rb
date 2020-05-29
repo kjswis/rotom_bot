@@ -1986,6 +1986,43 @@ end
 
 # This will trigger when anyone is banned from the server
 bot.user_ban do |event|
+  updated = []
+  fields = []
+
+  chars = Character.where(user_id: event.user.id)
+  roles = event.roles
+  roles = roles.map{ |r| "<@#{r}>" } if roles
+
+  chars.each do |char|
+    unless char.active == 'NPC'
+      char.update(active: 'Deleted')
+      char.reload
+    end
+    ct = CharTeam.find_by(char_id: char.id)
+    ct.update(active: false) if ct
+    t = Team.find_by(ct.team_id) if ct
+
+    updated.push("#{char.name}, #{t.name} -- #{char.active}")
+  end
+
+  fields.push({
+    name: "```Flagging Guild Members......```",
+    value: updated.join("\n")
+  }) unless updated.empty?
+
+  fields.push({
+    name: "User's Roles",
+    value: roles.join(", ")
+  }) unless roles.empty?
+
+  embed = Embed.new(
+    title: "A User was forced to leave!",
+    description: "It seems #{event.member.mention}, (#{event.user.username}) has been banned from the server!",
+    fields: fields
+  )
+
+  # production channel
+  bot.send_message(588464466048581632, "", false, embed)
 end
 
 # This will trigger when anyone is un-banned from the server
