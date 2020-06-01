@@ -1956,9 +1956,10 @@ bot.member_leave do |event|
     end
     ct = CharTeam.find_by(char_id: char.id)
     ct.update(active: false) if ct
-    t = Team.find_by(ct.team_id) if ct
+    t = Team.find(ct.team_id) if ct
 
-    updated.push("#{char.name}, #{t.name} -- #{char.active}")
+    updated.push("#{char.name}, #{t.name} -- #{char.active}") if t
+    updated.push("#{char.name}, no team data -- #{char.active}") if t.nil?
   end
 
   fields.push({
@@ -2000,9 +2001,10 @@ bot.user_ban do |event|
     end
     ct = CharTeam.find_by(char_id: char.id)
     ct.update(active: false) if ct
-    t = Team.find_by(ct.team_id) if ct
+    t = Team.find(ct.team_id) if ct
 
-    updated.push("#{char.name}, #{t.name} -- #{char.active}")
+    updated.push("#{char.name}, #{t.name} -- #{char.active}") if t
+    updated.push("#{char.name}, no team data -- #{char.active}") if t.nil?
   end
 
   fields.push({
