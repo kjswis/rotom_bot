@@ -95,6 +95,9 @@ def char_bio(char, fields, char_teams)
     { name: 'Backstory', value: char.backstory }
   )if char.backstory
   fields.push(
+    { name: 'Recent Events', value: char.recent_events }
+  )if char.recent_events
+  fields.push(
     { name: 'Other', value: char.other }
   )if char.other
   fields.push(
