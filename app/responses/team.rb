@@ -21,14 +21,11 @@ end
 def team_embed(team)
   fields = []
   active = []
-  inactive = []
   members = CharTeam.where(team_id: team.id)
 
   members.each do |member|
     if member.active
       active.push(Character.find(member.char_id).name)
-    else
-      inactive.push(Character.find(member.char_id).name)
     end
   end
 
@@ -37,10 +34,6 @@ def team_embed(team)
     value: active.join(", ")
   })unless active.empty?
 
-  fields.push({
-    name: 'Former Members',
-    value: inactive.join(", ")
-  })unless inactive.empty?
 
   embed = Embed.new(
     title: team.name,
