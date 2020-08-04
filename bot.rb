@@ -1728,7 +1728,10 @@ bot.reaction_add do |event|
         regions = Region.all
         embed = char_list_embed(chars, 'npc', regions)
       when 3
-        chars = Character.where.not(special: nil).order(:name)
+        flags = Character.where.not(special: nil).order(:name)
+        adopts = Character.where(user_id: 'Public').order(:name)
+
+        chars = flags + adopts
         embed = char_list_embed(chars, 'special')
       end
 
@@ -1924,8 +1927,6 @@ end
 
 # This will trigger when any reaction is removed in discord
 bot.reaction_remove do |event|
-  binding.pry
-
 end
 
 # This will trigger when a member is updated
