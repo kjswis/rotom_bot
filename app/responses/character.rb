@@ -276,7 +276,7 @@ def char_list_embed(chars, group, sort = nil)
         list["legend"].push("#{c.name}, #{c.species} -- last seen: #{c.location || "???"}")
       when /guild/i
         list["guild"].push("#{c.name}, #{c.species}")
-      when nil
+      else
         list["adoptable"].push("#{c.name}, #{c.species} -- #{c.location || "???"}")
       end
     end
