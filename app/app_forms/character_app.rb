@@ -7,7 +7,7 @@ class CharacterApplication < ApplicationForm
       maj = majority(event)
 
       reactions = event.message.reactions
-      if reactions[Emoji::Y]&.count.to_i > 1 && star(event)
+      if reactions[Emoji::Y]&.count.to_i > maj && star(event)
         approve(event)
       elsif reactions[Emoji::N]&.count.to_i > maj
         deny(event)

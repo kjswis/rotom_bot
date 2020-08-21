@@ -9,7 +9,7 @@ class ImageController
         char_id: char_id,
         url: url,
         category: rating,
-        keword: 'Default'
+        keyword: 'Default'
       )
     end
   end
