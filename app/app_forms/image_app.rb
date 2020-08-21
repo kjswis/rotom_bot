@@ -28,7 +28,7 @@ class ImageApplication < ApplicationForm
     character = Character.find(image.char_id)
 
     # Determine appropriate channel
-    channel = image.category == 'NSFW' ? ENV['CHAR_NSFW_CH'] : ENV['CHAT_CH']
+    channel = image.category == 'NSFW' ? ENV['CHAR_NSFW_CH'] : ENV['CHAR_CH']
 
     reply = BotResponse.new(
       destination: channel,
