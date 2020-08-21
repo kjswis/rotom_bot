@@ -1,21 +1,17 @@
 class ImageController
   def self.default_image(url, char_id, rating)
-    img = CharImage.where(char_id: char_id).find_by(keyword: 'Default')
+    image = CharImage.where(char_id: char_id).find_by(keyword: 'Default')
 
-    case
-    when url && img
-      img.update(url: url)
-      img.reload
-    when url && !img
-      img = CharImage.create(
+    if image
+      image.update(url: url)
+    else
+      CharImage.create(
         char_id: char_id,
         url: url,
         category: rating,
-        keyword: 'Default'
+        keword: 'Default'
       )
     end
-
-    img
   end
 
   def self.edit_image(params)

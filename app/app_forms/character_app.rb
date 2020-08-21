@@ -7,7 +7,7 @@ class CharacterApplication < ApplicationForm
       maj = majority(event)
 
       reactions = event.message.reactions
-      if reactions[Emoji::Y]&.count.to_i > maj && star(event)
+      if reactions[Emoji::Y]&.count.to_i > 1 && star(event)
         approve(event)
       elsif reactions[Emoji::N]&.count.to_i > maj
         deny(event)
@@ -29,7 +29,7 @@ class CharacterApplication < ApplicationForm
 
     # Save character and default image
     character = CharacterController.edit_character(app)
-    ImageController.default_image(app.thumbnail&.url, character.id, character.rating)
+    ImageController.default_image(app.image&.url, character.id, character.rating)
 
     # Determine appropriate channel
     channel = case character.rating

@@ -27,11 +27,11 @@ def character_embed(character:, event:, section: nil, image: nil)
     fields = char_status(character, fields)
     fields = char_bio(character, fields)
     fields = char_rumors(character, fields)
-    fields = char_dm_notes(character, fields) if ENV['DM_CH'].include?(event.channel.id.to_s)
+    fields = char_dm_notes(character, fields, event)
   when /bio/i
     embed.description = character.personality if character.personality
     fields = char_bio(character, fields)
-    fields = char_dm_notes(character, fields) if ENV['DM_CH'].include?(event.channel.id.to_s)
+    fields = char_dm_notes(character, fields, event)
   when /types?/i
     fields = char_type(character, fields)
   when /status/i
@@ -183,12 +183,18 @@ def char_inv(char, fields)
   # Show formatted items
   value = bags.empty? ? "#{char.name} doesn't have any items" : bags.join("\n")
   fields.push({ name: "Bags", value: value })
+
+  fields
 end
 
-def char_dm_notes(char, fields)
+def char_dm_notes(char, fields, event)
+  return fields unless ENV['DM_CH'].include?(event.channel.id.to_s)
+
   fields.push(
     { name: 'DM Notes', value: char.dm_notes }
   )if char.dm_notes
+
+  fields
 end
 
 def char_list_embed(chars, group, sort = nil)

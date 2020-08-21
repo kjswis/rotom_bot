@@ -30,6 +30,7 @@ class ApplicationForm
       member = event.server.member(star.id)
       return true if Util::Roles.admin?(member)
     end
+    return false
   end
 
   def self.remove(event)
