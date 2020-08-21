@@ -32,7 +32,7 @@ class ApplicationForm
     end
   end
 
-  def remove(event)
+  def self.remove(event)
     crosses = event.message.reacted_with(Emoji::CROSS)
     crosses.each do |cross|
       member = event.server.member(cross.id)

@@ -26,12 +26,6 @@ class CharacterController
     user = User.find(user_id[1])
     member = event.server.member(user_id[1])
 
-    # Error, if member cannot be found
-    if member.nil?
-      event.message.react(Emoji::WHAT)
-      return 'invalid'
-    end
-
     # Count the active characters, and subtract from their allowed max
     chars = Character.where(active: 'Active', user_id: user.id).count
     if user.allowed_chars(member) - chars > 0
@@ -39,5 +33,9 @@ class CharacterController
     else
       false
     end
+  rescue ActiveRecord::RecordNotFound => e
+    error_embed("Record not Found!", e.message)
+  rescue StandardError => e
+    error_embed(e.message)
   end
 end

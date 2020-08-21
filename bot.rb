@@ -69,13 +69,18 @@ bot.message do |event|
   elsif author.id == ENV['WEBHOOK'].to_i
     # Save the app, and check app if character
     app = event.message.embeds.first
-    er = CharacterController.check_user(event) if app.author.name == 'Character Application'
-
-    case er
-    when true, nil
+    if app.author.name == 'Character Application'
+      case reply = CharacterController.authenticate_char_app(event)
+      when Embed
+        BotController.application_react(event)
+        BotController.reply(bot, event, reply)
+      when true
+        BotController.application_react(event)
+      when false
+        BotController.unauthorized_char_app(bot, event, member)
+      end
+    else
       BotController.application_react(event)
-    when false
-      BotController.unauthorized_char_app(bot, event, member)
     end
 
   # Check for a clear command
