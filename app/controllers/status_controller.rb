@@ -1,40 +1,77 @@
 class StatusController
-  def self.edit_status(name, effect, flag=nil)
-    if status = Status.find_by(name: name)
-      status.update!(effect: effect, amount: flag)
-      status.reload
-    else
-      flag = flag ? flag : true
-      status = Status.create(name: name, effect: effect, amount: flag)
-    end
+  def self.update_status(name, effect, flag=nil)
+    # Find Status, if exists
+    status = Status.find_by('name ilike ?', name)
 
-    status
+    # Determine action
+    case flag
+    when /true/i, nil
+      if effect.match(/delete/i) && status
+        # Delete Status
+        status.destroy
+        success_embed("Destroyed #{name}")
+      else
+        # Update/Create then return embed
+        update_or_create(status, name, effect, true)
+        status_details(status)
+      end
+
+    when /false/i
+      # Update/Create then return embed
+      update_or_create(status, name, effect, true)
+      status_details(status)
+
+    when /delete/i, /remove/i
+      # Delete Status
+      status.destroy
+      success_embed("Destroyed #{name}")
+    end
   end
 
-  def self.edit_char_status(char, status, amount=nil)
-    char_st = CharStatus.where(char_id: char.id).find_by(status_id: status.id)
-    amt = amount.to_i if amount
+  def self.update_char_status(character, status, amount=nil)
+    case status
+    when /all/i
+      # Clear all status effects from the user
+      CharStatus.where(char_id: character.id).destroy_all
+    when Status
+      # Find the status effect if it exists
+      char_status =
+        CharStatus.where(char_id: character.id).find_by(status_id: status.id)
 
-    if char_st && amt && status.amount
-      char_st.update(amount: char_st.amount + amt)
-      char_st.reload
+      if char_status && status.amount
+        raise 'Amount must be a number' if amount == 0
+        # Update row
+        new_amount = char_status.amount + amount
 
-      char_st
-    elsif char_st && !status.amount
-      error_embed("The user is already afflicted with #{status.name}")
-    elsif amount && !amt && status.amount
-      error_embed("Amount must be numerical!")
-    elsif amt && status.amount
-      CharStatus.create(
-        char_id: char.id,
-        status_id: status.id,
-        amount: amt
-      )
-    elsif !status.amount
-      CharStatus.create(
-        char_id: char.id,
-        status_id: status.id,
-      )
+        if new_amount > 0
+          # If the value is above 0, update
+          char_status.update(amount: new_amount)
+        else
+          # If the value is 0 or below, delete
+          char_status.destroy
+        end
+
+      elsif char_status && !status.amount
+        raise 'Character already has status'
+      else
+        raise 'Character did not have status' if amount.to_i < 0
+        # Create new row
+        CharStatus.create(
+          char_id: character.id,
+          status_id: status.id,
+          amount: amount
+        )
+      end
+    end
+  end
+
+  def update_or_create(status, name, desc, amount)
+    # Create or Update
+    if status
+      status.update(effect: effect, amount: true)
+      status.reload
+    else
+      status = status.create(name: name, effect: effect, amount: true)
     end
   end
 end

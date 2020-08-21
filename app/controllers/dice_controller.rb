@@ -1,20 +1,38 @@
 class DiceController
   def self.roll(die)
     case die
-    when String
-      match = /([0-9]*?)d([0-9]+)/.match(die)
-      num = match[1].to_i || 1
-      sides = match[2].to_i
-      num = 1 if num == 0
+    when Hash
+      # If number of die isn't specified, set it to 1
+      die[:number] = die[:number] || 1
 
-      r = 0
-      num.times do
-        r += rand(1 .. sides)
+      # Create array to save each roll
+      results = []
+      die[:number].times do
+        results.push(rand(1 .. die[:sides]))
       end
 
-      r
+      # Return results array
+      die[:results] = results
+      die
     when Array
-      die.sample
+      { sides: die, results: [die.sample] }
+    end
+  end
+
+  def self.edit_die(die_array, die, array)
+    if die_array.nil?
+      # Create
+      DieArray.create(name: die, sides: array)
+      success_embed("Created #{die}: #{array.join(", ")}")
+    elsif array.include?(/delete/i)
+      # Destroy
+      die_array.destroy
+      success_embed("Deleted #{die}!")
+    else
+      # Update
+      die_array.update(sides: array)
+      die_array.reload
+      success_embed("Updated #{die}: #{array.join(", ")}")
     end
   end
 end

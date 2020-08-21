@@ -26,7 +26,7 @@ class ImageController
     img = CharImage.where(char_id: char_id).find_by(keyword: keyword)
 
     if img
-      img.update!(img_hash)
+      img.update(img_hash)
       img.reload
     else
       img = CharImage.create(img_hash)

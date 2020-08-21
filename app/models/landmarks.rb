@@ -4,6 +4,17 @@ class Landmark < ActiveRecord::Base
   validates :category, presence: true
   before_save :set_default_warning
 
+  def self.restricted_find(search, author)
+    # Find Landmark
+    case search.to_i
+    when 0
+      where(user_id: author.id).
+        find_by!('name ilike ?', search)
+    else
+      find(search) if Util::Roles.admin?(author)
+    end
+  end
+
   def set_default_warning
     if self.warning.nil?
       self.warning = "This is a verified safe location!"

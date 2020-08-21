@@ -4,6 +4,32 @@ class Character < ActiveRecord::Base
   validates :species, presence: true
   validates :types, presence: true
 
+  def self.restricted_find(search, author, flags=[])
+    # Append Deleted to flags
+    flags.push('Deleted')
+
+    # Find Character
+    case search.to_i
+    when 0
+      where(user_id: author.id).
+        where.not(active: flags).
+        find_by!('name ilike ?', search)
+    else
+      find(search) if Util::Roles.admin?(author)
+    end
+  end
+
+  def type_color
+    Type.find_by(name: types.split("/").first || 'Unknown').color
+  end
+
+  def fetch_inventory
+    # Fetch item names and amounts in character's inventory
+    Inventory.where(char_id: id).
+      joins('join items on items.id = inventories.item_id').
+      pluck('amount, items.name')
+  end
+
   def self.from_form(app)
     key_mapping = {
       "Characters Name" => "name",
@@ -97,42 +123,5 @@ class Character < ActiveRecord::Base
 
     hash = hash.reject { |k,v| k == nil }
     hash
-  end
-
-  def self.check_user(event)
-    app = event.message.embeds.first
-
-    edit_url = app.footer.text
-    active = app.title
-    user_id = UID.match(app.description)
-
-    if app.description.match(/public/i) || app.description.match(/server/i)
-      approval_react(event)
-      return
-    end
-
-    user = User.find_by(id: user_id[1])
-    member = event.server.member(user_id[1]) if user
-
-    allowed_chars = (user.level / 10 + 1) if user
-
-    if member
-      allowed_chars += 1 if member.roles.map(&:name).include?("Nitro Booster")
-    end
-
-    if user
-      active_chars =
-        Character.where(user_id: user_id[1]).where(active: "Active")
-
-      new_active =
-        active == "Personal Character" && !active_chars.map(&:edit_url).include?(edit_url)
-
-      too_many = new_active ? active_chars.count >= allowed_chars : false
-      approval_react(event) unless too_many
-
-      too_many(event, member, edit_url, 'characters') if too_many && member
-    else
-      unknown_member(event)
-    end
   end
 end

@@ -3,18 +3,13 @@ require_relative 'emoji.rb'
 
 module CharApp
   GRAMMAR = "Please check your grammar and capitalization"
-  IMAGE = "Please check your units, grammar, and capitalization"
-  LORE = "Your image is inappropriate or conflicts with the age rating"
-  DM_NOTES = "Please elaborate on your DM Notes"
+  IMAGE = "Your image is inappropriate or conflicts with the age rating"
+  LORE = "This character conflicts with server lore"
+  DM_NOTES = "This character is too sparce or does not have enough detail in the DM Notes"
   NONSENSE = "The character has conflicting personality traits or backstory"
   DUPLICATE = "This character is either very similar to another, or does not have a proper reason to exist"
   OVERPOWERED = "This character has unexplained abilities or is generally too powerful"
-  #GRAMMAR = "Please check your grammar and\ncapitalization"
-  #IMAGE = "Please check your units,\ngrammar, and capitalization"
-  #LORE = "Your image is inappropriate or\nconflicts with the age rating"
-  #NONSENSE = "The character has conflicting\npersonality traits or backstory"
-  #DUPLICATE = "This character is either very\nsimilar to another, or does\nnot have a proper reason to exist"
-  #OVERPOWERED = "This character has unexplained\nabilities or is generally\ntoo powerful"
+  DISCUSSED = "You have already discussed issues with an admin"
   INLINE_SPACE = "------------------------------"
 
   REJECT_MESSAGES = {
@@ -24,6 +19,7 @@ module CharApp
     Emoji::NOTE => DM_NOTES,
     Emoji::QUESTION => NONSENSE,
     Emoji::PEOPLE => DUPLICATE,
-    Emoji::WIZARD => OVERPOWERED
+    Emoji::WIZARD => OVERPOWERED,
+    Emoji::TALK => DISCUSSED
   }
 end

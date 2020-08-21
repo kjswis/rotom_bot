@@ -2,12 +2,16 @@ class UsersController
   def self.stat_image(user, member, stats=nil)
     size_width = 570;
     size_height = 376;
-    stats_frame =  "../../images/LevelUp.png"
-    level_up = "../../images/LevelUpFont.png"
-    user_url_img = "../../images/Image_Builder/user_url_img.png"
-    output_file =  "../../images/Image_Builder/LevelUp"
+    stats_frame =  "images/LevelUp.png"
+    level_up = "images/LevelUpFont.png"
+    user_url_img = "images/Image_Builder/user_url_img.png"
+    output_file =  "images/Image_Builder/LevelUp"
 
-    Down.download(member.avatar_url, destination: user_url_img)
+    begin
+      Down.download(member.avatar_url, destination: user_url_img)
+    rescue Down::NotFound
+      user_url_img = "images/Image_Builder/unknown_img.png"
+    end
 
     #Gif Destroyer
     i = Magick::ImageList.new(user_url_img)
@@ -37,15 +41,18 @@ class UsersController
       )
     end
 
-    ratio = 0.5
+    last_level = user.level == 1 ? 0 : ((user.level + 4) **3) / 10.0
+    this_level = user.next_level - last_level
+    ratio = 1 - ((user.next_level - user.boosted_xp).to_f / this_level)
+
     user_name = member.nickname || member.name
-    short_name = user_name.length > 25 ? "#{user_name[0..22]}..." : user_name
+    short_name = user_name.length > 15 ? "#{user_name[0..14]}..." : user_name
     rank = User.order(unboosted_xp: :desc)
-    user_rank = rank.detect{ |r| r.id == user.id }
+    user_rank = rank.index{ |r| r.id == user.id } + 1
 
     gc = Draw.new
 
-    gc.font('../../OpenSans-SemiBold.ttf')
+    gc.font('OpenSans-SemiBold.ttf')
 
     gc.stroke('#39c4ff').fill('#39c4ff')
     gc.rectangle(42, 48, 42 + (95 * ratio), 48 + 3)
@@ -53,15 +60,15 @@ class UsersController
     gc.stroke('none').fill('black')
     gc.pointsize('15')
     gc.text(15,25, short_name)
-    gc.text(40, 45, user.level.to_s)
-    gc.text(15, 290, user_rank.to_s)
-    gc.text(40, 65, user.boosted_xp.to_s)
+    gc.text(40, 45, "Lv.#{user.level}")
+    gc.text(15, 290, "Rank: #{user_rank}")
+    gc.text(40, 65, "Exp: #{user.boosted_xp}")
 
     gc.stroke('white').fill('white')
     gc.pointsize('30')
     gc.text(40,330, user_name)
-    reached = "reached level #{user.level}!"
-    gc.text(40,360, reached)
+    gc.text(40,360, "reached level #{user.level}!") if stats
+    gc.text(40,360, "is level #{user.level}!") if !stats
 
     if stats
       gc.stroke('none').fill('black')
@@ -74,12 +81,12 @@ class UsersController
       gc.text(450, 255, stats['speed'].to_s)
 
       gc.stroke('none').fill('maroon')
-      gc.text(505, 97, user.hp - stats['hp'].to_s)
-      gc.text(505, 127, user.attack - stats['attack'].to_s)
-      gc.text(505, 159, user.defense - stats['defense'].to_s)
-      gc.text(505, 191, user.sp_attack - stats['sp_attack'].to_s)
-      gc.text(505, 222, user.sp_defense - stats['sp_defense'].to_s)
-      gc.text(505, 255, user.speed - stats['speed'].to_s)
+      gc.text(505, 97, "+ #{stats['hp'] - user.hp}")
+      gc.text(505, 127, "+ #{stats['attack']- user.attack}")
+      gc.text(505, 159, "+ #{stats['defense'] - user.defense}")
+      gc.text(505, 191, "+ #{stats['sp_attack'] - user.sp_attack}")
+      gc.text(505, 222, "+ #{stats['sp_defense']- user.sp_defense}")
+      gc.text(505, 255, "+ #{stats['speed'] - user.speed}")
     else
       gc.stroke('none').fill('black')
       gc.pointsize('18')
@@ -95,5 +102,17 @@ class UsersController
     gc.draw(u[0])
 
     u.write("#{output_file}.png")
+    "#{output_file}.png"
+  end
+
+  def fetch_ghost_users(event)
+    users = User.all
+    ghosts = []
+
+    users.each do |u|
+      ghosts.push("<@#{u.id}>") if event.server.member(u.id).nil?
+    end
+
+    Embed.new(title: "Ghost Members", description: ghosts.join(", "))
   end
 end

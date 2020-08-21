@@ -1,83 +1,75 @@
-UNKNOWN_USER_IMG = "https://i.imgur.com/oRJwgRa.png"
-
-def character_embed(char:, img: nil, user: nil, color:, section: nil, event: nil)
+def character_embed(character:, event:, section: nil, image: nil)
+  # Find the author, if they're a member, or in DMs use the event's author
+  if event.server
+    member = character.user_id.match(/public/i) ? 'Public' :
+      event.server.member(character.user_id)
+  else
+    member = event.author
+  end
   fields = []
-  icon = nil
-
-  user_name = case user
-              when /Public/i
-                'Adopt Me!'
-              when /Server/i
-                icon = event.server.icon_url if event
-                'Server Owned'
-              when nil
-                icon = UNKNOWN_USER_IMG
-                'Unknown User'
-              else
-                icon = user.avatar_url
-                "#{user.name}##{user.tag}"
-              end
-
-  footer_text = "#{user_name} | #{char.active}"
-  footer_text += " | #{char.rating}" if char.rating
-  footer_text += " | #{img&.category} " if section == :image
-
-  navigate = "React to Navigate"
-  footer_text += " | #{navigate}" unless section.nil?
-
-  status_effects = CharStatus.where(char_id: char.id)
-  char_teams = CharTeam.where(char_id: char.id, active: true)
 
   embed = Embed.new(
-    footer: {
-      text: footer_text
-    },
-    title: char.name,
-    color: color,
+    title: character.name,
+    color: character.type_color
   )
 
+  # Save image, if there is one, and footer info
+  default_img = CharImage.where(char_id: character.id).find_by(keyword: 'Default')
+  footer_info = [character.active, character.rating]
+
+  embed.thumbnail = { url: default_img.url } if default_img
+
+  # Fill out the fields based on the section
   case section
-  when :all, nil, :default
-    embed.description = char.personality if char.personality
-    fields = char_type(char, fields)
-    fields = char_status(char, fields, status_effects)
-    fields = char_bio(char, fields, char_teams)
-    fields = char_rumors(char, fields)
-  when :bio
-    embed.description = char.personality if char.personality
-    fields = char_bio(char, fields, char_teams)
-  when :type
-    fields = char_type(char, fields)
-  when :status
-    fields = char_status(char, fields, status_effects)
-  when :rumors
-    fields = char_rumors(char, fields)
-  when :image
-    if img
+  when /all/i, /default/i, nil
+    embed.description = character.personality if character.personality
+    fields = char_type(character, fields)
+    fields = char_status(character, fields)
+    fields = char_bio(character, fields)
+    fields = char_rumors(character, fields)
+    fields = char_dm_notes(character, fields) if ENV['DM_CH'].include?(event.channel.id.to_s)
+  when /bio/i
+    embed.description = character.personality if character.personality
+    fields = char_bio(character, fields)
+    fields = char_dm_notes(character, fields) if ENV['DM_CH'].include?(event.channel.id.to_s)
+  when /types?/i
+    fields = char_type(character, fields)
+  when /status/i
+    fields = char_status(character, fields)
+  when /rumors?/i
+    fields = char_rumors(character, fields)
+  when /images?/i
+    image = image ? image : default_img
+    if image
       embed.title =
-        "#{char.name} | #{img.keyword}" unless img.keyword == 'Default'
-      embed.image = { url: img.url }
+        "#{character.name} | #{image.keyword}" unless image.keyword == 'Default'
+      embed.image = { url: image.url }
+
+      # Replace the rating with the image's rating
+      footer_info.pop
+      footer_info.push(image.category)
     else
       embed.description = "No character images found!"
     end
-  when :bags
-    bags = Inventory.where(char_id: char.id)
-    fields = char_inv(bags, fields, char.name)
+
+    # Remove default image
+    embed.thumbnail = nil
+  when /bags?/i, /inventory/i
+    fields = char_inv(character, fields)
   end
 
-
-  embed.thumbnail = { url: img.url } if img && section != :image
+  # Add fields to embed
   embed.fields = fields
-  embed.footer.icon_url = icon
 
-  embed
+  # Add ID to footer, and apply to embed
+  footer_info.push(character.id)
+  author_footer(embed, member, footer_info)
 end
 
-def char_bio(char, fields, char_teams)
-  teams = []
-  char_teams.each do |ct|
-    teams.push(Team.find(ct.team_id).name)
-  end
+def char_bio(char, fields)
+  # Find the appropriate teams
+  char_teams = CharTeam.where(char_id: char.id, active: true).map(&:team_id)
+  teams = Team.where(id: char_teams).map(&:name)
 
   fields.push(
     { name: 'Hometown', value: char.hometown, inline: true }
@@ -100,9 +92,6 @@ def char_bio(char, fields, char_teams)
   fields.push(
     { name: 'Other', value: char.other }
   )if char.other
-  fields.push(
-    { name: 'DM Notes', value: char.dm_notes }
-  )if char.dm_notes
   fields.push(
     { name: 'Team', value: teams.join("\n") }
   )if !teams.empty?
@@ -147,6 +136,9 @@ def char_rumors(char, fields)
 end
 
 def char_status(char, fields, status_effects=nil)
+  # Find any status effects on the character
+  status_effects = CharStatus.where(char_id: char.id)
+
   fields.push(
     { name: 'Age', value: char.age, inline: true }
   )if char.age
@@ -183,28 +175,20 @@ def char_status(char, fields, status_effects=nil)
   fields
 end
 
-def char_inv(bags, fields, name=nil)
-  inv = []
-  bags.each do |line|
-    item = Item.find(line.item_id)
-    inv_line = line.amount > 1 ? "#{item.name} [#{line.amount}]" : item.name
-    inv.push(inv_line)
-  end
+def char_inv(char, fields)
+  # Retrive array of [item amount, item name], and format
+  inv = char.fetch_inventory
+  bags = inv.map { |i| i[0] > 1 ? "#{i[1]} [#{i[0]}]" : i[1] }
 
-  value = inv.join("\n") || "#{name} doesn't have any items"
-  fields.push({ name: "Bags", value: value, inline: true })
+  # Show formatted items
+  value = bags.empty? ? "#{char.name} doesn't have any items" : bags.join("\n")
+  fields.push({ name: "Bags", value: value })
 end
 
-def char_sections(fields)
-  CharCarousel::REACTIONS.map do |emoji, message|
-    fields.push({
-      name: emoji,
-      value: message,
-      inline: true
-    })
-  end
-
-  fields
+def char_dm_notes(char, fields)
+  fields.push(
+    { name: 'DM Notes', value: char.dm_notes }
+  )if char.dm_notes
 end
 
 def char_list_embed(chars, group, sort = nil)
@@ -308,12 +292,12 @@ def char_list_embed(chars, group, sort = nil)
   )
 end
 
-def user_char_embed(chars, user)
+def user_char_embed(chars, member, nsfw=nil)
   fields = []
   active = []
   archived = []
   npcs = []
-  user_name = user&.nickname || user&.name
+  user_name = member&.nickname || member&.name || "Unknown User"
 
   chars.each do |char|
     case char.active
@@ -329,7 +313,7 @@ def user_char_embed(chars, user)
   active.each.with_index do |char, i|
     fields.push({
       name: "#{i+1} #{char.name}",
-      value: "#{char.species} -- #{char.types}"
+      value: "#{'~~' if nsfw}#{char.species} -- #{char.types}#{'~~' if nsfw}"
     })
   end
 
@@ -344,13 +328,8 @@ def user_char_embed(chars, user)
     fields.push({ name: "#{user_name}'s NPCs", value: npcs.join(", ") })
   end
 
-  if user
-    allowed = User.find_by(id: user&.id).level / 10 + 1
-    allowed =
-      user.roles.map(&:name).include?('Nitro Booster') ? allowed + 1 : allowed
-  else
-    allowed = '???'
-  end
+  # Find allowed active characters
+  allowed = member ? User.find(member.id.to_s).allowed_chars(member) : '???'
 
   embed = Embed.new(
     title: "#{user_name}'s Characters [#{active.count}/#{allowed}]",
@@ -358,7 +337,7 @@ def user_char_embed(chars, user)
     fields: fields
   )
 
-  embed.color = user.color.combined if user&.color
+  embed.color = member&.color&.combined if member&.color
   embed
 end
 
@@ -379,81 +358,44 @@ def dup_char_embed(chars, name)
   )
 end
 
-def char_image_embed(char, image, user, color)
-  user_name = case user
-              when String
-                user.capitalize
-              when nil
-                'Unknown User'
-              else
-                "#{user.name}##{user.tag}"
-              end
-
-  footer_text = "#{user_name} | #{char.active}"
-  footer_text += " | #{char.rating}" if char.rating
-  footer_text += " | #{image.category}"
-
-  Embed.new(
-    footer: {
-      icon_url: user&.avatar_url,
-      text: footer_text
-    },
-    title: "#{char.name} | #{image.keyword}",
-    color: color,
-    image: {
-      url: image.url
-    }
-  )
-end
-
-def image_list_embed(char, images, user, color)
-  desc = ""
-  images.each do |img|
-    desc += "[#{img.keyword}](#{img.url})\n" unless img.keyword == 'Default'
+def image_list_embed(character, event)
+  # Find the author, if they're a member, or in DMs use the event's author
+  if event.server
+    member = character.user_id.match(/public/i) ? 'Public' :
+      event.server.member(character.user_id)
+  else
+    member = event.author
   end
+  # Grab an array of the character's images
+  images = CharImage.where(char_id: character.id).
+    map{ |i| "[#{i.keyword}](#{i.url})" }
 
-  Embed.new(
-    title: char.name,
-    description: desc,
-    color: color,
-    footer: {
-      icon_url: user.avatar_url,
-      text: "#{user.name}##{user.tag} | #{char.active}"
-    }
+  # Create Embed
+  embed = Embed.new(
+    title: character.name,
+    description: images.join("\n"),
+    color: character.type_color
   )
+
+  # Add footer to embed
+  author_footer(embed, member, [character.active, character.id])
 end
 
-def nsfw_char_embed(char:, user: nil, color:, event: nil)
-  icon = nil
+def nsfw_char_embed(character, event)
+  # Find the author, if they're a member,
+  member = event.server.member(character.user_id)
 
-  user_name = case user
-              when /Public/i
-                'Adopt Me!'
-              when /Server/i
-                icon = event.server.icon_url if event
-                'Server Owned'
-              when nil
-                icon = UNKNOWN_USER_IMG
-                'Unknown User'
-              else
-                icon = user.avatar_url
-                "#{user.name}##{user.tag}"
-              end
-
-  footer_text = "#{user_name} | #{char.active}"
-  footer_text += " | #{char.rating}" if char.rating
-
+  # Create Embed
   embed = Embed.new(
-    footer: {
-      icon_url: icon,
-      text: footer_text
-    },
-    title: char.name,
-    color: color,
-    fields: [
-      { name: 'Wrong Channel!', value: "The requested information contains NSFW content" }
-    ]
+    title: character.name,
+    color: character.type_color,
+    fields: [{
+      name: 'Wrong Channel!',
+      value: 'The requested information contains NSFW content'
+    }]
   )
+  embed.thumbnail = nil
 
-  embed
+  # Apply appropriate footer to embed
+  author_footer(embed, member, [character.active, character.rating, character.id])
 end

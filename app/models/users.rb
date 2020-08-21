@@ -1,6 +1,12 @@
 class User < ActiveRecord::Base
   validates :id, presence: true
 
+  def allowed_chars(member)
+    # Determine if the member is a Nitro Booster
+    booster = Util::Roles.booster?(member) ? 2 : 1
+    level / 10 + booster
+  end
+
   def make_stats
     stats = {}
 
@@ -32,9 +38,9 @@ class User < ActiveRecord::Base
     self
   end
 
-  def update_xp(msg, user=nil)
+  def update_xp(msg_length, member=nil)
     xp =
-      case msg.length
+      case msg_length
       when 0..39 then 0
       when 40..149 then 1
       when 150..299 then 2
@@ -49,12 +55,12 @@ class User < ActiveRecord::Base
     )
 
     self.reload
-    reply = level_up(user) if next_level && boosted_xp > next_level
+    reply = level_up(member) if next_level && boosted_xp > next_level
 
     reply
   end
 
-  def level_up(user=nil)
+  def level_up(member=nil)
     if level < 100
       next_level = (level + 6) ** 3 / 10.0
       self.update(level: level + 1, next_level: next_level.round)
@@ -67,7 +73,7 @@ class User < ActiveRecord::Base
     n = Nature.find(nature)
 
     stats = stat_calc(n.up_stat, n.down_stat)
-    img = stat_image(self, user, stats) if user
+    img = stat_image(self, member, stats) if member
 
     self.update(stats)
     self.reload
@@ -107,37 +113,5 @@ class User < ActiveRecord::Base
     end
 
     stats
-  end
-
-  def self.import_user(file)
-    file.each do |line|
-      usr = line.split(",")
-      id = usr[0]
-      b_xp = usr[3].to_i
-      ub_xp = usr[17].to_i > 0 ? usr[17].to_i : usr[3].to_i
-
-      if user = User.find_by(id: id)
-        user.update(
-          level: 1,
-          next_level: 22,
-          boosted_xp: b_xp,
-          unboosted_xp: ub_xp
-        )
-        user.reload
-      else
-        user = User.create(
-          id: id,
-          level: 1,
-          next_level: 22,
-          boosted_xp: b_xp,
-          unboosted_xp: ub_xp
-        )
-      end
-
-      user = user.make_stats
-      until user.next_level > user.boosted_xp
-        user.level_up
-      end
-    end
   end
 end
