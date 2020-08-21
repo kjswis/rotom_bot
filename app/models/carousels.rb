@@ -19,8 +19,8 @@ class Carousel < ActiveRecord::Base
       # Member List
       GuildCarousel.update_embed(event, self)
     end
-  rescue StandardError => e
-    error_embed(e.message)
+  #rescue StandardError => e
+    #error_embed(e.message)
   end
 
   def close(event)
