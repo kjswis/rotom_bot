@@ -24,7 +24,8 @@ class CharacterApplication < ApplicationForm
   def self.approve(event)
     # Save the application, and member if they exist
     app = event.message.embeds.first
-    member = event.server.member(UID.match(app.description)[1])
+    user_id = app.description.match(UID)
+    member = event.server.member(user_id[1])
 
     # Save character and default image
     character = CharacterController.edit_character(app)

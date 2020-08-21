@@ -16,7 +16,7 @@ require 'active_record'
 DISCORD = "#36393f"
 ERROR = "#a41e1f"
 
-UID = /<@\!?([0-9]+)>/
+UID = /<@\!?(\w+)>/
 URL = /https?:\/\/[\S]+/
 
 # ---
