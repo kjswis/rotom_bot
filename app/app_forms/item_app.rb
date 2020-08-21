@@ -1,3 +1,5 @@
+require './app/app_forms/app_form.rb'
+
 class ItemApplication < ApplicationForm
   def self.process
     @process ||= Application.new('Item Application') do |event|

@@ -1,3 +1,5 @@
+require './app/commands/base_command.rb'
+
 class MatchupCommand < BaseCommand
   def self.opts
     {

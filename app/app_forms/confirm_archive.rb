@@ -1,3 +1,5 @@
+require './app/app_forms/app_form.rb'
+
 class ConfirmArchive < ApplicationForm
   def self.process
     @process ||= Application.new('Team Alert') do |event|

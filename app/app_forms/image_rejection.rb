@@ -1,3 +1,5 @@
+require './app/app_forms/app_form.rb'
+
 class ImageRejection < ApplicationForm
   def self.process
     @process ||= Application.new('Image Rejection') do |event|

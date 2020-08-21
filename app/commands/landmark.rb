@@ -1,3 +1,5 @@
+require './app/commands/base_command.rb'
+
 class LandmarkCommand < BaseCommand
   def self.opts
     {

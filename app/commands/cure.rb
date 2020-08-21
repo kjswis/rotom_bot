@@ -1,3 +1,5 @@
+require './app/commands/base_command.rb'
+
 class CureCommand < BaseCommand
   def self.opts
     {

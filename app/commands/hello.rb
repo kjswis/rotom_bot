@@ -1,3 +1,5 @@
+require './app/commands/base_command.rb'
+
 class HelloCommand < BaseCommand
   def self.cmd
     @cmd ||= Command.new(:hello, "Says hello!") do |event|

@@ -1,3 +1,5 @@
+require './app/commands/base_command.rb'
+
 class AfflictCommand < BaseCommand
   def self.opts
     {

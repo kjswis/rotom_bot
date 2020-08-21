@@ -1,3 +1,5 @@
+require './app/app_forms/app_form.rb'
+
 class ReactivationApplication < ApplicationForm
   def self.process
     @process ||= Application.new('Reactivation Application') do |event|

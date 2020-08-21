@@ -1,3 +1,5 @@
+require './app/app_forms/app_form.rb'
+
 class TeamJoinApplication < ApplicationForm
   def self.process
     @process ||= Application.new('Team Join Request') do |event|

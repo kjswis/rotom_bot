@@ -1,3 +1,5 @@
+require './app/app_forms/app_form.rb'
+
 class LandmarkRejection < ApplicationForm
   def self.process
     @process ||= Application.new('Landmark Rejection') do |event|

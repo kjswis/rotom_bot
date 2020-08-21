@@ -1,3 +1,5 @@
+require './app/app_forms/app_form.rb'
+
 class CharacerRejection < ApplicationForm
   def self.process
     @process ||= Application.new('Character Rejection') do |event|
