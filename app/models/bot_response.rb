@@ -48,8 +48,6 @@ class BotResponse
       )
     when Array
       Carousel.create(message_id: message.id, options: @carousel)
-    when nil
-      Carousel.create(message_id: message.id)
     end
 
     # React

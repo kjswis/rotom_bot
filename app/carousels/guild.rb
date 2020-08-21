@@ -40,10 +40,12 @@ class GuildCarousel < Carousel
       end
 
     # Remove reaction
-    event.message.reacted_with(reaction).each do |r|
-      event.message.delete_reaction(r.id, reaction) unless r.current_bot?
+    if reaction
+      event.message.reacted_with(reaction).each do |r|
+        event.message.delete_reaction(r.id, reaction) unless r.current_bot?
+      end
     end
 
-    BotResponse.new(carousel: carousel, embed: embed)
+    BotResponse.new(carousel: carousel, embed: embed) if embed
   end
 end

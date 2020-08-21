@@ -149,7 +149,7 @@ bot.reaction_add do |event|
 
   if reply
     BotController.reply(bot, event, reply)
-  elsif event.message.reactions[Emoji::CROSS].count
+  elsif event.message.reactions[Emoji::CROSS]&.count
     crosses = event.message.reacted_with(Emoji::CROSS)
     crosses.each do |cross|
       member = event.server.member(cross.id)
