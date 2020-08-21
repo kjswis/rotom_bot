@@ -102,7 +102,7 @@ class MemberCommand < BaseCommand
 
     # Find image if specified
     image = CharImage.where(char_id: character.id).
-      find_by(keyword: keyword || 'Default')
+      find_by('keyword ilike ?', keyword || 'Default')
 
     # Ensure the content is appropriate for the current channel
     if sfw && ( image&.category == 'NSFW' || character.rating == 'NSFW' )
