@@ -23,7 +23,7 @@ class LandmarkRejection < ApplicationForm
         reply
       end
     rescue StandardError => e
-      admin_error_embed(e.message)
+      error_embed(e.message)
     end
   end
 end
