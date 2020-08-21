@@ -90,13 +90,13 @@ class ImageCommand < BaseCommand
       [Character.where.not(active: 'Deleted').order('RANDOM()').first.name]
     when 'keyword'
       img = CharImage.where.not(keyword: 'Default').order('RANDOM()').first
-      [Character.find(img.char_id), img.keyword]
+      [Character.find(img.char_id).name, img.keyword]
     when 'delete'
       img = CharImage.where.not(keyword: 'Default').order('RANDOM()').first
-      [Character.find(img.char_id), img.keyword, 'delete']
+      [Character.find(img.char_id).name, img.keyword, 'delete']
     when 'update'
       img = CharImage.where.not(keyword: 'Default').order('RANDOM()').first
-      [Character.find(img.char_id), img.keyword, 'sfw', image_url]
+      [Character.find(img.char_id).name, img.keyword, 'sfw', image_url]
     when 'url'
       char = Character.where.not(active: 'Deleted').order('RANDOM()').first.name
       [char, kws.sample, 'sfw', image_url]

@@ -11,7 +11,7 @@ class ImageApplication < ApplicationForm
         approve(event)
       elsif reactions[Emoji::N].count.to_i > maj
         deny(event)
-      elsif reactions[Emoji::Cross]&.count.to_i > 1
+      elsif reactions[Emoji::CROSS]&.count.to_i > 1
         remove(event)
       end
     rescue StandardError => e
@@ -28,7 +28,7 @@ class ImageApplication < ApplicationForm
     character = Character.find(image.char_id)
 
     # Determine appropriate channel
-    channel = image.rating == 'NSFW' ? ENV['CHAR_NSFW_CH'] : ENV['CHAT_CH']
+    channel = image.category == 'NSFW' ? ENV['CHAR_NSFW_CH'] : ENV['CHAT_CH']
 
     reply = BotResponse.new(
       destination: channel,

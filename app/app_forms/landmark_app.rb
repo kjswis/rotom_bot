@@ -12,9 +12,9 @@ class LandmarkApplication < ApplicationForm
         approve(event)
       elsif reactions[Emoji::N]&.count.to_i > maj
         deny(event)
-      elsif reactions[Emoji::Crayon]&.count.to_i > 1
+      elsif reactions[Emoji::CRAYON]&.count.to_i > 1
         edit(event)
-      elsif reactions[Emoji::Cross]&.count.to_i > 1
+      elsif reactions[Emoji::CROSS]&.count.to_i > 1
         remove(event)
       end
     rescue StandardError => e

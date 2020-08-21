@@ -14,7 +14,7 @@ class ReactivationApplication < ApplicationForm
         deny(event)
       elsif reactions[Emoji::CRAYON]&count.to_i > maj
         edit(event)
-      elsif reactions[Emoji::Cross]&.count.to_i > 1
+      elsif reactions[Emoji::CROSS]&.count.to_i > 1
         remove(event)
       end
     #rescue StandardError => e
