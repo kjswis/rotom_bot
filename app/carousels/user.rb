@@ -19,7 +19,7 @@ class UserCarousel < Carousel
   def self.transition(event, carousel, user)
     # Character array
     all_chars = Character.where(active: 'Active', user_id: user.id).order(:rating)
-    sfw_chars = all_chars.map{ |c| c.rating == 'SFW' }
+    sfw_chars = all_chars.filter{ |c| c.rating == 'SFW' }
     chars = event.channel.nsfw? ? all_chars : sfw_chars
 
     # Update carousel to reflect new information
