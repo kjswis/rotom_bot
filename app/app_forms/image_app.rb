@@ -7,9 +7,9 @@ class ImageApplication < ApplicationForm
       maj = majority(event)
 
       reactions = event.message.reactions
-      if reactions[Emoji::Y].count.to_i > maj && star(event)
+      if reactions[Emoji::Y]&.count.to_i > maj && star(event)
         approve(event)
-      elsif reactions[Emoji::N].count.to_i > maj
+      elsif reactions[Emoji::N]&.count.to_i > maj
         deny(event)
       elsif reactions[Emoji::CROSS]&.count.to_i > 1
         remove(event)
@@ -50,7 +50,7 @@ class ImageApplication < ApplicationForm
     # Create App Rejection
     reply = BotResponse.new(
       embed: reject_app(event.message.embeds.first, :image),
-      reactions: ImgApp::REJECT_MESSAGES.map{ |k,v| k }
+      reactions: ImgApp::REJECT_MESSAGES.map{ |k,v| k }.push(Emoji::CHECK)
     )
 
     # Delete app, and reply

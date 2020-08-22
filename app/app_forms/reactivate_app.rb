@@ -10,9 +10,9 @@ class ReactivationApplication < ApplicationForm
       reactions = event.message.reactions
       if reactions[Emoji::Y]&.count.to_i > maj && star(event)
         approve(event)
-      elsif reactions[Emoji::N]&count.to_i > maj
+      elsif reactions[Emoji::N]&.count.to_i > maj
         deny(event)
-      elsif reactions[Emoji::CRAYON]&count.to_i > maj
+      elsif reactions[Emoji::CRAYON]&.count.to_i > maj
         edit(event)
       elsif reactions[Emoji::CROSS]&.count.to_i > 1
         remove(event)
@@ -55,7 +55,7 @@ class ReactivationApplication < ApplicationForm
     # Create App Rejection
     reply = BotResponse.new(
       embed: reject_app(event.message.embeds.first, :reactivation),
-      reactions: CharApp::REJECT_MESSAGES.map{ |k,v| k }
+      reactions: CharApp::REJECT_MESSAGES.map{ |k,v| k }.push(Emoji::CHECK)
     )
 
     # Delete app, and reply

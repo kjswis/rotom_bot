@@ -3,7 +3,7 @@ FTR = "If you have any questions, feel free to ask a Guildmaster"
 
 def reject_app(app, opts)
   embed = Embed.new(
-    title: app.title,
+    title: app.fields[1].value || 'Unknown Character',
     description: app.description,
     color: ERROR,
     author: {

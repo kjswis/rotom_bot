@@ -41,7 +41,7 @@ class ItemApplication < ApplicationForm
   def self.deny(event)
     reply = BotResponse.new(
       embed: reject_app(event.message.embeds.first, :item),
-      reactions: ItemApp::REJECT_MESSAGES.map{ |k,v| k }
+      reactions: ItemApp::REJECT_MESSAGES.map{ |k,v| k }.push(Emoji::CHECK)
     )
 
     # Delete message and reply

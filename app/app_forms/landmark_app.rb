@@ -41,7 +41,7 @@ class LandmarkApplication < ApplicationForm
   def self.deny(event)
     reply = BotResponse.new(
       embed: reject_app(event.message.embeds.first, :landmark),
-      reactions: LmApp::REJECT_MESSAGES.map{ |k,v| k }
+      reactions: LmApp::REJECT_MESSAGES.map{ |k,v| k }.push(Emoji::CHECK)
     )
 
     # Delete message and reply

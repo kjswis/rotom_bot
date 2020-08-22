@@ -7,7 +7,7 @@ class CharacerRejection < ApplicationForm
       app = event.message.embeds.first
       reactions = event.message.reactions
 
-      if reactions[Emoji::CHECK].count.to_i > 1
+      if reactions[Emoji::CHECK]&.count.to_i > 1
         # Find user and create embed
         user = event.server.member(UID.match(app.description)[1])
         embed = rejected_app(event, :character)
