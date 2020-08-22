@@ -3,7 +3,7 @@ FTR = "If you have any questions, feel free to ask a Guildmaster"
 
 def reject_app(app, opts)
   embed = Embed.new(
-    title: app.fields[1].value || 'Unknown Character',
+    title: app.title,
     description: app.description,
     color: ERROR,
     author: {
@@ -15,6 +15,7 @@ def reject_app(app, opts)
 
   fields = case opts
            when :character
+             embed.title = app.fields[1].value
              reject_fields(CharApp::REJECT_MESSAGES)
            when :image
              reject_fields(ImgApp::REJECT_MESSAGES)
