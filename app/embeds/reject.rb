@@ -75,7 +75,7 @@ def rejected_app(event, opts)
         join("\n") || 'No messages given'
       },{
         name: MSG,
-        value: "[Edit Your Application](#{URL::LANDMARK}" +
+        value: "[Edit Your Application](#{Url::LANDMARK}" +
         "#{app.footer.text})"
       }]
     end
