@@ -58,7 +58,7 @@ def rejected_app(event, opts)
         join("\n") || 'No messages given'
       },{
         name: MSG,
-        value: "[Edit Your Application](#{URL::CHARACTER}" +
+        value: "[Edit Your Application](#{Url::CHARACTER}" +
         "#{app.footer.text})"
       }]
     when :image
