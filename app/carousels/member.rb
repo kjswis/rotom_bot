@@ -12,7 +12,7 @@ class CharacterCarousel < Carousel
   def self.update_embed(event, carousel)
     # Save reactions and determine section
     reactions = event.message.reactions
-    section = sections.filter{ |k,v| reactions[k]&.count > 1 }.values.first
+    section = sections.filter{ |k,v| reactions[k]&.count.to_i > 1 }.values.first
 
     # Close if X is chosen
     return carousel.close(event) if reactions[Emoji::CROSS]&.count.to_i > 1

@@ -222,7 +222,7 @@ def char_list_embed(chars, group, sort = nil)
       list[s.name] = chars.map do |c|
         next unless c.types.split("/").first === s.name
         name = c.name
-        name = "~~#{name}~~" if c.rating&.match(/NSFW/i)
+        name = "|| #{name} ||" if c.rating&.match(/NSFW/i)
         name
       end.compact
     end
@@ -237,7 +237,7 @@ def char_list_embed(chars, group, sort = nil)
         next unless c.region == s.name
         name = c.name
         name = "*#{name}*" if c.user_id.match(/public/i)
-        name = "~~#{name}~~" if c.rating&.match(/NSFW/i)
+        name = "|| #{name} ||" if c.rating&.match(/NSFW/i)
         name
       end.compact
     end
@@ -247,7 +247,7 @@ def char_list_embed(chars, group, sort = nil)
       next unless c.region.nil?
       name = c.name
       name = "*#{name}*" if c.user_id.match(/public/i)
-      name = "~~#{name}~~" if c.rating&.match(/NSFW/i)
+      name = "|| #{name} ||" if c.rating&.match(/NSFW/i)
       name
     end.compact
 
@@ -317,9 +317,11 @@ def user_char_embed(chars, member, nsfw=nil)
   end
 
   active.each.with_index do |char, i|
+    name = nsfw && char.rating == 'NSFW' ?
+      "#{i+1} || #{char.name} ||" : "#{i+1} #{char.name}"
     fields.push({
-      name: "#{i+1} #{char.name}",
-      value: "#{'~~' if nsfw}#{char.species} -- #{char.types}#{'~~' if nsfw}"
+      name: name,
+      value: "#{char.species} -- #{char.types}"
     })
   end
 

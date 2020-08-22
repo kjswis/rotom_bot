@@ -39,11 +39,16 @@ class MemberCommand < BaseCommand
         characters = Character.where(user_id: UID.match(name)[1])
         active_chars = characters.filter{ |c| c.active == 'Active' }
 
+        # Handle sfw channels and nsfw characters
+        sfw = !event.channel.nsfw?
+        sfw_chars = active_chars.filter{ |c| c.rating == 'SFW' }
+        chars = sfw ? sfw_chars : active_chars
+
         # Generate embed and reply
         BotResponse.new(
-          embed: user_char_embed(characters, member),
+          embed: user_char_embed(characters, member, sfw),
           carousel: active_chars.map(&:id),
-          reactions: Emoji::NUMBERS.take(active_chars.count).push(Emoji::CROSS)
+          reactions: Emoji::NUMBERS.take(chars.count).push(Emoji::CROSS)
         )
 
       # Show Character List Embed
@@ -58,7 +63,8 @@ class MemberCommand < BaseCommand
         # Generate embed, and reply
         BotResponse.new(
           embed: char_list_embed(characters, 'active', types),
-          reactions: reactions.push(Emoji::CROSS)
+          reactions: reactions.push(Emoji::CROSS),
+          carousel: 'Guild'
         )
 
       # Show character embed

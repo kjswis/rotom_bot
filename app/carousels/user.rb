@@ -18,9 +18,14 @@ class UserCarousel < Carousel
 
   def self.transition(event, carousel, user)
     # Character array
-    all_chars = Character.where(active: 'Active', user_id: user.id).order(:rating)
-    sfw_chars = all_chars.filter{ |c| c.rating == 'SFW' }
-    chars = event.channel.nsfw? ? all_chars : sfw_chars
+    all_chars = Character.where(user_id: user.id).order(:rating)
+
+    # Handle nsfw chars in sfw channels
+    active_chars = all_chars.filter{ |c| c.active == 'Active' }
+    sfw_chars = active_chars.filter{ |c| c.rating == 'SFW' }
+
+    sfw = !event.channel.nsfw?
+    chars = sfw ? sfw_chars : active_chars
 
     # Update carousel to reflect new information
     carousel.update(
@@ -39,7 +44,7 @@ class UserCarousel < Carousel
     BotResponse.new(
       carousel: carousel,
       reactions: user_reactions,
-      embed: user_char_embed(chars, member)
+      embed: user_char_embed(all_chars, member, sfw)
     )
   end
 end
