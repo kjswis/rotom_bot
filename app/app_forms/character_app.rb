@@ -53,7 +53,7 @@ class CharacterApplication < ApplicationForm
   def self.deny(event)
     # Create App Rejection
     reply = BotResponse.new(
-      embed: reject_app(event, :character),
+      embed: reject_app(event.message.embeds.first, :character),
       reactions: CharApp::REJECT_MESSAGES.map{ |k,v| k }
     )
 

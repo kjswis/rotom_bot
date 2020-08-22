@@ -40,7 +40,7 @@ class LandmarkApplication < ApplicationForm
 
   def self.deny(event)
     reply = BotResponse.new(
-      embed: reject_app(event, :landmark),
+      embed: reject_app(event.message.embeds.first, :landmark),
       reactions: LmApp::REJECT_MESSAGES.map{ |k,v| k }
     )
 
