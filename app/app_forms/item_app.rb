@@ -39,11 +39,8 @@ class ItemApplication < ApplicationForm
   end
 
   def self.deny(event)
-    # Save the application
-    app = event.message.embeds.first
-
     reply = BotResponse.new(
-      embed: reject_app_embed(app, :item),
+      embed: reject_app(event, :item),
       reactions: ItemApp::REJECT_MESSAGES.map{ |k,v| k }
     )
 

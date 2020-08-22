@@ -52,11 +52,9 @@ class ReactivationApplication < ApplicationForm
   end
 
   def self.deny(event)
-    app = event.message.embeds.first
-
     # Create App Rejection
     reply = BotResponse.new(
-      embed: reject_app_embed(app, :reactivation),
+      embed: reject_app(event, :reactivation),
       reactions: CharApp::REJECT_MESSAGES.map{ |k,v| k }
     )
 

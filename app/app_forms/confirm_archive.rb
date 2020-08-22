@@ -30,7 +30,6 @@ class ConfirmArchive < ApplicationForm
           team.leave(character)
         end
 
-        binding.pry
         character.update(active: 'Archived')
 
         embed = success_embed("Successfully Archived #{character.name}")

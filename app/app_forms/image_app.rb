@@ -47,12 +47,9 @@ class ImageApplication < ApplicationForm
   end
 
   def self.deny(event)
-    # Save app
-    app = event.message.embeds.first
-
     # Create App Rejection
     reply = BotResponse.new(
-      embed: reject_app_embed(app, :image),
+      embed: reject_app(event, :image),
       reactions: ImgApp::REJECT_MESSAGES.map{ |k,v| k }
     )
 
