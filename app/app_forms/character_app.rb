@@ -54,7 +54,7 @@ class CharacterApplication < ApplicationForm
     # Create App Rejection
     reply = BotResponse.new(
       embed: reject_app(event.message.embeds.first, :character),
-      reactions: CharApp::REJECT_MESSAGES.map{ |k,v| k }
+      reactions: CharApp::REJECT_MESSAGES.map{ |k,v| k }.push(Emoji::CHECK)
     )
 
     # Delete app, and reply

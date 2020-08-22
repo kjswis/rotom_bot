@@ -40,14 +40,7 @@ def reject_app(app, opts)
 end
 
 def reject_fields(message_hash)
-  fields = []
-  message_hash.map do |emoji, message|
-    fields.push({
-      name: emoji,
-      value: "#{message}\n#{CharApp::INLINE_SPACE}",
-      inline: true
-    })
-  end
+  message_hash.map{ |e,m| { name: e, value: m, inline: true } }
 end
 
 def rejected_app(event, opts)
