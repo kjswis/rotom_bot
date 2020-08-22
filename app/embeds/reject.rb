@@ -41,7 +41,7 @@ end
 
 def reject_fields(message_hash)
   fields = []
-  message_hash.each do |emoji, message|
+  message_hash.map do |emoji, message|
     fields.push({
       name: emoji,
       value: "#{message}\n#{CharApp::INLINE_SPACE}",
