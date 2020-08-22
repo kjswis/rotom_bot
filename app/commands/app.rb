@@ -36,10 +36,10 @@ class ApplicationCommand < BaseCommand
       else
         character_form(event, author, type, name)
       end
-    rescue ActiveRecord::RecordNotFound => e
-      error_embed("Record not Found!", e.message)
-    rescue StandardError => e
-      error_embed(e.message)
+    #rescue ActiveRecord::RecordNotFound => e
+      #error_embed("Record not Found!", e.message)
+    #rescue StandardError => e
+      #error_embed(e.message)
     end
   end
 
@@ -133,7 +133,7 @@ class ApplicationCommand < BaseCommand
 
       # Reply
       [ BotResponse.new(destination: ENV['APP_CH'], embed: embed),
-        BotREsponse.new(embed: embed) ]
+        BotResponse.new(embed: embed) ]
 
     when /legend/i, /legendary/i
       return command_error("Uknown Status", ApplicationCommand) unless Util::Roles.admin?(author)
