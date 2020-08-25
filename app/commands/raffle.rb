@@ -27,7 +27,11 @@ class RaffleCommand < BaseCommand
 
       # Pick winner and format
       winner = participants.sample
-      results = winner&.id ? "<@#{winner.id}>" : winner.capitalize
+      results = case winner
+                when String then winner.capitalize
+                else
+                  "<@#{winner.id}>"
+                end
 
       # Reply
       Embed.new(description: "#{results} has won the raffle!")
