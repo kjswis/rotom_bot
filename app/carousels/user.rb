@@ -22,7 +22,7 @@ class UserCarousel < Carousel
 
     # Handle nsfw chars in sfw channels
     active_chars = all_chars.filter{ |c| c.active == 'Active' }
-    sfw_chars = active_chars.filter{ |c| c.rating == 'SFW' }
+    sfw_chars = active_chars.filter{ |c| c.rating != 'NSFW' }
 
     sfw = !event.channel.nsfw?
     chars = sfw ? sfw_chars : active_chars

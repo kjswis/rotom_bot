@@ -41,7 +41,7 @@ class MemberCommand < BaseCommand
 
         # Handle sfw channels and nsfw characters
         sfw = !event.channel.nsfw?
-        sfw_chars = active_chars.filter{ |c| c.rating == 'SFW' }
+        sfw_chars = active_chars.filter{ |c| c.rating != 'NSFW' }
         chars = sfw ? sfw_chars : active_chars
 
         # Generate embed and reply
@@ -91,7 +91,7 @@ class MemberCommand < BaseCommand
     sfw = !event.channel.nsfw?
 
     # Determine if duplicate characters, then filter NSFW if SFW channel
-    if character.count > 1 && sfw
+    if character.count > 1
      chars = character.filter{ |c| c.rating == 'SFW' || c.rating == 'Hidden' } if sfw
 
      # If still more than 1 character, reply with duplicate embed
@@ -99,7 +99,8 @@ class MemberCommand < BaseCommand
        embed = dup_char_embed(chars, chars.first.name)
        return BotResponse.new(
          embed: embed,
-         reactions: Emoji::NUMBERS.take(chars.count)
+         reactions: Emoji::NUMBERS.take(chars.count),
+         carousel: chars.map(&:id)
        )
      end
     end
