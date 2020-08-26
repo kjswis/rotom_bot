@@ -2,6 +2,11 @@ class ImageController
   def self.default_image(url, char_id, rating)
     image = CharImage.where(char_id: char_id).find_by(keyword: 'Default')
 
+    if url == nil
+      image.destroy if image
+      return
+    end
+
     if image
       image.update(url: url)
     else
