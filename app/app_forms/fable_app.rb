@@ -29,7 +29,7 @@ class FableApplication < ApplicationForm
     reply = BotResponse.new(
       destination: ENV['FABLE_CH'],
       text: "Good News, <@#{fable.user_id}>! Your fable was published!",
-      embed: fable_embed(fable: fable, event: event)
+      embed: fable_embed(fable, event)
     )
 
     event.message.delete
