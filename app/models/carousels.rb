@@ -15,12 +15,15 @@ class Carousel < ActiveRecord::Base
     elsif landmark_id
       # Landmark
       LandmarkCarousel.update_embed(event, self)
+    elsif fable_id
+      # Fable
+      FableCarousel.update_embed(event, self)
     else
       # Member List
       GuildCarousel.update_embed(event, self)
     end
-  rescue StandardError => e
-    error_embed(e.message)
+  #rescue StandardError => e
+    #error_embed(e.message)
   end
 
   def close(event)

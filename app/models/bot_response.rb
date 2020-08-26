@@ -41,6 +41,8 @@ class BotResponse
       Carousel.create(message_id: message.id, char_id: @carousel.id)
     when Landmark
       Carousel.create(message_id: message.id, landmark_id: @carousel.id)
+    when Fable
+      Carousel.create(message_id: message.id, fable_id: @carousel.id)
     when CharImage
       Carousel.create(
         message_id: message.id,

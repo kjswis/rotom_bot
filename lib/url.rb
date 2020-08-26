@@ -8,4 +8,7 @@ module Url
   LM = "https://forms.gle/sU7vgaSpHiWa9e368"
 
   ITEM = "https://docs.google.com/forms/d/e/1FAIpQLSf1wJsagsgGCxO_gj4Ea3pHU7eusSsezmI0CYZexBPEK7dsOw/viewform"
+
+  FABLE = "https://docs.google.com/forms/d/e/1FAIpQLSeHwlrl_uw6ZVvS8taRAyqc30sFLujLj9UfF4Nh60QOMTcTWA/viewform"
+  FBL = "https://forms.gle/fvZsU3hp1uAPPXUy5"
 end

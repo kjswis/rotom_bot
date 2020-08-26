@@ -21,6 +21,8 @@ def reject_app(app, opts)
              reject_fields(ImgApp::REJECT_MESSAGES)
            when :landmark
              reject_fields(LmApp::REJECT_MESSAGES)
+           when :fable
+             reject_fields(FableApp::REJECT_MESSAGES)
            when :reactivation
              # Find Character
              character = Character.find(app.footer.text.match(/\|\s(\d+)$/)[1])
@@ -76,6 +78,16 @@ def rejected_app(event, opts)
       },{
         name: MSG,
         value: "[Edit Your Application](#{Url::LANDMARK}" +
+        "#{app.footer.text})"
+      }]
+    when :fable
+      [{
+        name: "Messages from the admin:",
+        value: selected_messages(reactions, FableApp::REJECT_MESSAGES).
+        join("\n") || 'No messages given'
+      },{
+        name: MSG,
+        value: "[Edit Your Application](#{Url::FABLE}" +
         "#{app.footer.text})"
       }]
     end

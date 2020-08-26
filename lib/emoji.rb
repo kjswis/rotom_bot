@@ -28,6 +28,7 @@ module Emoji
   Y = "🇾"
   Z = "🇿"
 
+  ZERO = "0️⃣"
   ONE = "1⃣"
   TWO = "2⃣"
   THREE = "3⃣"
@@ -40,8 +41,10 @@ module Emoji
   TEN = "🔟"
   NUMS = "🔢"
 
+  FIRST = "⏪"
   LEFT = "◀"
   RIGHT = "▶"
+  LAST = "⏩"
   UNDO = "⏫"
 
   CHECK = "✅"
