@@ -49,6 +49,14 @@ class FableCommand < BaseCommand
     end
   end
 
-  def self.example_command
+  def self.example_command(event=nil)
+    case ['', 'title', 'keyword'].sample
+    when ''
+      []
+    when 'title'
+      [Fable.order('RANDOM()').first.name]
+    when 'keyword'
+      [Fable.order('RANDOM()').first.keywords.sample]
+    end
   end
 end
