@@ -20,7 +20,17 @@ class BotController
     end
   end
 
-  def self.unauthorized_char_app(bot, event, member)
+  def self.unauthorized_char_app(bot, event)
+    # Save app
+    app = event.message.embeds.first
+
+    # Save user_id and edit_url
+    user_id = app.description.match(UID)[1]
+    edit_url = app.footer.text
+
+    # Find the discord member
+    member = event.server.member(user_id)
+
     embed = Embed.new(
       title: "You have too many characters!",
       description: "Please deactivate and try again " +
@@ -29,7 +39,7 @@ class BotController
 
     response = [
       BotResponse.new(destination: member.dm, embed: embed),
-      BotResponse.new(embed: embed),
+      BotResponse.new(embed: embed)
     ]
 
     event.message.delete

@@ -77,7 +77,7 @@ bot.message do |event|
       when true
         BotController.application_react(event)
       when false
-        BotController.unauthorized_char_app(bot, event, member)
+        BotController.unauthorized_char_app(bot, event)
       end
     else
       BotController.application_react(event)
