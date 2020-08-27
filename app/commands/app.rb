@@ -70,18 +70,18 @@ class ApplicationCommand < BaseCommand
       # Check if character is in team
       in_team = CharTeam.where(active: true, char_id: character.id)
 
-      if in_team
-        teams = Team.where(id: in_team.map(&:team_id)).map(&:name)
-        embed = team_alert(character, teams)
-
-        BotResponse.new(embed: embed, reactions: Emoji::REQUEST)
-      else
+      if in_team.empty?
         character.update(active: 'Archived')
         character.reload
 
         embed = success_embed("Successfully archived #{character.name}")
         [ BotResponse.new(destination: ENV['APP_CH'], embed: embed),
-          BotREsponse.new(embed: embed) ]
+          BotResponse.new(embed: embed) ]
+      else
+        teams = Team.where(id: in_team.map(&:team_id)).map(&:name)
+        embed = team_alert(character, teams)
+
+        BotResponse.new(embed: embed, reactions: Emoji::REQUEST)
       end
     # Move character to active
     when /active/i
