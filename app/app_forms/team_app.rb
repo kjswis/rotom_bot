@@ -3,17 +3,10 @@ require './app/app_forms/app_form.rb'
 class TeamApplication < ApplicationForm
   def self.process
     @process ||= Application.new('Team Application') do |event|
-      # Calculate majority, and check votes
+      # Calculate majority and check votes
       maj = majority(event)
-      reactions = event.message.reactions
+      check_votes(event, maj)
 
-      if reactions[Emoji::Y]&.count.to_i > maj && star(event)
-        approve(event)
-      elsif reactions[Emoji::N]&.count.to_i > maj
-        deny(event)
-      elsif reactions[Emoji::CROSS]&.count.to_i > 1
-        remove(event)
-      end
     rescue StandardError => e
       error_embed(e.message)
     end

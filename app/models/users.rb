@@ -73,7 +73,7 @@ class User < ActiveRecord::Base
     n = Nature.find(nature)
 
     stats = stat_calc(n.up_stat, n.down_stat)
-    img = stat_image(self, member, stats) if member
+    img = UsersController.stat_image(self, member, stats) if member
 
     self.update(stats)
     self.reload

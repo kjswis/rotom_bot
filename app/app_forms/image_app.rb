@@ -3,17 +3,10 @@ require './app/app_forms/app_form.rb'
 class ImageApplication < ApplicationForm
   def self.process
     @process ||= Application.new('Image Application') do |event|
-      # Calculate majority, and check votes
+      # Calculate majority
       maj = majority(event)
+      check_votes(event, maj)
 
-      reactions = event.message.reactions
-      if reactions[Emoji::Y]&.count.to_i > maj && star(event)
-        approve(event)
-      elsif reactions[Emoji::N]&.count.to_i > maj
-        deny(event)
-      elsif reactions[Emoji::CROSS]&.count.to_i > 1
-        remove(event)
-      end
     rescue StandardError => e
       error_embed(e.message)
     end

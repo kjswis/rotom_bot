@@ -82,6 +82,9 @@ module Emoji
   WIZARD = "🧙"
   TALK = "🗣️"
 
+  GHOST = "👻"
+  FISH = "🐟"
+
 
   LETTERS = [A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z]
   NUMBERS = [ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, TEN]

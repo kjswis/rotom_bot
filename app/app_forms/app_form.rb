@@ -11,6 +11,24 @@ class ApplicationForm
     raise 'NYI'
   end
 
+  def self.check_votes(event, maj)
+    reactions = event.message.reactions
+
+    if reactions[Emoji::Y]&.count.to_i > maj && star(event)
+      approve(event)
+    elsif reactions[Emoji::N]&.count.to_i > maj
+      reject(event)
+    elsif reactions[Emoji::CRAYON]&.count.to_i > 1
+      edit(event)
+    elsif reactions[Emoji::CROSS]&.count.to_i > 1
+      remove(event)
+    elsif reactions[Emoji::GHOST]&.count.to_i > 0
+      to_office(event, ENV['MIZU_CH'])
+    elsif reactions[Emoji::FISH]&.count.to_i > 0
+      to_office(event, ENV['NEIRO_CH'])
+    end
+  end
+
   def self.approve
     raise 'NYI'
   end
@@ -39,5 +57,10 @@ class ApplicationForm
       member = event.server.member(cross.id)
       event.message&.delete unless member.current_bot?
     end
+  end
+
+  def self.to_office(event, office)
+    app = Embed.convert(event.message.embeds.first)
+    BotResponse.new(destination: office, embed: app)
   end
 end

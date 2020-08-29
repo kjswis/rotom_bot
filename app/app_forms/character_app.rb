@@ -5,17 +5,8 @@ class CharacterApplication < ApplicationForm
     @process ||= Application.new('Character Application') do |event|
       # Calculate majority, and check votes
       maj = majority(event)
+      check_votes(event, maj)
 
-      reactions = event.message.reactions
-      if reactions[Emoji::Y]&.count.to_i > maj && star(event)
-        approve(event)
-      elsif reactions[Emoji::N]&.count.to_i > maj
-        deny(event)
-      elsif reactions[Emoji::CRAYON]&.count.to_i > 1
-        edit(event)
-      elsif reactions[Emoji::CROSS]&.count.to_i > 1
-        remove(event)
-      end
     rescue StandardError => e
       error_embed(e.message)
     end
