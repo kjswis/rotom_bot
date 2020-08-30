@@ -17,7 +17,7 @@ class ApplicationForm
     if reactions[Emoji::Y]&.count.to_i > maj && star(event)
       approve(event)
     elsif reactions[Emoji::N]&.count.to_i > maj
-      reject(event)
+      deny(event)
     elsif reactions[Emoji::CRAYON]&.count.to_i > 1
       edit(event)
     elsif reactions[Emoji::CROSS]&.count.to_i > 1
