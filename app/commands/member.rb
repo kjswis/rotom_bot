@@ -72,8 +72,12 @@ class MemberCommand < BaseCommand
         # Find Character
         if name.to_i > 0
           character = Character.find(name)
+        elsif section&.match(/deleted?/i)
+          character = Character.where(active: 'Deleted')
+            .where('name ilike ?', name)
         else
-          character = Character.where('name ilike ?', name)
+          character = Character.where.not(active: 'Deleted')
+            .where('name ilike ?', name)
           raise 'Character not found!' if character.empty?
         end
 

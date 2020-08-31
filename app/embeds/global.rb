@@ -21,7 +21,7 @@ def author_footer(embed, author, info=[])
 
   # Update the footer with the appropriate information
   embed.footer = {
-    text: info.join(" | "),
+    text: info.compact.join(" | "),
     icon_url: img
   }
 
