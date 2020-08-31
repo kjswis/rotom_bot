@@ -68,14 +68,15 @@ class MemberCommand < BaseCommand
         )
 
       # Show character embed
-      when Integer
-        # Find Character by ID and generate embed
-        character = Character.find(name)
-        char_reply(event, character, section, keyword)
       else
-        # Find Character by name and generate embed
-        character = Character.where('name ilike ?', name)
-        raise 'Character not found!' if character.empty?
+        # Find Character
+        if name.to_i
+          character = Character.find(name)
+        else
+          character = Character.where('name ilike ?', name)
+          raise 'Character not found!' if character.empty?
+        end
+
         char_reply(event, character, section, keyword)
       end
 
@@ -91,8 +92,8 @@ class MemberCommand < BaseCommand
     sfw = !event.channel.nsfw?
 
     # Determine if duplicate characters, then filter NSFW if SFW channel
-    if character.count > 1
-     chars = character.filter{ |c| c.rating == 'SFW' || c.rating == 'Hidden' } if sfw
+    if character.is_a? Array
+     chars = sfw ? character.filter{ |c| c.rating != 'NSFW' } : character
 
      # If still more than 1 character, reply with duplicate embed
      if chars.length > 1
@@ -102,14 +103,20 @@ class MemberCommand < BaseCommand
          reactions: Emoji::NUMBERS.take(chars.count),
          carousel: chars.map(&:id)
        )
+     elsif chars.legth == 0
+       nsfw_char_embed(chars.first, event)
+     else
+       character = character.first
      end
     end
 
-    character = character.first
+
 
     # Find image if specified
     image = CharImage.where(char_id: character.id).
       find_by('keyword ilike ?', keyword || 'Default')
+
+    raise 'Image not found!' if keyword && !image
 
     # Ensure the content is appropriate for the current channel
     if sfw && ( image&.category == 'NSFW' || character.rating == 'NSFW' )
