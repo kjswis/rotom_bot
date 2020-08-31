@@ -70,7 +70,7 @@ class MemberCommand < BaseCommand
       # Show character embed
       else
         # Find Character
-        if name.to_i
+        if name.to_i > 0
           character = Character.find(name)
         else
           character = Character.where('name ilike ?', name)
@@ -82,8 +82,8 @@ class MemberCommand < BaseCommand
 
     rescue ActiveRecord::RecordNotFound => e
       error_embed("Record Not Found!", e.message)
-    rescue StandardError => e
-      error_embed(e.message)
+    #rescue StandardError => e
+      #error_embed(e.message)
     end
   end
 
@@ -105,12 +105,10 @@ class MemberCommand < BaseCommand
        )
      elsif chars.legth == 0
        nsfw_char_embed(chars.first, event)
-     else
-       character = character.first
      end
     end
 
-
+    character = character.first unless character.is_a? Character
 
     # Find image if specified
     image = CharImage.where(char_id: character.id).
