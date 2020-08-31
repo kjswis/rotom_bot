@@ -5,6 +5,7 @@ class TeamJoinApplication < ApplicationForm
     @process ||= Application.new('Team Join Request') do |event|
       # Calculate majority and check votes
       maj = majority(event)
+      reactions = event.message.reactions
 
       # Check votes
       if reactions[Emoji::Y]&.count.to_i > maj
