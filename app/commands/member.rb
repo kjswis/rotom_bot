@@ -92,7 +92,7 @@ class MemberCommand < BaseCommand
     sfw = !event.channel.nsfw?
 
     # Determine if duplicate characters, then filter NSFW if SFW channel
-    if character.is_a? Array
+    unless character.is_a? Character
      chars = sfw ? character.filter{ |c| c.rating != 'NSFW' } : character
 
      # If still more than 1 character, reply with duplicate embed
@@ -103,12 +103,12 @@ class MemberCommand < BaseCommand
          reactions: Emoji::NUMBERS.take(chars.count),
          carousel: chars.map(&:id)
        )
-     elsif chars.legth == 0
+     elsif chars.length == 0
        nsfw_char_embed(chars.first, event)
+     else
+       character = character.first
      end
     end
-
-    character = character.first unless character.is_a? Character
 
     # Find image if specified
     image = CharImage.where(char_id: character.id).
