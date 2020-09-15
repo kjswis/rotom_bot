@@ -4,7 +4,13 @@ class ConfirmArchive < ApplicationForm
   def self.process
     @process ||= Application.new('Team Alert') do |event|
       # Check votes
-      check_votes(event, 1)
+      reactions = event.message.reactions
+
+      if reactions[Emoji::Y]&.count.to_i > 1
+        approve(event)
+      elsif reactions[Emoji::N]&.count.to_i > 1
+        deny(event)
+      end
 
     rescue StandardError => e
       error_embed(e.message)

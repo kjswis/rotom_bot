@@ -26,6 +26,12 @@ class ApplicationForm
       to_office(event, ENV['MIZU_CH'])
     elsif reactions[Emoji::FISH]&.count.to_i > 0
       to_office(event, ENV['NEIRO_CH'])
+    elsif reactions[Emoji::CABINET]&.count.to_i > 0
+      to_office(event, ENV['R0RY_CH'])
+    elsif reactions[Emoji::COW]&.count.to_i > 0
+      to_office(event, ENV['R0RY_CH'])
+    elsif reactions[Emoji::CAT]&.count.to_i > 0
+      to_office(event, ENV['R0RY_CH'])
     end
   end
 
