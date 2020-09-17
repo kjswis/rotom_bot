@@ -19,13 +19,9 @@ class CharacterCarousel < Carousel
 
     case section
     when 'image'
-      # Find image ID
-      image = CharImage.where(keyword: 'Default')
-        .find_by(char_id: carousel.char_id)
-
       # Transition into an ImageCarousel
       event.message.delete_all_reactions
-      ImageCarousel.transition(event, carousel, image)
+      ImageCarousel.transition(event, carousel, Character.find(carousel.char_id))
     when 'user'
       # Find User
       character = Character.find(carousel.char_id)

@@ -59,7 +59,10 @@ class ImageCarousel < Carousel
     end
   end
 
-  def self.transition(event, carousel, image)
+  def self.transition(event, carousel, character)
+    # Find image ID
+    image = CharImage.where(keyword: 'Default').find_by(char_id: character.id)
+
     # Update carousel to reflect new information
     carousel.update(
       char_id: nil,
@@ -77,7 +80,7 @@ class ImageCarousel < Carousel
       carousel: carousel,
       reactions: img_reactions,
       embed: character_embed(
-        character: Character.find(image.char_id),
+        character: character,
         event: event,
         section: 'image'
       )
