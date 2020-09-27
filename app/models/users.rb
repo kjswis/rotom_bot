@@ -39,9 +39,8 @@ class User < ActiveRecord::Base
   end
 
   def update_xp(msg_length, member=nil)
-    xp =
+    old_xp =
       case msg_length
-      when 0..39 then 0
       when 40..149 then 1
       when 150..299 then 2
       when 300..599 then 3
@@ -49,9 +48,22 @@ class User < ActiveRecord::Base
       else 5
       end
 
+    multiplier =
+      case msg_length
+      when 50..299 then 1
+      when 300..649 then 1.5
+      when 650..999 then 1
+      else 0.5
+      end
+
+    xp = (msg_length/50 * multiplier).to_i
+
     self.update(
       boosted_xp: boosted_xp + xp,
-      unboosted_xp: unboosted_xp + xp
+      unboosted_xp: unboosted_xp + xp,
+      additional_xp: additional_xp + (xp - old_xp),
+      post_length: post_length + msg_length,
+      post_count: post_count + 1
     )
 
     self.reload

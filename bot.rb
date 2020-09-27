@@ -95,19 +95,24 @@ bot.message do |event|
   # Apply experience to non-bot users
   elsif !author.bot_account? && !author.webhook?
     # Replace any urls with 150 'x' chars
-    message = URL.match(content) ? content.gsub(URL, "x" * 150) : content
+    message = URL.match(content) ? content.gsub(URL, "x" * 100) : content
 
     # Add 40 to the message length if there's a file
     msg_length = event.message.attachments.map(&:filename).count > 0 ?
       40 + message.length : message.length
 
-    if msg_length >= 40
-      # Wait until now to find user, so DB isn't touched for every message
-      user = User.find(author.id)
+    # Record post lengths and count
+    user = User.find(author.id)
 
+    if msg_length >= 40
       # Update User and reply with image, if there is one
       reply =  user.update_xp(msg_length, author)
       bot.send_file(event.channel.id, File.open(reply, 'r')) if reply
+    else
+      user.update(
+        short_post_length: user.short_post_length + msg_length,
+        short_post_count: user.short_post_count + 1
+      )
     end
   end
 
