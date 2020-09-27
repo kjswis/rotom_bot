@@ -99,7 +99,7 @@ bot.message do |event|
 
     # Add 40 to the message length if there's a file
     msg_length = event.message.attachments.map(&:filename).count > 0 ?
-      40 + message.length : message.length
+      50 + message.length : message.length
 
     # Record post lengths and count
     user = User.find(author.id)
