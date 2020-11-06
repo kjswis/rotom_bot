@@ -34,7 +34,8 @@ ActiveRecord::Base.establish_connection(
   host: db_config.fetch('host') { 'localhost' },
   database: db_config['database'],
   user: db_config['user'],
-  password: db_config['password']
+  password: db_config['password'],
+  pool: 5
 )
 
 Dir['app/**/*.rb'].each { |f| require File.join(File.expand_path(__dir__), f) }
