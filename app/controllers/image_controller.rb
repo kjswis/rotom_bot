@@ -8,7 +8,7 @@ class ImageController
     end
 
     if image
-      image.update(url: url)
+      image.update(url: url, category: rating)
     else
       CharImage.create(
         char_id: char_id,
