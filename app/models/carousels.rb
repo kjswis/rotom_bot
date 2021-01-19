@@ -6,6 +6,9 @@ class Carousel < ActiveRecord::Base
     if options
       # User List
       UserCarousel.update_embed(event, self)
+    elsif journal_page
+      # Journal
+      JournalCarousel.update_embed(event, self)
     elsif char_id
       # Character
       CharacterCarousel.update_embed(event, self)

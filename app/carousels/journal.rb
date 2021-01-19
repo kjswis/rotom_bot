@@ -1,12 +1,12 @@
 require './app/models/carousels.rb'
 require './lib/emoji.rb'
 
-class ImageCarousel < Carousel
+class JournalCarousel < Carousel
   def self.sections
     {
       Emoji::UNDO => 'back',
       Emoji::LEFT => 'left',
-      Emoji::RIGHT => 'right'
+      Emoji::RIGHT => 'right',
     }
   end
 
@@ -20,66 +20,64 @@ class ImageCarousel < Carousel
 
     case direction
     when 'back'
-      # Find Image
-      image = CharImage.find(carousel.image_id)
-      character = Character.find(image.char_id)
+      # Fetch character
+      character = Character.find(carousel.char_id)
 
       # Transition into a MemberCarousel
       event.message.delete_all_reactions
       CharacterCarousel.transition(event, carousel, character)
     when 'left', 'right'
-      # Fetch the corresponding emoji, and remove non-bot reactions
+      # Fetch the correspoding emoji, and remove non-bot reactions
       emoji = sections.key(direction)
       event.message.reacted_with(emoji).each do |r|
         event.message.delete_reaction(r.id, emoji) unless r.current_bot?
       end
 
-      # Find image
-      image = CharImage.find(carousel.image_id)
-      new_image = ImageController.img_scroll(
-        char_id: image.char_id,
-        nsfw: event.channel.nsfw?,
-        img: image.id,
-        dir: direction.to_sym
+      # Next Journal Page
+      page = JournalController.journal_scroll(
+        char_id: carousel.char_id,
+        page: carousel.journal_page,
+        dir: direction
       )
 
       # Update Carousel
-      carousel.update(image_id: new_image&.id)
+      carousel.update(char_id: carousel.char_id, journal_page: page)
 
-      # Update embed with new image
+      # Update embed with new page
       BotResponse.new(
         carousel: carousel,
         embed: character_embed(
-          character: Character.find(image.char_id),
+          character: Character.find(carousel.char_id),
           event: event,
-          section: 'image',
-          image: new_image
+          section: 'journal',
+          journal: JournalController.fetch_page(carousel.char_id, page)
         )
       )
     end
   end
 
   def self.transition(event, carousel, character)
-    # Find image ID
-    image = CharImage.where(keyword: 'Default').find_by(char_id: character.id)
+    # Fetch inital page of journals
+    journals = JournalController.fetch_page(character.id, 1)
 
     # Update carousel to reflect new information
     carousel.update(
-      char_id: nil,
-      image_id: image&.id,
+      char_id: character.id,
+      image_id: nil,
       landmark_id: nil,
       options: nil,
-      journal_page: nil
+      journal_page: 1
     )
 
-    # Update reply
+    # Update Reply
     BotResponse.new(
       carousel: carousel,
       reactions: sections.map{ |k,v| k }.push(Emoji::CROSS),
       embed: character_embed(
         character: character,
         event: event,
-        section: 'image'
+        section: 'journal',
+        journal: journals
       )
     )
   end

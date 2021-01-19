@@ -1,4 +1,4 @@
-def character_embed(character:, event:, section: nil, image: nil)
+def character_embed(character:, event:, section: nil, image: nil, journal: nil)
   # Find the author, if they're a member, or in DMs use the event's author
   if event.server
     member = character.user_id.match(/public/i) ? 'Public' :
@@ -56,6 +56,8 @@ def character_embed(character:, event:, section: nil, image: nil)
     embed.thumbnail = nil
   when /bags?/i, /inventory/i
     fields = char_inv(character, fields)
+  when /journal/i
+    fields = char_journal(character, fields, journal)
   end
 
   # Add fields to embed
@@ -183,6 +185,21 @@ def char_inv(char, fields)
   # Show formatted items
   value = bags.empty? ? "#{char.name} doesn't have any items" : bags.join("\n")
   fields.push({ name: "Bags", value: value })
+
+  fields
+end
+
+def char_journal(char, fields, journal)
+  if journal.is_a? JournalEntry
+    fields.push({ name: journal.title, value: journal.entry })
+  elsif journal.empty?
+    fields.push({ name: 'Error', value: 'No journal entries found' })
+  else
+    # Display each journal entry
+    journal.each do |j|
+      fields.push({ name: j&.title || j.date, value: j.entry })
+    end
+  end
 
   fields
 end

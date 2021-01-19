@@ -32,7 +32,8 @@ class UserCarousel < Carousel
       char_id: nil,
       image_id: nil,
       landmark_id: nil,
-      options: chars.map{ |c| c.id }
+      options: chars.map{ |c| c.id },
+      journal_page: nil
     )
 
     # Array of section reactions and an X

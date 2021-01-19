@@ -3,6 +3,7 @@ class CharacterCarousel < Carousel
     {
       Emoji::EYES => 'all',
       Emoji::PICTURE => 'image',
+      Emoji::NOTEBOOK => 'journal',
       Emoji::BAGS => 'bags',
       Emoji::FAMILY => 'family',
       Emoji::BUST => 'user'
@@ -22,6 +23,10 @@ class CharacterCarousel < Carousel
       # Transition into an ImageCarousel
       event.message.delete_all_reactions
       ImageCarousel.transition(event, carousel, Character.find(carousel.char_id))
+    when 'journal'
+      # Transition into an JournalCarousel
+      event.message.delete_all_reactions
+      JournalCarousel.transition(event, carousel, Character.find(carousel.char_id))
     when 'user'
       # Find User
       character = Character.find(carousel.char_id)
@@ -55,7 +60,8 @@ class CharacterCarousel < Carousel
       char_id: character.id,
       image_id: nil,
       landmark_id: nil,
-      options: nil
+      options: nil,
+      journal_page: nil
     )
 
     # Update reply

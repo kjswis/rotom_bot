@@ -7,6 +7,7 @@ class MemberCommand < BaseCommand
       nav: {
         all: [ Emoji::EYES, "View all info about the character" ],
         image: [ Emoji::PICTURE, "Scroll though the character's images" ],
+        journal: [ Emoji::NOTEBOOK, "Scroll though pages of journal entries" ],
         bags: [ Emoji::BAGS, "View the character's inventory" ],
         family: [ Emoji::FAMILY, "View related characters" ],
         user: [ Emoji::BUST, "View the writer's other characters in a list" ]
@@ -20,8 +21,8 @@ class MemberCommand < BaseCommand
         "Skips to the specified section, some options include: bio, type, status, " +
         "rumors, image, bags. If no section is given, R0ry will default to history",
         keyword:
-        "Displays a specific image, searched by its title, or keyword. " +
-        "Can only be used if the section option is `image`",
+        "Displays a specific image or journal, searched by its title, or keyword. " +
+        "Can only be used if the section option is `image` or `journal`",
       }
     }
   end
@@ -114,11 +115,25 @@ class MemberCommand < BaseCommand
      end
     end
 
-    # Find image if specified
-    image = CharImage.where(char_id: character.id).
-      find_by('keyword ilike ?', keyword || 'Default')
+    case section
+    when /image/i
+      # Find image if specified
+      image = CharImage.where(char_id: character.id).
+        find_by('keyword ilike ?', keyword || 'Default')
 
-    raise 'Image not found!' if keyword && !image
+      raise 'Image not found!' if keyword && !image
+    when /journal/i
+      # Find journal if specified
+      if keyword
+        journal = JournalEntry.where(char_id: character.id).
+          find_by('title ilike ?', keyword)
+
+        raise 'Journal not found!' if !journal
+      else
+        # Fetch Journal list if no keyword
+        journal = JournalEntry.where(char_id: character.id).take(10)
+      end
+    end
 
     # Ensure the content is appropriate for the current channel
     if sfw && ( image&.category == 'NSFW' || character.rating == 'NSFW' )
@@ -130,7 +145,8 @@ class MemberCommand < BaseCommand
       character: character,
       event: event,
       section: section,
-      image: image
+      image: image,
+      journal: journal
     )
 
     # Determine Carousel Type and create reply
@@ -139,6 +155,15 @@ class MemberCommand < BaseCommand
         embed: embed,
         carousel: image,
         reactions: ImageCarousel.sections.map{ |k,v| k }.push(Emoji::CROSS)
+      )
+
+    elsif section&.match(/journal/i)
+      journal = journal.first unless journal.is_a? JournalEntry
+
+      BotResponse.new(
+        embed: embed,
+        carousel: journal,
+        reactions: JournalCarousel.sections.map{ |k,v| k }.push(Emoji::CROSS)
       )
     else
       BotResponse.new(
@@ -150,7 +175,7 @@ class MemberCommand < BaseCommand
   end
 
   def self.example_command(event=nil)
-    sections = ['all', 'bio', 'type', 'status', 'rumors', 'image', 'bags']
+    sections = ['all', 'bio', 'type', 'status', 'rumors', 'image', 'bags', 'journal']
 
     case ['', 'user', 'name', 'section', 'keyword'].sample
     when ''
@@ -166,7 +191,10 @@ class MemberCommand < BaseCommand
        sections.sample]
     when 'keyword'
       i = CharImage.where.not(keyword: 'Default').order('RANDOM()').first
-      [Character.find(i.char_id).name, 'image', i.keyword]
+      j = JournalEntry.order('RANDOM()').first
+
+      [[Character.find(i.char_id).name, 'image', i.keyword],
+       [Character.find(j.char_id).name, 'journal', j.title || j.date]].sample
     end
   end
 end
