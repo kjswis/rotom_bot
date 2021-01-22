@@ -56,7 +56,7 @@ class Character < ActiveRecord::Base
       "Rating" => "rating",
       "Current Location" => "location",
       "DM Notes" => "dm_notes",
-      "Base Form ID" => "alt_form",
+      "Base Character ID" => "alt_form",
       "Edit Key (ignore)" => "edit_url",
     }
 
@@ -95,8 +95,8 @@ class Character < ActiveRecord::Base
     active = case app.title
              when /Personal Character/
                'Active'
-             when /Alternate Form/
-               'Alternate Form'
+             when /Alternative Form/
+               'Alt Form'
              when /NPC/
                'NPC'
              when /Archived Character/
@@ -123,7 +123,7 @@ class Character < ActiveRecord::Base
       if db_column == 'shiny'
         hash[db_column] = field.value.match(/yes/i) ? true : false
       elsif db_column == 'aliases'
-        hash[db_column] = field.value.split(/\s?(\||,)\s?/)
+        hash[db_column] = field.value.split(/\s?\|\s?/)
       else
         hash[db_column] = field.value
       end
