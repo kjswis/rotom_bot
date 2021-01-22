@@ -10,6 +10,7 @@ class MemberCommand < BaseCommand
         journal: [ Emoji::NOTEBOOK, "Scroll though pages of journal entries" ],
         bags: [ Emoji::BAGS, "View the character's inventory" ],
         family: [ Emoji::FAMILY, "View related characters" ],
+        forms: [ Emoji::SPY, "View alternative forms of the character" ],
         user: [ Emoji::BUST, "View the writer's other characters in a list" ]
       },
       # Usage has each option, in order with instructions, and a real example
@@ -193,7 +194,7 @@ class MemberCommand < BaseCommand
   end
 
   def self.example_command(event=nil)
-    sections = ['all', 'bio', 'type', 'status', 'rumors', 'image', 'bags', 'journal']
+    sections = ['all', 'bio', 'type', 'status', 'rumors', 'image', 'bags', 'journal', 'forms']
 
     case ['', 'user', 'name', 'section', 'keyword'].sample
     when ''
