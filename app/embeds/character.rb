@@ -23,6 +23,7 @@ def character_embed(character:, event:, section: nil, image: nil, journal: nil)
   case section
   when /all/i, /default/i, nil
     embed.description = character.personality if character.personality
+    fields = char_alias(character, fields)
     fields = char_type(character, fields)
     fields = char_status(character, fields)
     fields = char_bio(character, fields)
@@ -30,6 +31,7 @@ def character_embed(character:, event:, section: nil, image: nil, journal: nil)
     fields = char_dm_notes(character, fields, event)
   when /bio/i
     embed.description = character.personality if character.personality
+    fields = char_alias(character, fields)
     fields = char_bio(character, fields)
     fields = char_dm_notes(character, fields, event)
   when /types?/i
@@ -58,6 +60,8 @@ def character_embed(character:, event:, section: nil, image: nil, journal: nil)
     fields = char_inv(character, fields)
   when /journal/i
     fields = char_journal(character, fields, journal)
+  when /forms?/i, /alt(ernate)?\sforms?/i
+    fields = alt_form_embed(character, fields)
   end
 
   # Add fields to embed
@@ -66,6 +70,14 @@ def character_embed(character:, event:, section: nil, image: nil, journal: nil)
   # Add ID to footer, and apply to embed
   footer_info.push(character.id)
   author_footer(embed, member, footer_info)
+end
+
+def char_alias(char, fields)
+  fields.push(
+    { name: 'Known Aliases', value: char.aliases.join(', ') }
+  )if char.aliases
+
+  fields
 end
 
 def char_bio(char, fields)
@@ -335,7 +347,7 @@ def user_char_embed(chars, member, nsfw=nil)
 
   active.each.with_index do |char, i|
     name = nsfw && char.rating == 'NSFW' ?
-      "#{i+1} || #{char.name} ||" : "#{i+1} #{char.name}"
+      "#{Emoji::NUMBERS[i]} || #{char.name} ||" : "#{Emoji::NUMBERS[i]} #{char.name}"
     fields.push({
       name: name,
       value: "#{char.species} -- #{char.types}"
@@ -381,6 +393,30 @@ def dup_char_embed(chars, name)
     description: "Click on the corresponding reaction to pick",
     fields: fields
   )
+end
+
+def alt_form_embed(char, fields)
+  # Find Base Character Form
+  chars = []
+  if char.alt_form
+    chars.push( Character.find(char.alt_form) )
+  else
+    chars.push(char)
+  end
+
+  # Add forms
+  chars.concat( Character.where(alt_form: chars.first.id) )
+
+  # Display forms
+  chars.each.with_index do |char, i|
+    fields.push({
+      name: "#{Emoji::NUMBERS[i]} #{char.name}",
+      value: "#{char.species} -- #{char.types}"
+    })
+  end
+
+  # return fields
+  fields
 end
 
 def image_list_embed(character, event)

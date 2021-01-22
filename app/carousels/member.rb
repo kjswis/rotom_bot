@@ -6,6 +6,7 @@ class CharacterCarousel < Carousel
       Emoji::NOTEBOOK => 'journal',
       Emoji::BAGS => 'bags',
       Emoji::FAMILY => 'family',
+      Emoji::SPY => 'forms',
       Emoji::BUST => 'user'
     }
   end
@@ -34,7 +35,15 @@ class CharacterCarousel < Carousel
 
       # Transition into a UserCarousel
       event.message.delete_all_reactions
-      UserCarousel.transition(event, carousel, user)
+      UserCarousel.transition_user(event, carousel, user)
+    when 'forms'
+      # Find User
+      character = Character.find(carousel.char_id)
+      base_char = character.alt_form ? Character.find(character.alt_form) : character
+
+      # Transition into a UserCarousel
+      event.message.delete_all_reactions
+      UserCarousel.transition_character(event, carousel, base_char)
     when 'all', 'bags', 'family'
       # Fetch the corresponding emoji, and remove non-bot reactions
       emoji = sections.key(section)

@@ -33,6 +33,7 @@ class Character < ActiveRecord::Base
   def self.from_form(app)
     key_mapping = {
       "Characters Name" => "name",
+      "Aliases" => "aliases",
       "Species" => "species",
       "Shiny" => "shiny",
       "Type" => "types",
@@ -55,12 +56,14 @@ class Character < ActiveRecord::Base
       "Rating" => "rating",
       "Current Location" => "location",
       "DM Notes" => "dm_notes",
+      "Base Form ID" => "alt_form",
       "Edit Key (ignore)" => "edit_url",
     }
 
     hash = {
       "user_id" => nil,
       "name" => nil,
+      "aliases" => nil,
       "species" => nil,
       "shiny" => nil,
       "types" => nil,
@@ -84,13 +87,16 @@ class Character < ActiveRecord::Base
       "rumors" => nil,
       "hometown" => nil,
       "warnings" => nil,
-      "rating" => nil
+      "rating" => nil,
+      "alt_form" => nil,
     }
 
     user_id = UID.match(app.description)
     active = case app.title
              when /Personal Character/
                'Active'
+             when /Alternate Form/
+               'Alternate Form'
              when /NPC/
                'NPC'
              when /Archived Character/
@@ -116,6 +122,8 @@ class Character < ActiveRecord::Base
 
       if db_column == 'shiny'
         hash[db_column] = field.value.match(/yes/i) ? true : false
+      elsif db_column == 'aliases'
+        hash[db_column] = field.value.split(/\s?(\||,)\s?/)
       else
         hash[db_column] = field.value
       end

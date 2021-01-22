@@ -16,7 +16,7 @@ class UserCarousel < Carousel
     CharacterCarousel.transition(event, carousel, character)
   end
 
-  def self.transition(event, carousel, user)
+  def self.transition_user(event, carousel, user)
     # Character array
     all_chars = Character.where(user_id: user.id).order(:rating)
 
@@ -46,6 +46,32 @@ class UserCarousel < Carousel
       carousel: carousel,
       reactions: user_reactions,
       embed: user_char_embed(all_chars, member, sfw)
+    )
+  end
+
+  def self.transition_character(event, carousel, character)
+    # Character array
+    chars = [ character ]
+    chars.concat( Character.where(alt_form: character.id) )
+
+    # Update carousel to reflect new information
+    carousel.update(
+      char_id: nil,
+      image_id: nil,
+      landmark_id: nil,
+      options: chars.map{ |c| c.id },
+      journal_page: nil
+    )
+
+    # Array of section reactions and an X
+    user_reactions = Emoji::NUMBERS.take(chars.length)
+    user_reactions.push(Emoji::CROSS)
+
+    # Update reply
+    BotResponse.new(
+      carousel: carousel,
+      reactions: user_reactions,
+      embed: character_embed(character: character, event: event, section: 'forms')
     )
   end
 end

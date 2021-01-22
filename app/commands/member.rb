@@ -79,6 +79,8 @@ class MemberCommand < BaseCommand
         else
           character = Character.where.not(active: 'Deleted')
             .where('name ilike ?', name)
+            .or(Character.where.not(active: 'Deleted')
+            .where('? = any(aliases)', name))
           raise 'Character not found!' if character.empty?
         end
 
@@ -164,6 +166,22 @@ class MemberCommand < BaseCommand
         embed: embed,
         carousel: journal,
         reactions: JournalCarousel.sections.map{ |k,v| k }.push(Emoji::CROSS)
+      )
+    elsif section&.match(/(alt(ernate)?)?\s?forms?/i)
+      chars = []
+      if character.alt_form
+        chars.push( Character.find(character.alt_form) )
+      else
+        chars.push(character)
+      end
+
+      # Add forms
+      chars.concat( Character.where(alt_form: chars.first.id) )
+
+      BotResponse.new(
+        embed: embed,
+        carousel: chars.map{ |c| c.id },
+        reactions: Emoji::NUMBERS.take(chars.length).push(Emoji::CROSS)
       )
     else
       BotResponse.new(
