@@ -2,7 +2,7 @@
 <img align= 'right' width="300" src= "https://d111vui60acwyt.cloudfront.net/product_photos/53054708/52_Rotom_original.png">
 _The best ghosty-electric boy that runs your devices!_
 
-This bot was created for use in the Pokemon Mystery Dungeon, Kink Teams Discord.
+This bot was created for use in the Pokemon Mystery Dungeon Discord.
 It manages users, characters, items and places in a fictional world full of
 Pokemon. This bot works in junction with webhooks, to recieve information
 submitted via google forms.
@@ -27,7 +27,7 @@ $ pg_dump -O -f db/schma.sql [db_name]  # Exports schema
   * Says hello
   * Displays type matchups
   * Communicates with users to create and edit character applications
-  * Uses reactions to approve or deny character applications
+  * Uses reactions to approve or deny applications
   * Displays help information for the available commands
   * Allows modular polls in any channel
   * Allows users to add, view, and delete images for their characters
@@ -35,6 +35,8 @@ $ pg_dump -O -f db/schma.sql [db_name]  # Exports schema
   * Accepts Item applications
   * Displays information about existing Items
   * Keeps track of characters' inventories
+  * Communicates with users to create and edit landmark applications
+  * Displays landmark information in paginated segments, navigatable by reactions
 
 ## Setup
 This application runs using Ruby and Postgres. In order to run the bot locally
