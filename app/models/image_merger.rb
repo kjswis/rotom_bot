@@ -1,12 +1,9 @@
 require 'rmagick'
 include Magick
 
-def append_image(image1_in, images_in, image_out)
-  i = Magick::ImageList.new(image1_in,images_in)
-
-  if i.append(true)
-    u.write(image_out)
-  end
+def append_image(image1_in, image2_in, image_out)
+  i = Magick::ImageList.new(image1_in,image2_in)
+  i.append(true).write(image_out)
 end
 
 def merge_image(image_array, image_out, output_width, output_height, xaxis, yaxis, image_width, image_height)

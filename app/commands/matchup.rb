@@ -14,13 +14,15 @@ class MatchupCommand < BaseCommand
     desc = "Displays a chart of effectiveness for the given type"
 
     @cmd ||= Command.new(:matchup, desc, opts) do |event, primary, secondary|
-      # Find the appropriate type images
+      # Find the primary type image, or raise exception if none is found
+      raise "No type given" unless primary
       file = "images/Type #{primary.capitalize}.png"
-      secondary_file = "images/Type #{secondary.capitalize}.png"
 
-      # Combine if there are two
-      if File.exists?(file) && File.exists?(secondary_file)
-        append_image(file, secondary_file, 'images/Type Double.png')
+      # If a secondary type is given, append images for each
+      if secondary
+        file_2 = "images/Type #{secondary.capitalize}.png"
+
+        append_image(file, file_2, 'images/Type Double.png')
         file = 'images/Type Double.png'
       end
 
