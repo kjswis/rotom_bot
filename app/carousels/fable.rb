@@ -25,6 +25,9 @@ class FableCarousel < Carousel
     # Find next fable
     fable = next_fable(section, carousel)
 
+    carousel.update(fable_id: fable.id)
+    carousel.reload
+
     # Update to new fable
     BotResponse.new(
       carousel: carousel,
@@ -33,17 +36,19 @@ class FableCarousel < Carousel
   end
 
   def self.next_fable(section, carousel)
+    # The list of fables in order, and the index of the current fable
+    fables = Fable.order('id ASC')
+    i = fables.map(&:id).index(carousel.fable_id)
+
     case section
     when 'first'
-      Fable.order('id DESC').first
+      fables.first
     when 'left'
-      Fable.where('id < ?', carousel.fable_id).order('id DESC').first ||
-        Fable.order('id DESC').first
+      i == 0 ? fables.last : fables[i-1]
     when 'right'
-      Fable.where('id > ?', carousel.fable_id).order('id ASC').first ||
-        Fable.order('id ASC').first
+      i == fables.length-1 ? fables.first : fables[i+1]
     when 'last'
-      Fable.order('id ASC').first
+      fables.last
     end
   end
 end
