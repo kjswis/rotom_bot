@@ -26,39 +26,39 @@ class ApplicationForm
       to_office(event, ENV['MIZU_CH'])
     elsif reactions[Emoji::FISH]&.count.to_i > 0
       to_office(event, ENV['NEIRO_CH'])
+    elsif reactions[Emoji::CAT]&.count.to_i > 0
+      to_office(event, ENV['LUNICK_CH'])
     elsif reactions[Emoji::CABINET]&.count.to_i > 0
       to_office(event, ENV['R0RY_CH'])
     elsif reactions[Emoji::COW]&.count.to_i > 0
-      to_office(event, ENV['R0RY_CH'])
-    elsif reactions[Emoji::CAT]&.count.to_i > 0
       to_office(event, ENV['R0RY_CH'])
     end
   end
 
   def self.approve
-    raise 'NYI'
+    raise 'nyi'
   end
 
   def self.deny
-    raise 'NYI'
+    raise 'nyi'
   end
 
   def self.majority(event)
-    # The total number of voters, divided by 2
-    event.server.roles.find{ |r| r.id == ENV['ADMINS'].to_i }.members.count / 2
+    # the total number of voters, divided by 2
+    event.server.roles.find{ |r| r.id == env['admins'].to_i }.members.count / 2
   end
 
   def self.star(event)
-    stars = event.message.reacted_with(Emoji::STAR)
+    stars = event.message.reacted_with(emoji::star)
     stars.each do |star|
       member = event.server.member(star.id)
-      return true if Util::Roles.admin?(member)
+      return true if util::roles.admin?(member)
     end
     return false
   end
 
   def self.remove(event)
-    crosses = event.message.reacted_with(Emoji::CROSS)
+    crosses = event.message.reacted_with(emoji::cross)
     crosses.each do |cross|
       member = event.server.member(cross.id)
       event.message&.delete unless member.current_bot?
@@ -66,7 +66,7 @@ class ApplicationForm
   end
 
   def self.to_office(event, office)
-    app = Embed.convert(event.message.embeds.first)
-    BotResponse.new(destination: office, embed: app)
+    app = embed.convert(event.message.embeds.first)
+    botresponse.new(destination: office, embed: app)
   end
 end
