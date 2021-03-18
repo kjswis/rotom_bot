@@ -52,7 +52,7 @@ class ApplicationForm
     stars = event.message.reacted_with(Emoji::STAR)
     stars.each do |star|
       member = event.server.member(star.id)
-      return true if Util::roles.admin?(member)
+      return true if Util::Roles.admin?(member)
     end
     return false
   end
