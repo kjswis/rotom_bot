@@ -52,7 +52,7 @@ class ApplicationForm
     stars = event.message.reacted_with(Emoji::STAR)
     stars.each do |star|
       member = event.server.member(star.id)
-      return true if util::roles.admin?(member)
+      return true if Util::roles.admin?(member)
     end
     return false
   end
@@ -67,6 +67,6 @@ class ApplicationForm
 
   def self.to_office(event, office)
     app = embed.convert(event.message.embeds.first)
-    botresponse.new(destination: office, embed: app)
+    BotResponse.new(destination: office, embed: app)
   end
 end
