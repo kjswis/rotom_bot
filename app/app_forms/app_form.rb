@@ -49,7 +49,7 @@ class ApplicationForm
   end
 
   def self.star(event)
-    stars = event.message.reacted_with(emoji::star)
+    stars = event.message.reacted_with(Emoji::STAR)
     stars.each do |star|
       member = event.server.member(star.id)
       return true if util::roles.admin?(member)
@@ -58,7 +58,7 @@ class ApplicationForm
   end
 
   def self.remove(event)
-    crosses = event.message.reacted_with(emoji::cross)
+    crosses = event.message.reacted_with(Emoji::CROSS)
     crosses.each do |cross|
       member = event.server.member(cross.id)
       event.message&.delete unless member.current_bot?
