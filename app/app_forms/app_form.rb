@@ -45,7 +45,7 @@ class ApplicationForm
 
   def self.majority(event)
     # the total number of voters, divided by 2
-    event.server.roles.find{ |r| r.id == env['admins'].to_i }.members.count / 2
+    event.server.roles.find{ |r| r.id == ENV['ADMINS'].to_i }.members.count / 2
   end
 
   def self.star(event)
