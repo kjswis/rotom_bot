@@ -48,7 +48,7 @@ class MemberCommand < BaseCommand
 
         # Generate embed and reply
         BotResponse.new(
-          embed: user_char_embed(characters, member, sfw),
+          embed: user_char_embed(characters, member, event, sfw),
           carousel: active_chars.map(&:id),
           reactions: Emoji::NUMBERS.take(chars.count).push(Emoji::CROSS)
         )

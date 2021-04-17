@@ -5,11 +5,20 @@ class Item < ActiveRecord::Base
     key_mapping = {
       "Item Name" => "name",
       "Description" => "description",
-      "Effect" => "effect",
-      "Side Effect" => "side_effect",
-      "RP Reply" => "rp_reply",
+      "Known Effects" => "effect",
+      "Potential Side Effects" => "side_effect",
+      "Limitations" => "limits",
+      "Duration" => "duration",
+      "RP Used Message" => "rp_use",
+      "RP Find Message" => "rp_find",
+      "Rating" => "rating",
+      "Image URL" => "img_url",
       "Category" => "category",
-      "Reusable" => "reusable"
+      "Rarity" => "rarity",
+      "Reusable" => "reusable",
+      "Location" => "location",
+      "Crafting Recipe" => "recipe",
+      "Status List" => "statuses"
     }
 
     hash = {}

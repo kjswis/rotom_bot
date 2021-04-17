@@ -327,11 +327,12 @@ def char_list_embed(chars, group, sort = nil)
   )
 end
 
-def user_char_embed(chars, member, nsfw=nil)
+def user_char_embed(chars, member, event, nsfw=nil)
   fields = []
   active = []
   archived = []
   npcs = []
+  deleted = []
   user_name = member&.nickname || member&.name || "Unknown User"
 
   chars.each do |char|
@@ -342,6 +343,8 @@ def user_char_embed(chars, member, nsfw=nil)
       archived.push char.name
     when 'NPC'
       npcs.push char.name
+    when 'Deleted'
+      deleted.push char.name
     end
   end
 
@@ -363,6 +366,10 @@ def user_char_embed(chars, member, nsfw=nil)
 
   unless npcs.empty?
     fields.push({ name: "#{user_name}'s NPCs", value: npcs.join(", ") })
+  end
+
+  unless deleted.empty? && !ENV['ADMIN_CH'].include?(event.channel.id.to_s)
+    fields.push({ name: "#{user_name}'s Deleted Characters", value: deleted.join(", ") })
   end
 
   # Find allowed active characters

@@ -45,7 +45,7 @@ class UserCarousel < Carousel
     BotResponse.new(
       carousel: carousel,
       reactions: user_reactions,
-      embed: user_char_embed(all_chars, member, sfw)
+      embed: user_char_embed(all_chars, member, event, sfw)
     )
   end
 
