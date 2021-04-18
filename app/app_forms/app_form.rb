@@ -66,7 +66,7 @@ class ApplicationForm
   end
 
   def self.to_office(event, office)
-    app = embed.convert(event.message.embeds.first)
+    app = Embed.convert(event.message.embeds.first)
     BotResponse.new(destination: office, embed: app)
   end
 end
