@@ -71,7 +71,7 @@ class ApplicationForm
 
   def self.to_office(event, office)
     app = Embed.convert(event.message.embeds.first)
-    app.footer.text = 'This app is in review'
+    app.footer = { text: 'This app is in review' }
 
     BotResponse.new(destination: office, embed: app)
   end
