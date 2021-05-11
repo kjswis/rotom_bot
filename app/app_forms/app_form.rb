@@ -32,6 +32,10 @@ class ApplicationForm
       to_office(event, ENV['R0RY_CH'])
     elsif reactions[Emoji::COW]&.count.to_i > 0
       to_office(event, ENV['R0RY_CH'])
+    elsif reactions[Emoji::TOOLS]&.count.to_i > 0
+      to_office(event, ENV['MOD_CH'])
+    elsif reactions[Emoji::WEAPONS]&.count.to_i > 0
+      to_office(event, ENV['KNIGHT_CH'])
     end
   end
 
