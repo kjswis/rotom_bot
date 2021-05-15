@@ -9,7 +9,7 @@ submitted via google forms.
 
 To collaborate on this project, create and work on a branch. Don't forget to
 list new features in the list below. When you are ready to merge your branch,
-you may create a pull request at [ajsw.is](https://code.ajsw.is/PMD/rotom_bot)
+you may create a pull request on [github](https://github.com/kyliejo/rotom_bot)
 
 ```bash
 $ git checkout -b [branch_name]       #to create a branch
