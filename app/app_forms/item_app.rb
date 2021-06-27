@@ -19,7 +19,7 @@ class ItemApplication < ApplicationForm
     # Save item
     item = ItemController.edit_landmark(app)
     reply = BotResponse.new(
-      destination: ENV['LM_CH'],
+      destination: ENV['LAND_CHANNEL'],
       text: "Good News, <@#{item.user_id}>! Your landmark was approved!",
       embed: item_embed(item, event)
     )

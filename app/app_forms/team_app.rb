@@ -31,7 +31,7 @@ class TeamApplication < ApplicationForm
     # Create Channel
     channel = event.server.create_channel(
       app.title,
-      parent: ENV['TEAM_CAT'],
+      parent: ENV['TEAM_CATEGORY'],
       permission_overwrites: [
         { id: event.server.everyone_role.id, deny: 1024 },
         { id: role.id, allow: 1024 }
@@ -47,7 +47,7 @@ class TeamApplication < ApplicationForm
     )
 
     reply = BotResponse.new(
-      destination: ENV['TEAM_CH'],
+      destination: ENV['TEAM_CHANNEL'],
       embed: message_embed(
         "#{team.name} was approved!",
         "Request to join with ```pkmn-team #{team.name} | apply | character_name```"

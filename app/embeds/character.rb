@@ -217,7 +217,7 @@ def char_journal(char, fields, journal)
 end
 
 def char_dm_notes(char, fields, event)
-  return fields unless ENV['DM_CH'].include?(event.channel.id.to_s)
+  return fields unless ENV['DMS_GROUP'].include?(event.channel.id.to_s)
 
   fields.push(
     { name: 'DM Notes', value: char.dm_notes }
@@ -368,7 +368,7 @@ def user_char_embed(chars, member, event, nsfw=nil)
     fields.push({ name: "#{user_name}'s NPCs", value: npcs.join(", ") })
   end
 
-  unless deleted.empty? && !ENV['ADMIN_CH'].include?(event.channel.id.to_s)
+  unless deleted.empty? && !ENV['GMS_GROUP'].include?(event.channel.id.to_s)
     fields.push({ name: "#{user_name}'s Deleted Characters", value: deleted.join(", ") })
   end
 

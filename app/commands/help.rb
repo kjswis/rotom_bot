@@ -21,7 +21,7 @@ class HelpCommand < BaseCommand
       # --Execution--
       # When a command is specified
       case command
-      when /admin/i && event.channel.id == ENV['ADMIN_CH']
+      when /admin/i && event.channel.id == ENV['GMS_GROUP']
       when nil
         # List of commands, by restrictions: server, and pm
         server_commands = all_cmds.filter{ |bc| bc.restricted_to == nil }
