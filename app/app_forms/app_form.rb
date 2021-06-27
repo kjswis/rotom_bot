@@ -23,19 +23,19 @@ class ApplicationForm
     elsif reactions[Emoji::CROSS]&.count.to_i > 1
       remove(event)
     elsif reactions[Emoji::GHOST]&.count.to_i > 0
-      to_office(event, ENV['MIZU_CH'])
+      to_office(event, ENV['MIZ_OFFICE'])
     elsif reactions[Emoji::FISH]&.count.to_i > 0
-      to_office(event, ENV['NEIRO_CH'])
+      to_office(event, ENV['NEI_OFFICE'])
     elsif reactions[Emoji::CAT]&.count.to_i > 0
-      to_office(event, ENV['LUNICK_CH'])
+      to_office(event, ENV['LUN_OFFICE'])
     elsif reactions[Emoji::CABINET]&.count.to_i > 0
-      to_office(event, ENV['R0RY_CH'])
+      to_office(event, ENV['R0R_OFFICE'])
     elsif reactions[Emoji::COW]&.count.to_i > 0
-      to_office(event, ENV['R0RY_CH'])
+      to_office(event, ENV['R0R_OFFICE'])
     elsif reactions[Emoji::TOOLS]&.count.to_i > 0
-      to_office(event, ENV['MOD_CH'])
+      to_office(event, ENV['MOD_CHAMBERS'])
     elsif reactions[Emoji::WEAPONS]&.count.to_i > 0
-      to_office(event, ENV['KNIGHT_CH'])
+      to_office(event, ENV['KRT_CHAMBERS'])
     end
   end
 
@@ -49,7 +49,7 @@ class ApplicationForm
 
   def self.majority(event)
     # the total number of voters, divided by 2
-    event.server.roles.find{ |r| r.id == ENV['ADMINS'].to_i }.members.count / 2
+    event.server.roles.find{ |r| r.id == ENV['GMS_ROLE'].to_i }.members.count / 2
   end
 
   def self.star(event)

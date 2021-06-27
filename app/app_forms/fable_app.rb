@@ -19,7 +19,7 @@ class FableApplication < ApplicationForm
     # Save fable
     fable = FableController.edit_fable(app)
     reply = BotResponse.new(
-      destination: ENV['FABLE_CH'],
+      destination: ENV['FABL_CHANNEL'],
       text: "Good News, <@#{fable.user_id}>! Your fable was published!",
       embed: fable_embed(fable, event)
     )

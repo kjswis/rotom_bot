@@ -36,7 +36,7 @@ class ConfirmArchive < ApplicationForm
 
         embed = success_embed("Successfully Archived #{character.name}")
         event.message.delete
-        [BotResponse.new(destination: ENV['APP_CH'], embed: embed),
+        [BotResponse.new(destination: ENV['APPS_CHANNEL'], embed: embed),
          BotResponse.new(embed: embed)]
       end
     end

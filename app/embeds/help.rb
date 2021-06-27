@@ -37,7 +37,7 @@ def command_help(command, event)
   # Apply options, if there are any
   fields = command_usage(command, event) unless command.cmd.options.empty?
   # If in the admin channel, show additional admin options
-  fields = admin_options(command, fields) if event.channel.id == ENV['ADMIN_CH'].to_i
+  fields = admin_options(command, fields) if event.channel.id == ENV['GMS_GROUP'].to_i
 
   # Apply fields and return
   embed.fields = fields
@@ -102,7 +102,7 @@ def command_error(title, command, event=nil)
   # Apply options, if there are any
   fields = command_usage(command, event) unless command.cmd.options.empty?
   # If in the admin channel, show additional admin options
-  fields = admin_options(command, fields) if event&.channel&.id == ENV['ADMIN_CH'].to_i
+  fields = admin_options(command, fields) if event&.channel&.id == ENV['GMS_GROUP'].to_i
 
   # Apply fields and return
   embed.fields = fields

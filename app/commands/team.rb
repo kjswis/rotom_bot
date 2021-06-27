@@ -33,7 +33,7 @@ class TeamCommand < BaseCommand
 
         # Request Team to Admin
         reply.push(BotResponse.new(
-          destination: ENV['APP_CH'],
+          destination: ENV['APPS_CHANNEL'],
           embed: create_request(team_name, desc),
           reactions: Emoji::REQUEST
         ))

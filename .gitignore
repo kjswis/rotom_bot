@@ -1,4 +1,5 @@
 .env
+.ruby-version
 Gemfile.lock
 .DS_Store
 .vs/*
