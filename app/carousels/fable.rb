@@ -1,3 +1,5 @@
+require './app/models/carousels.rb'
+
 class FableCarousel < Carousel
   def self.sections
     {
