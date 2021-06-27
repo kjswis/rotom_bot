@@ -43,7 +43,7 @@ class ImageCommand < BaseCommand
 
         [
           BotResponse.new(
-            destination: ENV['APP_CH'].to_i,
+            destination: ENV['APPS_CHANNEL'].to_i,
             embed: embed,
             reactions: Emoji::REQUEST
           ),

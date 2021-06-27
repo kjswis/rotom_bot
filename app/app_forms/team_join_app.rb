@@ -50,7 +50,7 @@ class TeamJoinApplication < ApplicationForm
 
     # Notify the requester of denial
     reply = BotResponse.new(
-      destination: ENV['TEAM_CH'],
+      destination: ENV['TEAM_CHANNEL'],
       text: "#{character.name}'s request to join #{team.name} has been denied"
     )
 

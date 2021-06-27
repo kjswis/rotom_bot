@@ -24,8 +24,8 @@ class CharacterApplication < ApplicationForm
 
     # Determine appropriate channel
     channel = case character.rating
-              when /sfw/i then ENV['CHAR_CH']
-              when /nsfw/i then ENV['CHAR_NSFW_CH']
+              when /sfw/i then ENV['CHAR_CHANNEL']
+              when /nsfw/i then ENV['NSFW_CHANNEL']
               when /hidden/i then member.dm
               end
 

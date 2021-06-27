@@ -85,12 +85,12 @@ bot.message do |event|
     end
 
   # Check for a clear command
-  elsif ENV['CLEAR_CH'].include?(event.channel.id.to_s) && content.match(/^clear\schat$/i)
+  elsif ENV['CLEAR_CHANNELS'].include?(event.channel.id.to_s) && content.match(/^clear\schat$/i)
     msgs = event.channel.history(50).reject{ |m| m.author.webhook? }
     event.channel.delete_messages(msgs)
 
   # Check for no exp channels
-  elsif ENV['NO_EXP_CH'].include?(event.channel.id.to_s)
+  elsif ENV['NO_XP_CHANNELS'].include?(event.channel.id.to_s)
     # Do nothing
 
   # Apply experience to non-bot users

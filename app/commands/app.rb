@@ -75,7 +75,7 @@ class ApplicationCommand < BaseCommand
         character.reload
 
         embed = success_embed("Successfully archived #{character.name}")
-        [ BotResponse.new(destination: ENV['APP_CH'], embed: embed),
+        [ BotResponse.new(destination: ENV['APPS_CHANNEL'], embed: embed),
           BotResponse.new(embed: embed) ]
       else
         teams = Team.where(id: in_team.map(&:team_id)).map(&:name)
@@ -102,7 +102,7 @@ class ApplicationCommand < BaseCommand
         embed = character_embed(character: character, event: event)
         embed.author = { name: "Reactivation Application" }
 
-        [ BotResponse.new(destination: ENV['APP_CH'], embed: embed, reactions: Emoji::APPLICATION),
+        [ BotResponse.new(destination: ENV['APPS_CHANNEL'], embed: embed, reactions: Emoji::APPLICATION),
           BotResponse.new(embed: success_embed("Successfully requested #{character.name} to be reactivated!"))]
       # If they have no open slots
       else
@@ -132,7 +132,7 @@ class ApplicationCommand < BaseCommand
       )
 
       # Reply
-      [ BotResponse.new(destination: ENV['APP_CH'], embed: embed),
+      [ BotResponse.new(destination: ENV['APPS_CHANNEL'], embed: embed),
         BotResponse.new(embed: embed) ]
 
     when /legend/i, /legendary/i
