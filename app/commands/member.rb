@@ -90,8 +90,8 @@ class MemberCommand < BaseCommand
 
     rescue ActiveRecord::RecordNotFound => e
       error_embed("Record Not Found!", e.message)
-    #rescue StandardError => e
-      #error_embed(e.message)
+    rescue StandardError => e
+      error_embed(e.message)
     end
   end
 
