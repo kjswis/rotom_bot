@@ -148,7 +148,7 @@ class TeamCommand < BaseCommand
         team = Team.find_by!('name ilike ?', team_name) if team_name
         team_name ? team_embed(team) : teams_embed
       else
-        command_error_embed("Could not process team request!", team)
+        command_error("Could not process team request!", team)
       end
 
     rescue ActiveRecord::RecordNotFound => e
