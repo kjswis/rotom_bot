@@ -14,25 +14,23 @@ class JournalCommand < BaseCommand
   def self.cmd
     desc = "Create a short journal entry for a character"
 
-    @cmd ||= Command.new(:journal, desc, opts) do |event, name, title, note|
+    @cmd ||= Command.new(:journal, desc, opts) do |event, name, title|
       # Find the character
       character = Character.restricted_find(name, event.author, ['Archived'])
 
       # Format and create Journal
       date = Time.now.strftime("%a, %b %d, %Y")
-      if !note
-        note = title
-        title = date
-      elsif title == ''
-        title = date
-      end
+      message = event.message.content
+      entry = message.sub("#{message.match(/.*/)[0]}\n", "")
+
+      raise 'No Journal Entry Found!' if entry.nil?
 
       # Create a new Journal Entry with formatted date
       journal = JournalEntry.create(
         char_id: character.id,
         title: title,
         date: date,
-        entry: note
+        entry: entry
       )
 
       # Create response embed and reply
