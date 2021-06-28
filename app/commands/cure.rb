@@ -19,10 +19,10 @@ class CureCommand < BaseCommand
       character = Character.restricted_find(name, event.author, ['Archived'])
       status = Status.find_by!('name ilike ?', status) unless status.match(/all/i)
 
-      raise 'Amount must be a positive number' if amount.to_i < 1
+      raise 'Amount must be a positive number' if amount.to_i < 1 && status.amount
 
       # Update Status, and reload
-      StatusController.update_char_status(character, status, 0 - amount.to_i)
+      StatusController.cure_char_status(character, status, amount.to_i)
       character.reload
 
       # Create character embed, and reply
