@@ -22,7 +22,7 @@ class AfflictCommand < BaseCommand
       raise 'Amount must be a positive number' if amount.to_i < 1
 
       # Update Status, and reload
-      StatusController.update_char_status(character, status, amount.to_i)
+      StatusController.afflict_char_status(character, status, amount.to_i)
       character.reload
 
       # Create character embed, and reply
