@@ -28,7 +28,26 @@ class StatusController
     end
   end
 
-  def self.update_char_status(character, status, amount=nil)
+  def self.afflict_char_status(character, status, amount=nil)
+    # Find the status effect if it exists
+    char_status =
+      CharStatus.where(char_id: character.id).find_by(status_id: status.id)
+
+    if status.amount
+      raise "#{status.name} requires an amount!" if amount == 0
+      new_amount = char_status.amount + amount
+
+      char_status.update(amount: new_amount) if char_status
+    else
+      CharStatus.create(
+        char_id: character.id,
+        status_id: status.id,
+        amount: amount
+      )
+    end
+  end
+
+  def self.cure_char_status(character, status, amount=nil)
     case status
     when /all/i
       # Clear all status effects from the user
@@ -38,29 +57,19 @@ class StatusController
       char_status =
         CharStatus.where(char_id: character.id).find_by(status_id: status.id)
 
-      if char_status && status.amount
-        raise 'Amount must be a number' if amount == 0
-        # Update row
+      raise "Character does not have status #{status.name}!" if !char_status
+
+      # Find new value
+      if status.amount
+        raise "#{status.name} requires an amount!" if amount == 0
         new_amount = char_status.amount + amount
+      end
 
-        if new_amount > 0
-          # If the value is above 0, update
-          char_status.update(amount: new_amount)
-        else
-          # If the value is 0 or below, delete
-          char_status.destroy
-        end
-
-      elsif char_status && !status.amount
-        raise 'Character already has status'
+      # If the value is 0 or below, delete
+      if !status.amount || new_amount == 0
+        char_status.destroy
       else
-        raise 'Character did not have status' if amount.to_i < 0
-        # Create new row
-        CharStatus.create(
-          char_id: character.id,
-          status_id: status.id,
-          amount: amount
-        )
+        char_status.update(amount: new_amount)
       end
     end
   end
