@@ -20,6 +20,10 @@ function pkmn-help {
   echo "  - pkmn-db-restore to restore the backup data"
 }
 
+function pkmn-cd {
+  cd $ROTOM_DIR
+}
+
 function pkmn-bot {
   echo "Refreshing Containers"
   echo "-------------------->"
@@ -32,7 +36,11 @@ function pkmn-bot {
 }
 
 function pkmn-logs {
-  docker logs -tail=200 -f
+  if [ $1 = 'follow' ]; then
+    docker logs rotom_bot_bot_1 --tail=200 -f
+  else
+    docker logs rotom_bot_bot_1 --tail=200
+  fi
 }
 
 function pkmn-pry {

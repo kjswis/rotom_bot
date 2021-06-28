@@ -6,7 +6,7 @@ git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 ruby '2.6.3'
 
 gem 'activerecord'
-gem 'discordrb', '~> 3.3.0'
+gem 'discordrb'
 gem 'pg'
 gem 'terminal-table'
 gem 'rmagick'
