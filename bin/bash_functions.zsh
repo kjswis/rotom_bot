@@ -5,12 +5,18 @@ dbuser=$(sed -n -e 's/POSTGRES_USER=\(.*\)/\1/p' $ROTOM_DIR/.env)
 dbpasswd=$(sed -n -e 's/POSTGRES_PASSWORD=\(.*\)/\1/p' $ROTOM_DIR/.env)
 
 function pkmn-help {
+  echo "Bot Commands"
+  echo "------------"
   echo "pkmn-bot"
   echo "- Refresh containers to reflect new code changes"
   echo "pkmn-logs"
-  echo "- View container logs"
+  echo "- View container logs, add 'follow' to see live logs"
   echo "pkmn-pry"
   echo "- View the active console to see output"
+  echo
+
+  echo "Database Commands"
+  echo "-----------------"
   echo "pkmn-db"
   echo "- Connect to the bot database"
   echo "pkmn-db-update"
@@ -18,10 +24,16 @@ function pkmn-help {
   echo "  - pkmn-db-clear to empty existing db"
   echo "  - pkmn-db-import to import a fresh db backup"
   echo "  - pkmn-db-restore to restore the backup data"
+  echo
+
+  echo "Bash and Rake Commands"
+  echo "----------------------"
   echo "pkmn-rake task:name"
   echo "- run the given rake task"
   echo "pkmn-migrate name:up"
   echo "- run the given migration task"
+  echo "pkmn-bash [command]"
+  echo "- runs a command if given, or connects to the bot shell"
 }
 
 function pkmn-cd {
@@ -85,6 +97,14 @@ function pkmn-db-restore {
   docker exec rotom_bot_db_1 bash -c "psql -U $dbuser -d $dbname < pmdb"
   echo
   echo "Database Refreshed!"
+}
+
+function pkmn-bash {
+  if [ $1 ]; then
+    docker exec rotom_bot_bot_1 sh -c "$1"
+  else
+    docker exec -it rotom_bot_bot_1 sh
+  fi
 }
 
 function pkmn-rake {
