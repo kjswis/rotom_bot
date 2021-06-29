@@ -18,6 +18,10 @@ function pkmn-help {
   echo "  - pkmn-db-clear to empty existing db"
   echo "  - pkmn-db-import to import a fresh db backup"
   echo "  - pkmn-db-restore to restore the backup data"
+  echo "pkmn-rake task:name"
+  echo "- run the given rake task"
+  echo "pkmn-migrate name:up"
+  echo "- run the given migration task"
 }
 
 function pkmn-cd {
@@ -81,4 +85,18 @@ function pkmn-db-restore {
   docker exec rotom_bot_db_1 bash -c "psql -U $dbuser -d $dbname < pmdb"
   echo
   echo "Database Refreshed!"
+}
+
+function pkmn-rake {
+  echo "Running rake $1"
+  echo "-----------------${1//([a-z]|[A-Z]|[0-9]|\:)/-}>"
+
+  docker exec rotom_bot_bot_1 sh -c "rake $1"
+}
+
+function pkmn-migrate {
+  echo "Running rake migrate:$1"
+  echo "-----------------${1//([a-z]|[A-Z]|[0-9]|:)/-}>"
+
+  docker exec rotom_bot_bot_1 sh -c "rake migrate:$1"
 }

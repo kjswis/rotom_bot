@@ -11,6 +11,7 @@ gem 'pg'
 gem 'terminal-table'
 gem 'rmagick'
 gem 'down'
+gem 'rake'
 
 group :development do
   gem 'dotenv'
