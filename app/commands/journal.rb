@@ -6,7 +6,7 @@ class JournalCommand < BaseCommand
       usage: {
         character: "Searches for the character by name, can only add entries for your own characters",
         title: "A title for the journal, may be blank (defaults to date)",
-        entry: "The journal entry, should be a paragraph as the character might enter into a diary"
+        entry: "The journal entry, shift+enter to start a new line and write the journal entry"
       }
     }
   end
@@ -14,35 +14,56 @@ class JournalCommand < BaseCommand
   def self.cmd
     desc = "Create a short journal entry for a character"
 
-    @cmd ||= Command.new(:journal, desc, opts) do |event, name, title|
-      # Find the character
-      character = Character.restricted_find(name, event.author, ['Archived'])
+    @cmd ||= Command.new(:journal, desc, opts) do |event, name, title, update|
+      if name.to_i > 0
+        # Find journal
+        journal = JournalEntry.find(name)
+        modal = Modal.find_by(message_id: event.message.id)
 
-      # Format and create Journal
-      date = Time.now.strftime("%a, %b %d, %Y")
-      message = event.message.content
-      entry = message.sub("#{message.match(/.*/)[0]}\n", "")
+        case title
+        when /character/i
+          character = Character.restricted_find(update, event.author, ['Archived'])
+          journal.update(char_id: character.id)
+        when /title/i
+          journal.update(title: update)
+        when /entry/i
+          entry = message.sub("#{message.match(/.*/)[0]}\n", "")
+          journal.update(entry: entry)
+        when /date/i
+          journal.update(date: update)
+        else
+        end
 
-      raise 'No Journal Entry Found!' if entry.nil?
+        journal.reload
+        modal.update(event, :journal)
+      else
+        # Find the character
+        character = Character.restricted_find(name, event.author, ['Archived'])
 
-      # Create a new Journal Entry with formatted date
-      journal = JournalEntry.create(
-        char_id: character.id,
-        title: title,
-        date: date,
-        entry: entry
-      )
+        # Format and create Journal
+        date = Time.now.strftime("%a, %b %d, %Y")
+        message = event.message.content
+        entry = message.sub("#{message.match(/.*/)[0]}\n", "")
+
+        raise 'No Journal Entry Found!' if entry.nil?
+
+        # Create a new Journal Entry with formatted date
+        journal = JournalEntry.create(
+          char_id: character.id,
+          title: title,
+          date: date,
+          entry: entry
+        )
+
+        modal = journal
+      end
 
       # Create response embed and reply
       BotResponse.new(
-        embed: character_embed(
-          character: character,
-          event: event,
-          section: :journal,
-          journal: journal
-        )
+        embed: journal_modal(journal),
+        reactions: JournalModal.reactions,
+        modal: modal
       )
-
     rescue ActiveRecord::RecordNotFound => e
       error_embed("Record not Found!", e.message)
     end

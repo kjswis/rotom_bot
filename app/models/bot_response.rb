@@ -1,5 +1,5 @@
 class BotResponse
-  def initialize(destination: nil, text: "", embed: nil, timer: nil, file: nil, carousel: nil, reactions: [])
+  def initialize(destination: nil, text: "", embed: nil, timer: nil, file: nil, carousel: nil, modal: nil, reactions: [])
     @destination = destination
     @text = text
     @timer = timer
@@ -7,6 +7,7 @@ class BotResponse
     @file = file
     @reactions = reactions
     @carousel = carousel
+    @modal = modal
   end
 
   def call(event, bot)
@@ -54,6 +55,15 @@ class BotResponse
       Carousel.create(message_id: message.id, options: @carousel)
     when String
       Carousel.create(message_id: message.id)
+    end
+
+    # Create/Update Modal
+    case @modal
+    when Modal
+      event.message.edit(@text, @embed)
+      message = event.message
+    when JournalEntry
+      Modal.create(message_id: message.id, object_id: @journal.id, type: 'Journal')
     end
 
     # React
