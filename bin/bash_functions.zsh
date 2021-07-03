@@ -6,34 +6,21 @@ dbpasswd=$(sed -n -e 's/POSTGRES_PASSWORD=\(.*\)/\1/p' $ROTOM_DIR/.env)
 
 function pkmn-help {
   echo "Bot Commands"
-  echo "------------"
-  echo "pkmn-bot"
-  echo "- Refresh containers to reflect new code changes"
-  echo "pkmn-logs"
-  echo "- View container logs, add 'follow' to see live logs"
-  echo "pkmn-pry"
-  echo "- View the active console to see output"
+  echo "   pkmn-bot                Refresh containers to reflect new code changes"
+  echo "   pkmn-logs               View container logs, add 'follow' to see live logs"
+  echo "   pkmn-pry                View the active console to see output"
   echo
-
   echo "Database Commands"
-  echo "-----------------"
-  echo "pkmn-db"
-  echo "- Connect to the bot database"
-  echo "pkmn-db-update"
-  echo "- Pull in fresh db data and update locally which uses:"
-  echo "  - pkmn-db-clear to empty existing db"
-  echo "  - pkmn-db-import to import a fresh db backup"
-  echo "  - pkmn-db-restore to restore the backup data"
+  echo "   pkmn-db                 Connect to the bot database"
+  echo "   pkmn-db-update          Pull in fresh db data and update locally which uses:"
+  echo "      pkmn-db-clear        empty existing db"
+  echo "      pkmn-db-import       import a fresh db backup"
+  echo "      pkmn-db-restore      restore the backup data"
   echo
-
   echo "Bash and Rake Commands"
-  echo "----------------------"
-  echo "pkmn-rake task:name"
-  echo "- run the given rake task"
-  echo "pkmn-migrate name:up"
-  echo "- run the given migration task"
-  echo "pkmn-bash [command]"
-  echo "- runs a command if given, or connects to the bot shell"
+  echo "   pkmn-rake task:name     Run the given rake task"
+  echo "   pkmn-migrate name:up    Run the given migration task"
+  echo "   pkmn-bash [command]     Runs a command if given, or connects to the bot shell"
 }
 
 function pkmn-cd {
@@ -109,14 +96,14 @@ function pkmn-bash {
 
 function pkmn-rake {
   echo "Running rake $1"
-  echo "-----------------${1//([a-z]|[A-Z]|[0-9]|\:)/-}>"
+  echo "-------------${1//([a-z]|[A-Z]|[0-9]|:|_)/-}>"
 
   docker exec rotom_bot_bot_1 sh -c "rake $1"
 }
 
 function pkmn-migrate {
   echo "Running rake migrate:$1"
-  echo "-----------------${1//([a-z]|[A-Z]|[0-9]|:)/-}>"
+  echo "---------------------${1//([a-z]|[A-Z]|[0-9]|:|_)/-}>"
 
   docker exec rotom_bot_bot_1 sh -c "rake migrate:$1"
 }
