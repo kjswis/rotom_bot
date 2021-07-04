@@ -29,15 +29,21 @@ class LandmarkCommand < BaseCommand
     @cmd ||= Command.new(:landmark, desc, opts) do |event, name, section|
 
       if name
-        # Find landmark, case insensitive
-        landmark = Landmark.find_by!('name ilike ?', name)
+        # Find landmark, case insensitive - or search category, or kink
+        landmark = landmark_search(name)
+        filters = [name.capitalize]
 
-        # Reply with landmark display
-        BotResponse.new(
-          embed: landmark_embed(lm: landmark, section: section, event: event),
-          carousel: landmark,
-          reactions: LandmarkCarousel.sections.map{ |k,v| k }.push(Emoji::CROSS)
-        )
+        if landmark.is_a? Landmark
+          # Reply with landmark display
+          BotResponse.new(
+            embed: landmark_embed(lm: landmark, section: section, event: event),
+            carousel: landmark,
+            reactions: LandmarkCarousel.sections.map{ |k,v| k }.push(Emoji::CROSS)
+          )
+        else
+          filtered_landmarks(landmark, filters)
+        end
+
       else
         # Reply with landmark list display
         landmark_list
@@ -47,6 +53,17 @@ class LandmarkCommand < BaseCommand
     rescue StandardError => e
       error_embed(e.message)
     end
+  end
+
+  def self.landmark_search(params)
+    lm = Landmark.find_by('name ilike ?', params)
+    return lm if lm
+
+    list = Landmark.where('category ilike ?', params)
+    list = Landmark.where('? ilike any(kink)', params) if list.empty?
+
+    raise "Landmark #{params.capitalize} Not Found!" if list.empty?
+    return list
   end
 
   def self.example_command(event=nil)
