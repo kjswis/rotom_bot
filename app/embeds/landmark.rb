@@ -107,3 +107,16 @@ def input_children(children, parent, list, level)
     input_children(children, landmark, list, level+1)
   end
 end
+
+def filtered_landmarks(landmarks, filters)
+  fields = []
+  Region.all.each do |r|
+    list = landmarks.select{ |lm| lm.region == r.id }.map(&:name)
+    fields.push({ name: r.name, value: list.join("\n"), inline: true }) unless list.empty?
+  end
+
+  Embed.new(
+    title: "Places of Interest: #{filters.join(', ')}",
+    fields: fields
+  )
+end
