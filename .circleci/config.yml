@@ -1,6 +1,6 @@
 version: 2.1
 orbs:
-  ruby: circleci/ruby@0.1.2
+  ruby: circleci/ruby@1.1.4
 
 jobs:
   build:
@@ -12,13 +12,13 @@ jobs:
       - run:
           name: Which bundler?
           command: bundle -v
-      - ruby/bundle-install
+      - ruby/install-deps
   test:
     docker:
       - image: circleci/ruby:2.6.3-stretch-node
     steps:
       - checkout
-      - ruby/bundle-install
+      - ruby/install-deps
       - ruby/rspec-test
 
 workflows:
