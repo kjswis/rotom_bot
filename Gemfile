@@ -12,6 +12,8 @@ gem 'terminal-table'
 gem 'rmagick'
 gem 'down'
 gem 'rake'
+gem 'rspec'
+gem 'rspec_junit_formatter'
 
 group :development do
   gem 'dotenv'
