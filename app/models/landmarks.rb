@@ -6,7 +6,7 @@ class Landmark < ActiveRecord::Base
 
   MAPPING = {
     "Name" => "name",
-    "User" => "user_id"
+    "User" => "user_id",
     "Description" => "description",
     "Type" => "category",
     "Image URL" => "url",
