@@ -4,6 +4,23 @@ class Landmark < ActiveRecord::Base
   validates :category, presence: true
   before_save :set_default_warning
 
+  MAPPING = {
+    "Name" => "name",
+    "User" => "user_id"
+    "Description" => "description",
+    "Type" => "category",
+    "Image URL" => "url",
+    "Main Region" => "region",
+    "Parent Landmark" => "location",
+    "Kinks" => "kink",
+    "Warning Description" => "warning",
+    "Warning URL" => "w_url",
+    "Warning Rating" => "w_rating",
+    "History" => "history",
+    "Folklore" => "folk_lore",
+    "Layout URL" => "layout_url"
+  }
+
   def self.restricted_find(search, author)
     # Find Landmark
     case search.to_i
@@ -24,20 +41,6 @@ class Landmark < ActiveRecord::Base
   end
 
   def self.from_form(app)
-    key_mapping = {
-      "Description" => "description",
-      "Type" => "category",
-      "Main Region" => "region",
-      "Parent Landmark" => "location",
-      "Kinks" => "kink",
-      "Warning Description" => "warning",
-      "Warning URL" => "w_url",
-      "Warning Rating" => "w_rating",
-      "History" => "history",
-      "Folklore" => "folk_lore",
-      "Layout URL" => "layout_url"
-    }
-
     hash = {
       "name" => nil,
       "description" => nil,
@@ -56,22 +59,10 @@ class Landmark < ActiveRecord::Base
       "edit_url" => nil
     }
 
-    user_id = UID.match(app.description)
-    hash["user_id"] = case app.description
-                      when /server/i
-                        'Server'
-                      else
-                        user_id[1]
-                      end
-
-    hash["name"] = app.title
-    hash["edit_url"] = app.footer.text
-    hash["url"] = app.image&.url
-
     app.fields.each do |field|
       next if field.nil?
 
-      db_column = key_mapping[field.name]
+      db_column = MAPPING[field.name]
       if db_column == "region"
         r = Region.find_by(name: field.value)
         hash[db_column] = r.id
@@ -84,6 +75,19 @@ class Landmark < ActiveRecord::Base
         hash[db_column] = field.value
       end
     end
+
+    user_id = UID.match(app.description)
+    hash["user_id"] = case app.description
+                      when /server/i
+                        'Server'
+                      else
+                        user_id[1]
+                      end
+
+    hash["name"] = app.title
+    hash["edit_url"] = app.footer.text
+    hash["url"] = app.image&.url
+
 
     hash = hash.reject { |k,v| k == nil }
     hash

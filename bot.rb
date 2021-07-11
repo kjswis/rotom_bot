@@ -84,6 +84,13 @@ bot.message do |event|
       BotController.application_react(event)
     end
 
+    # diff check apps
+    edited_fields = ApplicationController.diff(app)
+    event.reply(
+      "The edited fields appear to be: #{edited_fields.join(", ")}"
+    ) unless edited_fields.empty?
+
+
   # Check for a clear command
   elsif ENV['CLEAR_CHANNELS'].include?(event.channel.id.to_s) && content.match(/^clear\schat$/i)
     msgs = event.channel.history(50).reject{ |m| m.author.webhook? }

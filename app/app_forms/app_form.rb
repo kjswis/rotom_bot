@@ -13,6 +13,8 @@ class ApplicationForm
 
   def self.check_votes(event, maj)
     reactions = event.message.reactions
+    # force push navigation
+    maj = 1 if reactions[Emoji::BANG]&.count.to_i > 0
 
     if reactions[Emoji::Y]&.count.to_i > maj && star(event)
       approve(event)
