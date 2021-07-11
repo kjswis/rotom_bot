@@ -2,12 +2,15 @@ class Fable < ActiveRecord::Base
   validates :title, presence: true
   validates :story, presence: true
 
-  def self.from_form(app)
-    key_mapping = {
-      "Author" => "user_id",
-      "Keywords" => "keywords"
-    }
+  MAPPING = {
+    "Author" => "user_id",
+    "Keywords" => "keywords",
+    "Book Name" => "title",
+    "Story" => "story",
+    "Image URL" => "url"
+  }
 
+  def self.from_form(app)
     hash = {
       "title" => nil,
       "story" => nil,

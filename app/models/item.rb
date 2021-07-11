@@ -1,26 +1,26 @@
 class Item < ActiveRecord::Base
   validates :name, presence: true
 
-  def self.from_form(app)
-    key_mapping = {
-      "Item Name" => "name",
-      "Description" => "description",
-      "Known Effects" => "effect",
-      "Potential Side Effects" => "side_effect",
-      "Limitations" => "limits",
-      "Duration" => "duration",
-      "RP Used Message" => "rp_use",
-      "RP Find Message" => "rp_find",
-      "Rating" => "rating",
-      "Image URL" => "img_url",
-      "Category" => "category",
-      "Rarity" => "rarity",
-      "Reusable" => "reusable",
-      "Location" => "location",
-      "Crafting Recipe" => "recipe",
-      "Status List" => "statuses"
-    }
+  MAPPING = {
+    "Item Name" => "name",
+    "Description" => "description",
+    "Known Effects" => "effect",
+    "Potential Side Effects" => "side_effect",
+    "Limitations" => "limits",
+    "Duration" => "duration",
+    "RP Used Message" => "rp_use",
+    "RP Find Message" => "rp_find",
+    "Rating" => "rating",
+    "Image URL" => "url",
+    "Category" => "category",
+    "Rarity" => "rarity",
+    "Reusable" => "reusable",
+    "Location" => "location",
+    "Crafting Recipe" => "recipe",
+    "Status List" => "statuses"
+  }
 
+  def self.from_form(app)
     hash = {}
     app.fields.each do |field|
       next if field.nil?

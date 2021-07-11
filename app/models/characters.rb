@@ -4,6 +4,37 @@ class Character < ActiveRecord::Base
   validates :species, presence: true
   validates :types, presence: true
 
+  MAPPING = {
+    "Characters Name" => "name",
+    "Aliases" => "aliases",
+    "Nicknames" => "nicknames",
+    "Species" => "species",
+    "Shiny" => "shiny",
+    "Type" => "types",
+    "Age" => "age",
+    "Weight" => "weight",
+    "Height" => "height",
+    "Gender" => "gender",
+    "Sexual Orientation" => "orientation",
+    "Relationship Status" => "relationship",
+    "Attacks" => "attacks",
+    "Likes" => "likes",
+    "Dislikes" => "dislikes",
+    "Personality" => "personality",
+    "Hometown" => "hometown",
+    "Warnings" => "warnings",
+    "Rumors" => "rumors",
+    "Backstory" => "backstory",
+    "Recent Events" => "recent_events",
+    "Other" => "other",
+    "Rating" => "rating",
+    "Current Location" => "location",
+    "DM Notes" => "dm_notes",
+    "Base Character ID" => "alt_form",
+    "Edit Key (ignore)" => "edit_url",
+  }
+
+
   def self.restricted_find(search, author, flags=[])
     # Append Deleted to flags
     flags.push('Deleted')
@@ -31,36 +62,6 @@ class Character < ActiveRecord::Base
   end
 
   def self.from_form(app)
-    key_mapping = {
-      "Characters Name" => "name",
-      "Aliases" => "aliases",
-      "Nicknames" => "nicknames",
-      "Species" => "species",
-      "Shiny" => "shiny",
-      "Type" => "types",
-      "Age" => "age",
-      "Weight" => "weight",
-      "Height" => "height",
-      "Gender" => "gender",
-      "Sexual Orientation" => "orientation",
-      "Relationship Status" => "relationship",
-      "Attacks" => "attacks",
-      "Likes" => "likes",
-      "Dislikes" => "dislikes",
-      "Personality" => "personality",
-      "Hometown" => "hometown",
-      "Warnings" => "warnings",
-      "Rumors" => "rumors",
-      "Backstory" => "backstory",
-      "Recent Events" => "recent_events",
-      "Other" => "other",
-      "Rating" => "rating",
-      "Current Location" => "location",
-      "DM Notes" => "dm_notes",
-      "Base Character ID" => "alt_form",
-      "Edit Key (ignore)" => "edit_url",
-    }
-
     hash = {
       "user_id" => nil,
       "name" => nil,
@@ -120,7 +121,7 @@ class Character < ActiveRecord::Base
     app.fields.each do |field|
       next if field.nil?
 
-      db_column = key_mapping[field.name]
+      db_column = MAPPING[field.name]
 
       if db_column == 'shiny'
         hash[db_column] = field.value.match(/yes/i) ? true : false

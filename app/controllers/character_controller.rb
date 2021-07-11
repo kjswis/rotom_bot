@@ -38,4 +38,11 @@ class CharacterController
   rescue StandardError => e
     error_embed(e.message)
   end
+
+  def self.diff(params)
+    return unless old_app = Character.find_by(edit_url: params.footer.text)
+
+    new_app = Character.new(Character.from_form(params))
+    Character::MAPPING.map{ |k,v| k if old_app[v] != new_app[v] }.reject{ |a| a == nil }
+  end
 end
