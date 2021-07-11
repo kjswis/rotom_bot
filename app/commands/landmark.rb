@@ -56,20 +56,15 @@ class LandmarkCommand < BaseCommand
   end
 
   def self.landmark_search(params)
-    if params.match(/(type=|category=|kink=)/i)
-      cat = params.match(/(types?=|category=)(.*)\s?/i)
-      kin = params.match(/kinks?=(.*)\s?/i)
+    # try to find landmark by name, and return it if found
+    lm = Landmark.find_by('name ilike ?', params)
+    return lm if lm
 
-      # Query for all the above conditions
-    else
-      lm = Landmark.find_by('name ilike ?', params)
-      return lm if lm
+    # look for landmark by category, then kink if not found
+    list = Landmark.where('category ilike ?', params)
+    list = Landmark.where('? ilike any(kink)', params) if list.empty?
 
-      list = Landmark.where('category ilike ?', params)
-      list = Landmark.where('? ilike any(kink)', params) if list.empty?
-    end
-
-
+    # raise an exception for no landmarks found if needed, otherwise return
     raise "Landmark #{params.capitalize} Not Found!" if list.empty?
     return list
   end
