@@ -73,9 +73,14 @@ def character_embed(character:, event:, section: nil, image: nil, journal: nil)
 end
 
 def char_alias(char, fields)
-  fields.push(
-    { name: 'Known Aliases', value: char.aliases.join(', ') }
-  )if char.aliases
+  if char.aliases && char.nicknames
+    fields.push({ name: 'Known Aliases', value: char.aliases.join(', '), inline: true })
+    fields.push({ name: 'Nicknames', value: char.nicknames.join(', '), inline: true })
+  elsif char.aliases
+    fields.push({ name: 'Known Aliases', value: char.aliases.join(', ') })
+  elsif char.nicknames
+    fields.push({ name: 'Nicknames', value: char.nicknames.join(', ') })
+  end
 
   fields
 end
