@@ -34,6 +34,7 @@ class Character < ActiveRecord::Base
     key_mapping = {
       "Characters Name" => "name",
       "Aliases" => "aliases",
+      "Nicknames" => "nicknames",
       "Species" => "species",
       "Shiny" => "shiny",
       "Type" => "types",
@@ -64,6 +65,7 @@ class Character < ActiveRecord::Base
       "user_id" => nil,
       "name" => nil,
       "aliases" => nil,
+      "nicknames" => nil,
       "species" => nil,
       "shiny" => nil,
       "types" => nil,
