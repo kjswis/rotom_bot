@@ -86,7 +86,7 @@ bot.message do |event|
 
     # diff check apps
     edited_fields = ApplicationController.diff(app)
-    event.reply(
+    event.respond(
       "The edited fields appear to be: #{edited_fields.join(", ")}"
     ) unless edited_fields.empty?
 
