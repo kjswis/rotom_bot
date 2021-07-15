@@ -127,6 +127,8 @@ class Character < ActiveRecord::Base
         hash[db_column] = field.value.match(/yes/i) ? true : false
       elsif db_column == 'aliases'
         hash[db_column] = field.value.split(/\s?\|\s?/)
+      elsif db_column == 'nicknames'
+        hash[db_column] = field.value.split(/\s?\|\s?/)
       else
         hash[db_column] = field.value
       end
